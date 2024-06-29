@@ -1,0 +1,21 @@
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+      - "[0-9].*"
+
+name: BC Check
+
+jobs:
+  roave-bc-check:
+    name: Roave BC Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check for breaking changes
+        run: |
+          docker run -u $(id -u) -v $(pwd):/app nyholm/roave-bc-check-ga

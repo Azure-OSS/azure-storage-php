@@ -1,0 +1,42 @@
+{
+  "name": "azure-oss/storage-php",
+  "type": "library",
+  "version": "0.1.0",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "AzureOss\\Storage\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "AzureOss\\Storage\\Tests\\": "tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "brecht.vermeersch",
+      "email": "brecht.vermeersch@athena-graphics.be"
+    },
+    {
+      "name": "Pim Jansen",
+      "email": "pimjansen@gmail.com"
+    }
+  ],
+  "require": {
+    "php": "^8.1",
+    "ext-curl": "*",
+    "guzzlehttp/guzzle": "^7.8",
+    "symfony/serializer": "^6.4",
+    "symfony/property-access": "^6.4",
+    "phpdocumentor/reflection-docblock": "^5.4",
+    "graham-campbell/guzzle-factory": "^7.0",
+    "webmozart/assert": "^1.11"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^1.11",
+    "phpunit/phpunit": "^10.5",
+    "laravel/pint": "^1.16",
+    "symfony/var-dumper": "^6.4"
+  }
+}
