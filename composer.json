@@ -1,5 +1,6 @@
 {
   "name": "azure-oss/storage",
+  "description": "Azure Storage PHP SDK",
   "type": "library",
   "version": "0.1.0",
   "license": "MIT",
