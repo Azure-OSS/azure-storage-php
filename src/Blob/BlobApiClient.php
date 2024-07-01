@@ -11,6 +11,7 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlockListException;
 use AzureOss\Storage\Blob\Requests\Block;
 use AzureOss\Storage\Blob\Requests\BlockType;
+use AzureOss\Storage\Blob\Requests\CopyBlobOptions;
 use AzureOss\Storage\Blob\Requests\CreateContainerOptions;
 use AzureOss\Storage\Blob\Requests\DeleteBlobOptions;
 use AzureOss\Storage\Blob\Requests\DeleteContainerOptions;
@@ -23,6 +24,7 @@ use AzureOss\Storage\Blob\Requests\PutBlobOptions;
 use AzureOss\Storage\Blob\Requests\PutBlockListOptions;
 use AzureOss\Storage\Blob\Requests\PutBlockOptions;
 use AzureOss\Storage\Blob\Requests\UploadBlockBlobOptions;
+use AzureOss\Storage\Blob\Responses\CopyBlobResponse;
 use AzureOss\Storage\Blob\Responses\CreateContainerResponse;
 use AzureOss\Storage\Blob\Responses\DeleteBlobResponse;
 use AzureOss\Storage\Blob\Responses\DeleteContainerResponse;
@@ -470,6 +472,25 @@ final class BlobApiClient implements BlobClient
             $this->client->delete($uri);
 
             return new DeleteBlobResponse();
+        } catch (RequestException $e) {
+            throw $this->convertRequestException($e);
+        }
+    }
+
+    public function copyBlob(string $sourceContainer, string $sourceBlob, string $targetContainer, string $targetBlob, ?CopyBlobOptions $options = null): CopyBlobResponse
+    {
+        try {
+            $uri = $this->buildBlobUri($targetContainer, $targetBlob);
+
+            $headers = $this->buildHeaders([
+                'x-ms-copy-source' => $this->buildBlobUri($sourceContainer, $sourceBlob)
+            ]);
+
+            $this->client->put($uri, [
+                'headers' => $headers
+            ]);
+
+            return new CopyBlobResponse();
         } catch (RequestException $e) {
             throw $this->convertRequestException($e);
         }

@@ -8,6 +8,7 @@ use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Requests\Block;
+use AzureOss\Storage\Blob\Requests\CopyBlobOptions;
 use AzureOss\Storage\Blob\Requests\CreateContainerOptions;
 use AzureOss\Storage\Blob\Requests\DeleteBlobOptions;
 use AzureOss\Storage\Blob\Requests\DeleteContainerOptions;
@@ -19,6 +20,7 @@ use AzureOss\Storage\Blob\Requests\PutBlobOptions;
 use AzureOss\Storage\Blob\Requests\PutBlockListOptions;
 use AzureOss\Storage\Blob\Requests\PutBlockOptions;
 use AzureOss\Storage\Blob\Requests\UploadBlockBlobOptions;
+use AzureOss\Storage\Blob\Responses\CopyBlobResponse;
 use AzureOss\Storage\Blob\Responses\CreateContainerResponse;
 use AzureOss\Storage\Blob\Responses\DeleteBlobResponse;
 use AzureOss\Storage\Blob\Responses\DeleteContainerResponse;
@@ -130,4 +132,12 @@ interface BlobClient
      * @throws BlobNotFoundException
      */
     public function deleteBlob(string $container, string $blob, ?DeleteBlobOptions $options = null): DeleteBlobResponse;
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob
+     *
+     * @throws ContainerNotFoundException
+     * @throws BlobNotFoundException
+     */
+    public function copyBlob(string $sourceContainer, string $sourceBlob, string $targetContainer, string $targetBlob, ?CopyBlobOptions $options = null): CopyBlobResponse;
 }
