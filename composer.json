@@ -35,6 +35,7 @@
   "require-dev": {
     "laravel/pint": "^1.16",
     "phpunit/phpunit": "^10.5",
-    "phpstan/phpstan": "^1.11"
+    "phpstan/phpstan": "^1.11",
+    "symfony/var-dumper": "^6.4"
   }
 }
