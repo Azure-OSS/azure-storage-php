@@ -2,7 +2,7 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
          bootstrap="vendor/autoload.php"
-         cacheDirectory=".phpunit.cache"
+         cacheDirectory=".build/phpunit.cache"
          executionOrder="depends,defects"
          beStrictAboutCoverageMetadata="true"
          beStrictAboutOutputDuringTests="true"
@@ -10,7 +10,7 @@
          failOnWarning="true"
          displayDetailsOnTestsThatTriggerWarnings="true">
     <php>
-        <env name="AZURE_STORAGE_BLOB_TEST_CONNECTION_STRING" value="UseDevelopmentStorage=true" />
+        <env name="AZURE_STORAGE_BLOB_TEST_CONNECTION_STRING" value="UseDevelopmentStorage=true"/>
     </php>
 
     <testsuites>

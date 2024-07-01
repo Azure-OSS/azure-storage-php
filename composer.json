@@ -1,34 +1,40 @@
 {
-    "name": "azure-oss/storage",
-    "type": "library",
-    "version": "0.0.0",
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "AzureOss\\Storage\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "AzureOss\\Storage\\Tests\\": "tests/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Brecht Vermeersch",
-            "email": "brechtvermeersch@outlook.be"
-        }
-    ],
-    "require": {
-        "php": "^8.1",
-        "guzzlehttp/guzzle": "^7.8",
-        "symfony/serializer": "^6.4",
-        "symfony/property-access": "^6.4",
-        "phpdocumentor/reflection-docblock": "^5.4"
-    },
-    "require-dev": {
-        "laravel/pint": "^1.16",
-        "phpunit/phpunit": "^10.5",
-        "phpstan/phpstan": "^1.11"
+  "name": "azure-oss/storage",
+  "type": "library",
+  "version": "0.1.0",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "AzureOss\\Storage\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "AzureOss\\Storage\\Tests\\": "tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Brecht Vermeersch",
+      "email": "brechtvermeersch@outlook.be"
+    },
+    {
+      "name": "Pim Jansen",
+      "email": "pimjansen@gmail.com"
+    }
+  ],
+  "require": {
+    "php": "^8.1",
+    "ext-json": "*",
+    "ext-curl": "*",
+    "guzzlehttp/guzzle": "^7.8",
+    "symfony/serializer": "^6.4",
+    "symfony/property-access": "^6.4",
+    "phpdocumentor/reflection-docblock": "^5.4"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.16",
+    "phpunit/phpunit": "^10.5",
+    "phpstan/phpstan": "^1.11"
+  }
 }

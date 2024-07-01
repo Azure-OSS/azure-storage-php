@@ -23,7 +23,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: curl
+          extensions: curl json
           coverage: none
 
       - name: Download dependencies
