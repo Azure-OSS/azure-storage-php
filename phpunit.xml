@@ -14,8 +14,8 @@
     </php>
 
     <testsuites>
-        <testsuite name="feature">
-            <directory>tests/Blob/Feature</directory>
+        <testsuite name="default">
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 

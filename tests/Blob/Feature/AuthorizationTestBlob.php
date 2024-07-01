@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 class AuthorizationTestBlob extends BlobFeatureTestCase
 {
     #[Test]
-    public function throw_exception_when_unauthorized()
+    public function throw_exception_when_unauthorized(): void
     {
         $this->expectException(AuthorizationFailedException::class);
 
