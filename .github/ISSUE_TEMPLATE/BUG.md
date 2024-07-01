@@ -14,11 +14,11 @@ assignees: ''
 
 <!-- Provide the versions of PHP and `azure-storage-php` on which the issue has been observed -->
 
-|                       | Version |
-|:----------------------|:--------|
-| PHP                   | x.y.z   |
-| service               | blob, file, queue, table        |
-| `storage-php` version | x.y.z   |
+|                             | Version                  |
+|:----------------------------|:-------------------------|
+| PHP version                 | x.y.z                    |
+| Service                     | blob, file, queue, table |
+| `azure-storage-php` version | x.y.z                    |
 
 ### Self-enclosed code snippet for reproduction
 
