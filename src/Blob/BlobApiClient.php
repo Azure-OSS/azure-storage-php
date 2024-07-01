@@ -277,6 +277,7 @@ final class BlobApiClient implements BlobClient
                 'prefix' => $options?->prefix ?? new MissingOption(),
                 'marker' => $options?->marker ?? new MissingOption(),
                 'maxresults' => $options?->maxResults ?? new MissingOption(),
+                'delimiter' => $options?->delimiter ?? new MissingOption(),
             ]);
 
             $response = $this->client->get($uri, ['query' => $query]);

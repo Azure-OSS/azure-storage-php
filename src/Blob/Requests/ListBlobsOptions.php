@@ -10,6 +10,7 @@ class ListBlobsOptions
         public ?string $prefix = null,
         public ?string $marker = null,
         public ?int $maxResults = null,
+        public ?string $delimiter = null
     ) {
     }
 }
