@@ -22,7 +22,7 @@ coverage: ## Collects coverage with phpunit
 
 .PHONY: test
 test: ## Runs tests with phpunit
-	docker compose run phpfpm vendor/bin/phpunit
+	docker compose run -e AZURE_STORAGE_BLOB_TEST_CONNECTION_STRING="DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;" phpfpm vendor/bin/phpunit
 
 .PHONY: static
 static: ## Runs static analyzers
