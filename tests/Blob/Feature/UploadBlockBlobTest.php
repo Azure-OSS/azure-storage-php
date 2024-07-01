@@ -12,7 +12,7 @@ use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\StreamInterface;
 
-class UploadBlockBlobTestBlob extends BlobFeatureTestCase
+class UploadBlockBlobTest extends BlobFeatureTestCase
 {
     #[Test]
     public function uploads_small_file_in_single_request(): void

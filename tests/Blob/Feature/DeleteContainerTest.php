@@ -8,23 +8,25 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-class GetContainerPropertiesTestBlob extends BlobFeatureTestCase
+class DeleteContainerTest extends BlobFeatureTestCase
 {
     #[Test]
-    public function returns_container_properties()
+    public function container_is_deleted(): void
     {
-        $this->expectNotToPerformAssertions();
-
         $this->withContainer(__METHOD__, function (string $container) {
-            $this->client->getContainerProperties($container);
+            $this->assertTrue($this->client->containerExists($container));
+
+            $this->client->deleteContainer($container);
+
+            $this->assertFalse($this->client->containerExists($container));
         });
     }
 
     #[Test]
-    public function throws_when_container_does_not_exist()
+    public function throws_error_when_container_doesnt_exist(): void
     {
         $this->expectException(ContainerNotFoundException::class);
 
-        $this->client->getContainerProperties('noop');
+        $this->client->deleteContainer('noop');
     }
 }

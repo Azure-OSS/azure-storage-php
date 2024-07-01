@@ -12,7 +12,7 @@ use AzureOss\Storage\Blob\Requests\PutBlockListOptions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-class PutBlockListTestBlob extends BlobFeatureTestCase
+class PutBlockListTest extends BlobFeatureTestCase
 {
     #[Test]
     public function commits_block_list(): void

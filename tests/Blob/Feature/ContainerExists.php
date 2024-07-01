@@ -8,7 +8,7 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-class ContainerExistsTestBlob extends BlobFeatureTestCase
+class ContainerExists extends BlobFeatureTestCase
 {
     #[Test]
     public function checks_existence(): void

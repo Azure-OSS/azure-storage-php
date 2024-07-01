@@ -72,7 +72,7 @@ class BlobFeatureTestCase extends TestCase
 
     protected function withFile(string $method, int $size, callable $callable): void
     {
-        $path = sys_get_temp_dir() . 'FeatureTestCase.php/' .md5($method);
+        $path = sys_get_temp_dir() . '/' .md5($method);
 
         unlink($path);
         $resource = Utils::streamFor(Utils::tryFopen($path, 'w'));

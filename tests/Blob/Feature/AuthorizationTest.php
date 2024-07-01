@@ -11,7 +11,7 @@ use AzureOss\Storage\Common\StorageServiceSettings;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-class AuthorizationTestBlob extends BlobFeatureTestCase
+class AuthorizationTest extends BlobFeatureTestCase
 {
     #[Test]
     public function throw_exception_when_unauthorized(): void

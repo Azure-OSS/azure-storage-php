@@ -10,10 +10,10 @@ use AzureOss\Storage\Blob\Requests\PutBlobOptions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-class PutBlobTestBlob extends BlobFeatureTestCase
+class PutBlobTest extends BlobFeatureTestCase
 {
     #[Test]
-    public function blob_is_created()
+    public function blob_is_created(): void
     {
         $this->withContainer(__METHOD__, function (string $container) {
             $blob = md5(__METHOD__);
@@ -33,7 +33,7 @@ class PutBlobTestBlob extends BlobFeatureTestCase
     }
 
     #[Test]
-    public function throws_when_container_is_not_found()
+    public function throws_when_container_is_not_found(): void
     {
         $this->expectException(ContainerNotFoundException::class);
 

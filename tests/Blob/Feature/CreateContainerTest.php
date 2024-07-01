@@ -8,7 +8,7 @@ use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-class CreateContainerTestBlob extends BlobFeatureTestCase
+class CreateContainerTest extends BlobFeatureTestCase
 {
     #[Test]
     public function container_is_created(): void
@@ -19,7 +19,7 @@ class CreateContainerTestBlob extends BlobFeatureTestCase
     }
 
     #[Test]
-    public function throws_exception_when_container_already_exists()
+    public function throws_exception_when_container_already_exists(): void
     {
         $this->expectException(ContainerAlreadyExistsException::class);
 

@@ -9,15 +9,15 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-class GetBlobTestBlob extends BlobFeatureTestCase
+class GetBlobPropertiesTest extends BlobFeatureTestCase
 {
     #[Test]
-    public function gets_blob(): void
+    public function gets_blob_properties(): void
     {
         $this->expectNotToPerformAssertions();
 
-        $this->withBlob(__METHOD__, function (string $containers, string $blob) {
-            $this->client->getBlob($containers, $blob);
+        $this->withBlob(__METHOD__, function (string $containers, string $blobs) {
+            $this->client->getBlobProperties($containers, $blobs);
         });
     }
 
@@ -26,7 +26,7 @@ class GetBlobTestBlob extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundException::class);
 
-        $this->client->getBlob('noop', 'noop');
+        $this->client->getBlobProperties('noop', 'noop');
     }
 
     #[Test]
@@ -35,7 +35,7 @@ class GetBlobTestBlob extends BlobFeatureTestCase
         $this->expectException(BlobNotFoundException::class);
 
         $this->withContainer(__METHOD__, function (string $container) {
-            $this->client->getBlob($container, 'noop');
+            $this->client->getBlobProperties($container, 'noop');
         });
     }
 }
