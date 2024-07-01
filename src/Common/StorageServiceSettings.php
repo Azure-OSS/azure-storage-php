@@ -24,12 +24,19 @@ class StorageServiceSettings
 
         $settings = [];
         foreach (explode(';', $connectionString) as $segment) {
-            [$key, $value] = explode('=', $segment, 2);
-            $settings[$key] = $value;
+            if (!empty($segment)) {
+                [$key, $value] = explode('=', $segment, 2);
+                $settings[$key] = $value;
+            }
         }
 
-        $blobEndpoint = $settings['blobEndpoint']
-            ?? $settings['DefaultEndpointsProtocol'].'://'.$settings['AccountName'].'.blob.'.$settings['EndpointSuffix'];
+        $blobEndpoint = $settings['BlobEndpoint']
+            ?? sprintf(
+                '%s://%s.blob.%s',
+                $settings['DefaultEndpointsProtocol'],
+                $settings['AccountName'],
+                $settings['EndpointSuffix']
+            );
 
         return new self(
             $blobEndpoint,
