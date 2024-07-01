@@ -20,6 +20,12 @@ jobs:
           - '8.2'
           - '8.3'
 
+    services:
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports:
+          - 10000:10000
+
     runs-on: ${{ matrix.operating-system }}
 
     steps:
