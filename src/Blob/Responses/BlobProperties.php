@@ -12,9 +12,7 @@ class BlobProperties
         #[SerializedName('Content-Length')]
         public string $contentLength,
         #[SerializedName('Content-Type')]
-        public string $contentType,
-        #[SerializedName('Content-MD5')]
-        public string $contentMD5
+        public string $contentType
     ) {
     }
 }
