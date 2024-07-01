@@ -1,5 +1,5 @@
 {
-    "name": "azure/azure-storage-php",
+    "name": "azure-oss/storage",
     "type": "library",
     "version": "0.0.0",
     "license": "MIT",
