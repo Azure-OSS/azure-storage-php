@@ -1,5 +1,5 @@
 {
-    "name": "brecht/flysystem-azure-blob-storage",
+    "name": "azure/azure-storage-php",
     "type": "library",
     "version": "0.0.0",
     "license": "MIT",
