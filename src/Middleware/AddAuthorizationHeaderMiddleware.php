@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Middleware;
 use AzureOss\Storage\Interfaces\AuthScheme;
 use Psr\Http\Message\RequestInterface;
 
- class AddAuthorizationHeaderMiddleware
+class AddAuthorizationHeaderMiddleware
 {
     public function __construct(private AuthScheme $authScheme)
     {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Responses;
 
- class Blob
+class Blob
 {
     public function __construct(
         public string $name,

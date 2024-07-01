@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Middleware;
 
 use Psr\Http\Message\RequestInterface;
 
- class AddContentHeadersMiddleware
+class AddContentHeadersMiddleware
 {
     public function __invoke(callable $handler): \Closure
     {

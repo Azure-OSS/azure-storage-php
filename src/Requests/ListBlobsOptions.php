@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Requests;
 
- class ListBlobsOptions
+class ListBlobsOptions
 {
     public function __construct(
         public ?string $prefix = null,

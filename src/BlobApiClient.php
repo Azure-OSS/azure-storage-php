@@ -63,11 +63,11 @@ final class BlobApiClient implements BlobClient
 {
     public const API_VERSION = '2024-08-04';
 
-    private  Client $client;
+    private Client $client;
 
-    private  HandlerStack $handlerStack;
+    private HandlerStack $handlerStack;
 
-    private  SerializerInterface $serializer;
+    private SerializerInterface $serializer;
 
     /**
      * @var int[]
@@ -81,8 +81,8 @@ final class BlobApiClient implements BlobClient
     private int $singleBlobUploadThreshold = 32 * 1000 ** 2; // 32 MB
 
     public function __construct(
-         public StorageServiceSettings $settings,
-         private AuthScheme $authScheme,
+        public StorageServiceSettings $settings,
+        private AuthScheme $authScheme,
     ) {
         $this->serializer = $this->createSerializer();
         $this->handlerStack = $this->createHandlerStack();

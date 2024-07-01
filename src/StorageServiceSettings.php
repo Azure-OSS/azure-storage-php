@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage;
 
- class StorageServiceSettings
+class StorageServiceSettings
 {
     public function __construct(
         public string $blobEndpoint,

@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Responses;
 
 use Symfony\Component\Serializer\Annotation\SerializedName;
 
- class BlobList
+class BlobList
 {
     /**
      * @param  Blob[]  $items

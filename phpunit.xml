@@ -15,10 +15,10 @@
 
     <testsuites>
         <testsuite name="feature">
-            <directory>tests/feature</directory>
+            <directory>tests/Feature</directory>
         </testsuite>
         <testsuite name="unit">
-            <directory>tests/unit</directory>
+            <directory>tests/Unit</directory>
         </testsuite>
     </testsuites>
 

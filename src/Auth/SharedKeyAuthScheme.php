@@ -12,7 +12,7 @@ use Psr\Http\Message\RequestInterface;
 /**
  * @see https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key
  */
- class SharedKeyAuthScheme implements AuthScheme
+class SharedKeyAuthScheme implements AuthScheme
 {
     public const INCLUDED_HEADERS = [
         'Content-Encoding',
@@ -60,17 +60,17 @@ use Psr\Http\Message\RequestInterface;
         }
 
         return base64_encode(
-            hash_hmac('sha256', $stringToSign, $decodedAccountKey , true)
+            hash_hmac('sha256', $stringToSign, $decodedAccountKey, true)
         );
     }
 
-     /**
-      * @param array<string, string> $headers
-      * @param string $url
-      * @param array<string, string> $queryParams
-      * @param string $httpMethod
-      * @return string
-      */
+    /**
+     * @param array<string, string> $headers
+     * @param string $url
+     * @param array<string, string> $queryParams
+     * @param string $httpMethod
+     * @return string
+     */
     private function computeStringToSign(
         array $headers,
         string $url,
@@ -91,9 +91,9 @@ use Psr\Http\Message\RequestInterface;
         return implode("\n", $stringToSign);
     }
 
-     /**
-      * @param array<string, string> $headers
-      */
+    /**
+     * @param array<string, string> $headers
+     */
     private function computeCanonicalizedHeaders(array $headers): string
     {
         $normalizedHeaders = [];
@@ -130,11 +130,11 @@ use Psr\Http\Message\RequestInterface;
         return implode("\n", $canonicalizedHeaders);
     }
 
-     /**
-      * @param string $url
-      * @param array<string, string> $queryParams
-      * @return string
-      */
+    /**
+     * @param string $url
+     * @param array<string, string> $queryParams
+     * @return string
+     */
     private function computeCanonicalizedResource(string $url, array $queryParams): string
     {
         $queryParams = array_change_key_case($queryParams);

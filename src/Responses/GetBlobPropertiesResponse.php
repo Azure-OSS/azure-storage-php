@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Responses;
 
- class GetBlobPropertiesResponse
+class GetBlobPropertiesResponse
 {
     public function __construct(
         public \DateTimeInterface $lastModified,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Responses;
 
- class ListBlobsResponse
+class ListBlobsResponse
 {
     public function __construct(
         public string $nextMarker,

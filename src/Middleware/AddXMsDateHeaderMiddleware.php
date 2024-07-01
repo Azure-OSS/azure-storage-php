@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Middleware;
 
 use Psr\Http\Message\RequestInterface;
 
- class AddXMsDateHeaderMiddleware
+class AddXMsDateHeaderMiddleware
 {
     public function __invoke(callable $handler): \Closure
     {

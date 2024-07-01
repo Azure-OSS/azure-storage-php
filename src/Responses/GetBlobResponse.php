@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Responses;
 
- use Psr\Http\Message\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
- class GetBlobResponse
+class GetBlobResponse
 {
     public function __construct(
         public StreamInterface $content,

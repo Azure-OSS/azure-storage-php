@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Responses;
 
 use Symfony\Component\Serializer\Annotation\SerializedName;
 
- class BlobProperties
+class BlobProperties
 {
     public function __construct(
         #[SerializedName('Content-Length')]
