@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - "main"
-      - "[0-9].*"
 
 name: Static analysis
 
@@ -23,28 +22,12 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          coverage: none
-          extensions: curl
           php-version: ${{ matrix.php-version }}
-
-      - name: Determine composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=directory::$(composer config cache-dir)"
-
-      - name: Cache dependencies installed with composer
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.directory }}
-          key: composer-${{ runner.os }}-${{ matrix.php-version }}-${{ hashFiles('composer.*') }}
-          restore-keys: |
-            composer-${{ runner.os }}-${{ matrix.php-version }}-
-            composer-${{ runner.os }}-
-            composer-
+          extensions: curl
+          coverage: none
 
       - name: Download dependencies
-        run: |
-          composer install --no-interaction --no-progress --optimize-autoloader
+        run: composer install --no-interaction --no-progress --optimize-autoloader
 
       - name: Run PHPStan
-        run: |
-          vendor/bin/phpstan --no-progress --memory-limit=2G
+        run: vendor/bin/phpstan --no-progress --memory-limit=2G

@@ -3,9 +3,8 @@ on:
   push:
     branches:
       - "main"
-      - "[0-9].*"
 
-name: BC Check
+name: Breaking Changes
 
 jobs:
   roave-bc-check:
@@ -17,5 +16,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check for breaking changes
-        run: |
-          docker run -u $(id -u) -v $(pwd):/app nyholm/roave-bc-check-ga
+        run: docker run -u $(id -u) -v $(pwd):/app nyholm/roave-bc-check-ga
