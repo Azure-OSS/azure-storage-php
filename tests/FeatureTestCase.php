@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Tests;
+namespace AzureOss\Storage\Tests;
 
-use Brecht\FlysystemAzureBlobStorage\Auth\SharedKeyAuthScheme;
-use Brecht\FlysystemAzureBlobStorage\BlobApiClient;
-use Brecht\FlysystemAzureBlobStorage\Exceptions\BlobNotFoundException;
-use Brecht\FlysystemAzureBlobStorage\Exceptions\ContainerNotFoundException;
-use Brecht\FlysystemAzureBlobStorage\StorageServiceSettings;
+use AzureOss\Storage\Auth\SharedKeyAuthScheme;
+use AzureOss\Storage\BlobApiClient;
+use AzureOss\Storage\Exceptions\BlobNotFoundException;
+use AzureOss\Storage\Exceptions\ContainerNotFoundException;
+use AzureOss\Storage\StorageServiceSettings;
 use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 

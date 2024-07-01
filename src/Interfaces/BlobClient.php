@@ -2,33 +2,33 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Interfaces;
+namespace AzureOss\Storage\Interfaces;
 
-use Brecht\FlysystemAzureBlobStorage\Exceptions\BlobNotFoundException;
-use Brecht\FlysystemAzureBlobStorage\Exceptions\ContainerAlreadyExistsException;
-use Brecht\FlysystemAzureBlobStorage\Exceptions\ContainerNotFoundException;
-use Brecht\FlysystemAzureBlobStorage\Requests\Block;
-use Brecht\FlysystemAzureBlobStorage\Requests\CreateContainerOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\DeleteBlobOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\DeleteContainerOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\GetBlobOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\GetBlobPropertiesOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\GetContainerPropertiesOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\ListBlobsOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\PutBlobOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\PutBlockListOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\PutBlockOptions;
-use Brecht\FlysystemAzureBlobStorage\Requests\UploadBlockBlobOptions;
-use Brecht\FlysystemAzureBlobStorage\Responses\CreateContainerResponse;
-use Brecht\FlysystemAzureBlobStorage\Responses\DeleteBlobResponse;
-use Brecht\FlysystemAzureBlobStorage\Responses\DeleteContainerResponse;
-use Brecht\FlysystemAzureBlobStorage\Responses\GetBlobPropertiesResponse;
-use Brecht\FlysystemAzureBlobStorage\Responses\GetBlobResponse;
-use Brecht\FlysystemAzureBlobStorage\Responses\GetContainerPropertiesResponse;
-use Brecht\FlysystemAzureBlobStorage\Responses\ListBlobsResponse;
-use Brecht\FlysystemAzureBlobStorage\Responses\PutBlobResponse;
-use Brecht\FlysystemAzureBlobStorage\Responses\PutBlockListResponse;
-use Brecht\FlysystemAzureBlobStorage\Responses\PutBlockResponse;
+use AzureOss\Storage\Exceptions\BlobNotFoundException;
+use AzureOss\Storage\Exceptions\ContainerAlreadyExistsException;
+use AzureOss\Storage\Exceptions\ContainerNotFoundException;
+use AzureOss\Storage\Requests\Block;
+use AzureOss\Storage\Requests\CreateContainerOptions;
+use AzureOss\Storage\Requests\DeleteBlobOptions;
+use AzureOss\Storage\Requests\DeleteContainerOptions;
+use AzureOss\Storage\Requests\GetBlobOptions;
+use AzureOss\Storage\Requests\GetBlobPropertiesOptions;
+use AzureOss\Storage\Requests\GetContainerPropertiesOptions;
+use AzureOss\Storage\Requests\ListBlobsOptions;
+use AzureOss\Storage\Requests\PutBlobOptions;
+use AzureOss\Storage\Requests\PutBlockListOptions;
+use AzureOss\Storage\Requests\PutBlockOptions;
+use AzureOss\Storage\Requests\UploadBlockBlobOptions;
+use AzureOss\Storage\Responses\CreateContainerResponse;
+use AzureOss\Storage\Responses\DeleteBlobResponse;
+use AzureOss\Storage\Responses\DeleteContainerResponse;
+use AzureOss\Storage\Responses\GetBlobPropertiesResponse;
+use AzureOss\Storage\Responses\GetBlobResponse;
+use AzureOss\Storage\Responses\GetContainerPropertiesResponse;
+use AzureOss\Storage\Responses\ListBlobsResponse;
+use AzureOss\Storage\Responses\PutBlobResponse;
+use AzureOss\Storage\Responses\PutBlockListResponse;
+use AzureOss\Storage\Responses\PutBlockResponse;
 use Psr\Http\Message\StreamInterface;
 
 interface BlobClient

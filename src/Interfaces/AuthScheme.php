@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Interfaces;
+namespace AzureOss\Storage\Interfaces;
 
 use Psr\Http\Message\RequestInterface;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Responses;
+namespace AzureOss\Storage\Responses;
 
  class GetContainerPropertiesResponse
 {

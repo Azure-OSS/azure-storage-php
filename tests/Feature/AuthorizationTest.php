@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Tests\Feature;
+namespace AzureOss\Storage\Tests\Feature;
 
-use Brecht\FlysystemAzureBlobStorage\Auth\SharedKeyAuthScheme;
-use Brecht\FlysystemAzureBlobStorage\BlobApiClient;
-use Brecht\FlysystemAzureBlobStorage\Exceptions\AuthorizationFailedException;
-use Brecht\FlysystemAzureBlobStorage\StorageServiceSettings;
-use Brecht\FlysystemAzureBlobStorage\Tests\FeatureTestCase;
+use AzureOss\Storage\Auth\SharedKeyAuthScheme;
+use AzureOss\Storage\BlobApiClient;
+use AzureOss\Storage\Exceptions\AuthorizationFailedException;
+use AzureOss\Storage\StorageServiceSettings;
+use AzureOss\Storage\Tests\FeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
 class AuthorizationTest extends FeatureTestCase

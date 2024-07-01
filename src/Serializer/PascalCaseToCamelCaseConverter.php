@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Serializer;
+namespace AzureOss\Storage\Serializer;
 
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 

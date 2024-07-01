@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Tests\Feature;
+namespace AzureOss\Storage\Tests\Feature;
 
-use Brecht\FlysystemAzureBlobStorage\Exceptions\ContainerNotFoundException;
-use Brecht\FlysystemAzureBlobStorage\Requests\Block;
-use Brecht\FlysystemAzureBlobStorage\Requests\BlockType;
-use Brecht\FlysystemAzureBlobStorage\Tests\FeatureTestCase;
+use AzureOss\Storage\Exceptions\ContainerNotFoundException;
+use AzureOss\Storage\Requests\Block;
+use AzureOss\Storage\Requests\BlockType;
+use AzureOss\Storage\Tests\FeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
 class PutBlockTest extends FeatureTestCase

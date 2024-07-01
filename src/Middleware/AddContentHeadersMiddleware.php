@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Middleware;
+namespace AzureOss\Storage\Middleware;
 
 use Psr\Http\Message\RequestInterface;
 

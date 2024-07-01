@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Tests\Feature;
+namespace AzureOss\Storage\Tests\Feature;
 
-use Brecht\FlysystemAzureBlobStorage\Exceptions\ContainerNotFoundException;
-use Brecht\FlysystemAzureBlobStorage\Tests\FeatureTestCase;
+use AzureOss\Storage\Exceptions\ContainerNotFoundException;
+use AzureOss\Storage\Tests\FeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
 class ListBlobsTest extends FeatureTestCase

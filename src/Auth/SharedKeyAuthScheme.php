@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Auth;
+namespace AzureOss\Storage\Auth;
 
-use Brecht\FlysystemAzureBlobStorage\Interfaces\AuthScheme;
-use Brecht\FlysystemAzureBlobStorage\StorageServiceSettings;
+use AzureOss\Storage\Interfaces\AuthScheme;
+use AzureOss\Storage\StorageServiceSettings;
 use GuzzleHttp\Psr7\Query;
 use Psr\Http\Message\RequestInterface;
 

@@ -5,12 +5,12 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Brecht\\FlysystemAzureBlobStorage\\": "src/"
+            "AzureOss\\Storage\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Brecht\\FlysystemAzureBlobStorage\\Tests\\": "tests/"
+            "AzureOss\\Storage\\Tests\\": "tests/"
         }
     },
     "authors": [

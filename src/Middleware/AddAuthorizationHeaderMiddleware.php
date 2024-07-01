@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Middleware;
+namespace AzureOss\Storage\Middleware;
 
-use Brecht\FlysystemAzureBlobStorage\Interfaces\AuthScheme;
+use AzureOss\Storage\Interfaces\AuthScheme;
 use Psr\Http\Message\RequestInterface;
 
  class AddAuthorizationHeaderMiddleware

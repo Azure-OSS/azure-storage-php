@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Requests;
+namespace AzureOss\Storage\Requests;
 
  class DeleteContainerOptions
 {

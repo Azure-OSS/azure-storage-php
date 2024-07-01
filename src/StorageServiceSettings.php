@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage;
+namespace AzureOss\Storage;
 
  class StorageServiceSettings
 {

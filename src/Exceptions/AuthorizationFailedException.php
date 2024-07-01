@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Brecht\FlysystemAzureBlobStorage\Exceptions;
+namespace AzureOss\Storage\Exceptions;
 
 class AuthorizationFailedException extends \RuntimeException
 {
