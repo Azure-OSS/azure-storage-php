@@ -192,7 +192,7 @@ final class BlobApiClient implements BlobClient
     public function setParallelBlobUploadBlobSizeThresholds(array $thresholds): void
     {
         foreach ($thresholds as $bytes) {
-            if ($bytes > 4000) {
+            if ($bytes > 4_000_000_000) {
                 throw new \LogicException('A block can be a maximum of 4,000 mebibytes (MiB).');
             }
         }
@@ -314,13 +314,14 @@ final class BlobApiClient implements BlobClient
 
         $putBlockRequestGenerator = function () use ($container, $blob, $content, $blockSize, &$blocks): \Iterator {
             while (! $content->eof()) {
-                $blockContent = $content->read($blockSize);
+                $blockContent = StreamUtils::streamFor();
+                StreamUtils::copyToStream($content, $blockContent, $blockSize);
 
                 $blockId = str_pad((string) count($blocks), 6, '0', STR_PAD_LEFT);
                 $block = new Block($blockId, BlockType::UNCOMMITTED);
                 $blocks[] = $block;
 
-                yield fn () => $this->putBlockAsync($container, $blob, $block, StreamUtils::streamFor($blockContent));
+                yield fn () => $this->putBlockAsync($container, $blob, $block, $blockContent);
             }
         };
 
@@ -419,7 +420,6 @@ final class BlobApiClient implements BlobClient
                 new \DateTime($response->getHeader('Last-Modified')[0]),
                 (int) $response->getHeader('Content-Length')[0],
                 $response->getHeader('Content-Type')[0],
-                $response->getHeader('Content-MD5')[0],
             );
         } catch (RequestException $e) {
             throw $this->convertRequestException($e);

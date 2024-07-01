@@ -8,7 +8,6 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Requests\UploadBlockBlobOptions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use GuzzleHttp\Middleware;
-use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\StreamInterface;
 
@@ -30,7 +29,7 @@ class UploadBlockBlobTest extends BlobFeatureTestCase
                 $blobProps = $this->client->getBlob($container, 'test');
 
                 $this->assertEquals(32, $blobProps->contentLength);
-                $this->assertEquals((string) $file, (string) Utils::streamFor($blobProps->content));
+                $this->assertEquals((string) $file, (string) $blobProps->content);
                 $this->assertEquals('application/pdf', $blobProps->contentType);
             });
         });
@@ -53,7 +52,7 @@ class UploadBlockBlobTest extends BlobFeatureTestCase
                 $blobProps = $this->client->getBlob($container, 'test');
 
                 $this->assertEquals(64, $blobProps->contentLength);
-                $this->assertEquals((string) $file, (string) Utils::streamFor($blobProps->content));
+                $this->assertEquals((string) $file, (string) $blobProps->content);
                 $this->assertEquals('application/pdf', $blobProps->contentType);
             });
         });
