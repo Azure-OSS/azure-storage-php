@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AzureOss\Storage\Common\Utils;
 
 use AzureOss\Storage\Common\Exceptions\InvalidXmlException;

@@ -34,7 +34,8 @@ class ListBlobsTest extends BlobFeatureTestCase
             $this->client->uploadBlockBlob($container, "folder/nestedA/blobD", "lorem");
 
             $response = $this->client->listBlobs($container, new ListBlobsOptions(
-                prefix: "folder/", delimiter: "/"
+                prefix: "folder/",
+                delimiter: "/"
             ));
 
             $this->assertCount(2, $response->blobs);

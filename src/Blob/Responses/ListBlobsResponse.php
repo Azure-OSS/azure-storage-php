@@ -22,8 +22,6 @@ final class ListBlobsResponse implements XmlDecodable
 
     public static function fromXml(array $parsed): static
     {
-        $nextMarker = Xml::str($parsed, 'NextMarker');
-
         $blobs = [];
         foreach (Xml::list($parsed, 'Blobs.Blob') as $blob) {
             $blobs[] = Blob::fromXml($blob);
@@ -34,6 +32,10 @@ final class ListBlobsResponse implements XmlDecodable
             $blobPrefixes[] = BlobPrefix::fromXml($blobPrefix);
         }
 
-        return new self($nextMarker, $blobs, $blobPrefixes);
+        return new self(
+            Xml::str($parsed, 'NextMarker'),
+            $blobs,
+            $blobPrefixes
+        );
     }
 }

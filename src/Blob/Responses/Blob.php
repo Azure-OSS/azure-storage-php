@@ -16,9 +16,9 @@ final class Blob implements XmlDecodable
 
     public static function fromXml(array $parsed): static
     {
-        $name = Xml::str($parsed, 'Name');
-        $properties = BlobProperties::fromXml(Xml::assoc($parsed, 'Properties'));
-
-        return new self($name, $properties);
+        return new self(
+            Xml::str($parsed, 'Name'),
+            BlobProperties::fromXml(Xml::assoc($parsed, 'Properties'))
+        );
     }
 }
