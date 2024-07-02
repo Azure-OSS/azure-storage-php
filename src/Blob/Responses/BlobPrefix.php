@@ -2,7 +2,9 @@
 
 namespace AzureOss\Storage\Blob\Responses;
 
-class BlobPrefix
+use AzureOss\Storage\Common\Utils\Xml;
+
+final class BlobPrefix implements XmlDecodable
 {
     public function __construct(
         public string $name
@@ -10,9 +12,9 @@ class BlobPrefix
     {
     }
 
-    public static function fromXml(array $array): self
+    public static function fromXml(array $parsed): static
     {
-        $name = $array['Name'];
+        $name = Xml::str($parsed, 'Name');
 
         return new self($name);
     }

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Responses;
 
-class BlobProperties implements XmlDecodable
+use AzureOss\Storage\Common\Utils\Xml;
+
+final class BlobProperties implements XmlDecodable
 {
     private function __construct(
 //        public string $creationTime,
@@ -52,10 +54,10 @@ class BlobProperties implements XmlDecodable
 
     public static function fromXml(array $parsed): static
     {
-        $lastModified = \DateTime::createFromFormat(\DateTimeInterface::RFC1123, $parsed['Last-Modified']);
-        $contentLength = (int) $parsed['Content-Length'];
-        $contentType = $parsed['Content-Type'];
+        $lastModified = Xml::dateTime($parsed, 'Last-Modified', \DateTimeInterface::RFC1123);
+        $contentLength = Xml::int($parsed, 'Content-Length');
+        $contentType = Xml::str($parsed, 'Content-Type');
 
-        return new static($lastModified, $contentLength, $contentType);
+        return new self($lastModified, $contentLength, $contentType);
     }
 }

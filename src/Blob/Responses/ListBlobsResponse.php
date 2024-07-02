@@ -4,30 +4,36 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Responses;
 
-class ListBlobsResponse
+use AzureOss\Storage\Common\Utils\Xml;
+
+final class ListBlobsResponse implements XmlDecodable
 {
     /**
      * @param string $nextMarker
-     * @param array<int, Blob|BlobPrefix> $blobs
+     * @param Blob[] $blobs
+     * @param BlobPrefix[] $blobPrefixes,
      */
     private function __construct(
         public string $nextMarker,
         public array $blobs,
+        public array $blobPrefixes,
     ) {
     }
 
-    public static function fromXml(array $parsed): ListBlobsResponse
+    public static function fromXml(array $parsed): static
     {
-        $nextMarker = $parsed['NextMarker'];
+        $nextMarker = Xml::str($parsed, 'NextMarker');
 
         $blobs = [];
-        foreach($parsed['Blobs'] as $key=> $value) {
-            $blobs[] = match($key) {
-                "Blob" => Blob::fromXml($value),
-                "BlobPrefix" => BlobPrefix::fromXml($value),
-            };
+        foreach (Xml::list($parsed, 'Blobs.Blob') as $blob) {
+            $blobs[] = Blob::fromXml($blob);
         }
 
-        return new ListBlobsResponse($nextMarker, $blobs);
+        $blobPrefixes = [];
+        foreach (Xml::list($parsed, 'Blobs.BlobPrefix') as $blobPrefix) {
+            $blobPrefixes[] = BlobPrefix::fromXml($blobPrefix);
+        }
+
+        return new self($nextMarker, $blobs, $blobPrefixes);
     }
 }

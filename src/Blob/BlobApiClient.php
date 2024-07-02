@@ -130,14 +130,15 @@ final class BlobApiClient implements BlobClient
     }
 
     /**
-     * @template T of mixed
-     * @param class-string<XmlDecodable&T> $type
+     * @template T of XmlDecodable
+     * @param class-string<T> $type
      * @return T
      */
     private function decodeBody(StreamInterface $body, string $type): mixed
     {
         $parsed = $this->xmlEncoder->decode($body->getContents(), 'xml');
 
+        /** @phpstan-ignore-next-line */
         return $type::fromXml($parsed);
     }
 
