@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AzureOss\Storage\Tests\Blob\Feature;
+namespace AzureOss\Storage\Tests\Blob\Feature\BlobClient;
 
+use AzureOss\Storage\Blob\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Requests\PutBlobOptions;
@@ -15,20 +16,21 @@ class PutBlobTest extends BlobFeatureTestCase
     #[Test]
     public function blob_is_created(): void
     {
-        $this->withContainer(__METHOD__, function (string $container) {
-            $blob = md5(__METHOD__);
+        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
 
+            $blobClient = $containerClient->getBlobClient("test");
             try {
-                $this->client->deleteBlob($container, $blob);
+                $blobClient->delete();
             } catch (BlobNotFoundException) {
                 // do nothing
             }
 
-            $this->client->putBlob($container, $blob, 'Lorem', new PutBlobOptions(contentType: 'application/pdf'));
+            $blobClient->put('Lorem', new PutBlobOptions(contentType: 'application/pdf'));
 
-            $blobResponse = $this->client->getBlob($container, $blob);
+            $blobResponse = $blobClient->get();
 
             $this->assertEquals('application/pdf', $blobResponse->contentType);
+            $this->assertEquals('Lorem', $blobResponse->content->getContents());
         });
     }
 
@@ -37,6 +39,6 @@ class PutBlobTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundException::class);
 
-        $this->client->putBlob('noop', 'noop', 'Lorem');
+        $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->put('Lorem');
     }
 }

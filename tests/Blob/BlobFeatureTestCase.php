@@ -4,19 +4,16 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob;
 
-use AzureOss\Storage\Blob\BlobApiClient;
+use AzureOss\Storage\Blob\BlobServiceClient;
+use AzureOss\Storage\Blob\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
-use AzureOss\Storage\Common\Auth\SharedKeyAuthScheme;
-use AzureOss\Storage\Common\StorageServiceSettings;
 use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 
 class BlobFeatureTestCase extends TestCase
 {
-    protected BlobApiClient $client;
-
-    protected string $container;
+    protected BlobServiceClient $serviceClient;
 
     protected function setUp(): void
     {
@@ -26,28 +23,26 @@ class BlobFeatureTestCase extends TestCase
             throw new \Exception('Connection string not set!');
         }
 
-        $settings = StorageServiceSettings::createFromConnectionString($connectionString);
-        $auth = new SharedKeyAuthScheme($settings);
-
-        $this->client = new BlobApiClient($settings, $auth);
+        $this->serviceClient = BlobServiceClient::fromConnectionString($connectionString);
     }
 
     protected function withContainer(string $method, callable $callable): void
     {
         $container = substr(md5($method), 0, 24);
+        $client = $this->serviceClient->getContainerClient($container);
 
         try {
-            $this->client->deleteContainer($container);
+            $client->delete();
         } catch (ContainerNotFoundException) {
             // do nothing
         }
 
-        $this->client->createContainer($container);
+        $client->create();
 
-        $callable($container);
+        $callable($client);
 
         try {
-            $this->client->deleteContainer($container);
+            $client->delete();
         } catch (ContainerNotFoundException) {
             // do nothing
         }
@@ -55,18 +50,20 @@ class BlobFeatureTestCase extends TestCase
 
     protected function withBlob(string $method, callable $callable): void
     {
-        $this->withContainer($method, function (string $container) use ($method, $callable) {
+        $this->withContainer($method, function (ContainerClient $containerClient) use ($method, $callable) {
             $blob = md5($method);
 
+            $client = $containerClient->getBlobClient($blob);
+
             try {
-                $this->client->deleteBlob($container, $blob);
+                $client->delete();
             } catch (BlobNotFoundException) {
                 // do nothing
             }
 
-            $this->client->putBlob($container, $blob, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
+            $client->put('Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
 
-            $callable($container, $blob);
+            $callable($client);
         });
     }
 

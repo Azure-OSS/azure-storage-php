@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Common\Middleware;
 
-use AzureOss\Storage\Common\Auth\AuthScheme;
+use AzureOss\Storage\Common\Auth\Credentials;
 use Psr\Http\Message\RequestInterface;
 
 class AddAuthorizationHeaderMiddleware
 {
-    public function __construct(private AuthScheme $authScheme)
+    public function __construct(private Credentials $authScheme)
     {
     }
 

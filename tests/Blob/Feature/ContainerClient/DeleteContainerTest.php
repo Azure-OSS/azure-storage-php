@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AzureOss\Storage\Tests\Blob\Feature;
+namespace AzureOss\Storage\Tests\Blob\Feature\ContainerClient;
 
+use AzureOss\Storage\Blob\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,12 +14,12 @@ class DeleteContainerTest extends BlobFeatureTestCase
     #[Test]
     public function container_is_deleted(): void
     {
-        $this->withContainer(__METHOD__, function (string $container) {
-            $this->assertTrue($this->client->containerExists($container));
+        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+            $this->assertTrue($containerClient->exists());
 
-            $this->client->deleteContainer($container);
+            $containerClient->delete();
 
-            $this->assertFalse($this->client->containerExists($container));
+            $this->assertFalse($containerClient->exists());
         });
     }
 
@@ -27,6 +28,6 @@ class DeleteContainerTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundException::class);
 
-        $this->client->deleteContainer('noop');
+        $this->serviceClient->getContainerClient('noop')->delete();
     }
 }

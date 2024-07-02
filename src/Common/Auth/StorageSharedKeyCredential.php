@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Common\Auth;
 
-use AzureOss\Storage\Common\StorageServiceSettings;
 use GuzzleHttp\Psr7\Query;
 use Psr\Http\Message\RequestInterface;
 
 /**
  * @see https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key
  */
-class SharedKeyAuthScheme implements AuthScheme
+class StorageSharedKeyCredential implements Credentials
 {
     public const INCLUDED_HEADERS = [
         'Content-Encoding',
@@ -27,14 +26,8 @@ class SharedKeyAuthScheme implements AuthScheme
         'Range',
     ];
 
-    private string $accountName;
-
-    private string $accountKey;
-
-    public function __construct(StorageServiceSettings $settings)
+    public function __construct(private readonly string $accountName, private readonly string $accountKey)
     {
-        $this->accountName = $settings->accountName;
-        $this->accountKey = $settings->accountKey;
     }
 
     public function computeAuthorizationHeader(RequestInterface $request): string

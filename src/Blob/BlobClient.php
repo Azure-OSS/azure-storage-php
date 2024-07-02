@@ -5,139 +5,142 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob;
 
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
-use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
-use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
-use AzureOss\Storage\Blob\Requests\Block;
 use AzureOss\Storage\Blob\Requests\CopyBlobOptions;
-use AzureOss\Storage\Blob\Requests\CreateContainerOptions;
 use AzureOss\Storage\Blob\Requests\DeleteBlobOptions;
-use AzureOss\Storage\Blob\Requests\DeleteContainerOptions;
 use AzureOss\Storage\Blob\Requests\GetBlobOptions;
 use AzureOss\Storage\Blob\Requests\GetBlobPropertiesOptions;
-use AzureOss\Storage\Blob\Requests\GetContainerPropertiesOptions;
-use AzureOss\Storage\Blob\Requests\ListBlobsOptions;
 use AzureOss\Storage\Blob\Requests\PutBlobOptions;
-use AzureOss\Storage\Blob\Requests\PutBlockListOptions;
-use AzureOss\Storage\Blob\Requests\PutBlockOptions;
-use AzureOss\Storage\Blob\Requests\UploadBlockBlobOptions;
 use AzureOss\Storage\Blob\Responses\CopyBlobResponse;
-use AzureOss\Storage\Blob\Responses\CreateContainerResponse;
 use AzureOss\Storage\Blob\Responses\DeleteBlobResponse;
-use AzureOss\Storage\Blob\Responses\DeleteContainerResponse;
 use AzureOss\Storage\Blob\Responses\GetBlobPropertiesResponse;
 use AzureOss\Storage\Blob\Responses\GetBlobResponse;
-use AzureOss\Storage\Blob\Responses\GetContainerPropertiesResponse;
-use AzureOss\Storage\Blob\Responses\ListBlobsResponse;
 use AzureOss\Storage\Blob\Responses\PutBlobResponse;
-use AzureOss\Storage\Blob\Responses\PutBlockListResponse;
-use AzureOss\Storage\Blob\Responses\PutBlockResponse;
-use Psr\Http\Message\StreamInterface;
+use AzureOss\Storage\Common\Auth\Credentials;
+use AzureOss\Storage\Common\MiddlewareFactory;
+use AzureOss\Storage\Common\ExceptionHandler;
+use AzureOss\Storage\Tests\Blob\Feature\BlobClient\BlobExistsTest;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\HandlerStack;
 
-interface BlobClient
+class BlobClient
 {
-    /**
-     * @param  resource|string|StreamInterface  $content
-     *
-     * @throws ContainerNotFoundException
-     * @throws BlobNotFoundException
-     */
-    public function uploadBlockBlob(string $container, string $blob, $content, ?UploadBlockBlobOptions $options = null): void;
+    private readonly Client $client;
 
-    public function containerExists(string $container): bool;
+    private HandlerStack $handlerStack;
 
-    /**
-     * @throws ContainerNotFoundException
-     */
-    public function blobExists(string $container, string $blob): bool;
+    private readonly ExceptionHandler $exceptionHandler;
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/create-container
-     *
-     * @throws ContainerAlreadyExistsException
-     */
-    public function createContainer(string $container, ?CreateContainerOptions $options = null): CreateContainerResponse;
+    public function __construct(
+        public readonly string $blobEndpoint,
+        public readonly string $containerName,
+        public readonly string $blobName,
+        public Credentials $credentials
+    ) {
+        $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $credentials);
+        $this->client = new Client(['handler' => $this->handlerStack]);
+        $this->exceptionHandler = new ExceptionHandler();
+    }
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/get-container-properties
-     *
-     * @throws ContainerNotFoundException
-     */
-    public function getContainerProperties(string $container, ?GetContainerPropertiesOptions $options = null): GetContainerPropertiesResponse;
+    private function getUrl(): string
+    {
+        return $this->blobEndpoint . '/' . $this->containerName . '/' . $this->blobName;
+    }
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/delete-container
-     *
-     * @throws ContainerNotFoundException
-     */
-    public function deleteContainer(string $container, ?DeleteContainerOptions $options = null): DeleteContainerResponse;
+    public function getBlockBlobClient(): BlockBlobClient
+    {
+        return new BlockBlobClient($this->blobEndpoint, $this->containerName, $this->blobName, $this->credentials);
+    }
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/list-blobs
-     *
-     * @throws ContainerNotFoundException
-     * @throws BlobNotFoundException
-     */
-    public function listBlobs(string $container, ?ListBlobsOptions $options = null): ListBlobsResponse;
+    public function getContainerClient(): ContainerClient
+    {
+        return new ContainerClient($this->blobEndpoint, $this->containerName, $this->credentials);
+    }
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/put-blob?tabs=microsoft-entra-id
-     *
-     * @param  resource|string|StreamInterface  $content
-     *
-     * @throws ContainerNotFoundException
-     * @throws BlobNotFoundException
-     */
-    public function putBlob(string $container, string $blob, $content, ?PutBlobOptions $options = null): PutBlobResponse;
+    public function get(?GetBlobOptions $options = null): GetBlobResponse
+    {
+        try {
+            $response = $this->client->get($this->getUrl(), [
+                'stream' => true,
+            ]);
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/put-block
-     *
-     * @param  resource|string  $content
-     *
-     * @throws ContainerNotFoundException
-     * @throws BlobNotFoundException
-     */
-    public function putBlock(string $container, string $blob, Block $block, $content, ?PutBlockOptions $options = null): PutBlockResponse;
+            return new GetBlobResponse(
+                $response->getBody(),
+                new \DateTime($response->getHeader('Last-Modified')[0]),
+                (int) $response->getHeader('Content-Length')[0],
+                $response->getHeader('Content-Type')[0],
+            );
+        } catch (RequestException $e) {
+            $this->exceptionHandler->handleRequestException($e);
+        }
+    }
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/put-block-list
-     *
-     * @param  Block[]  $blocks
-     *
-     * @throws ContainerNotFoundException
-     * @throws BlobNotFoundException
-     */
-    public function putBlockList(string $container, string $blob, array $blocks, ?PutBlockListOptions $options = null): PutBlockListResponse;
+    public function getProperties(?GetBlobPropertiesOptions $options = null): GetBlobPropertiesResponse
+    {
+        try {
+            $response = $this->client->head($this->getUrl());
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob
-     *
-     * @throws ContainerNotFoundException
-     * @throws BlobNotFoundException
-     */
-    public function getBlob(string $container, string $blob, ?GetBlobOptions $options = null): GetBlobResponse;
+            return new GetBlobPropertiesResponse(
+                new \DateTime($response->getHeader('Last-Modified')[0]),
+                (int) $response->getHeader('Content-Length')[0],
+                $response->getHeader('Content-Type')[0],
+            );
+        } catch (RequestException $e) {
+            $this->exceptionHandler->handleRequestException($e);
+        }
+    }
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-properties
-     *
-     * @throws ContainerNotFoundException
-     * @throws BlobNotFoundException
-     */
-    public function getBlobProperties(string $container, string $blob, ?GetBlobPropertiesOptions $options = null): GetBlobPropertiesResponse;
+    public function put($content, ?PutBlobOptions $options = null): PutBlobResponse
+    {
+        try {
+            $this->client->put($this->getUrl(), [
+                'headers' => [
+                    'x-ms-blob-type' => 'BlockBlob',
+                    'Content-Type' => $options?->contentType,
+                ],
+                'body' => $content,
+            ]);
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/delete-blob
-     *
-     * @throws ContainerNotFoundException
-     * @throws BlobNotFoundException
-     */
-    public function deleteBlob(string $container, string $blob, ?DeleteBlobOptions $options = null): DeleteBlobResponse;
+            return new PutBlobResponse();
+        } catch (RequestException $e) {
+            $this->exceptionHandler->handleRequestException($e);
+        }
+    }
 
-    /**
-     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob
-     *
-     * @throws ContainerNotFoundException
-     * @throws BlobNotFoundException
-     */
-    public function copyBlob(string $sourceContainer, string $sourceBlob, string $targetContainer, string $targetBlob, ?CopyBlobOptions $options = null): CopyBlobResponse;
+    public function delete(?DeleteBlobOptions $options = null): DeleteBlobResponse
+    {
+        try {
+            $this->client->delete($this->getUrl());
+
+            return new DeleteBlobResponse();
+        } catch (RequestException $e) {
+            $this->exceptionHandler->handleRequestException($e);
+        }
+    }
+
+    public function copy(string $targetContainer, string $targetBlob, ?CopyBlobOptions $options = null): CopyBlobResponse
+    {
+        try {
+            $this->client->put($this->blobEndpoint . '/' . $targetContainer . '/' . $targetBlob, [
+                'headers' => [
+                    'x-ms-copy-source' => $this->blobEndpoint . '/'  . $this->containerName . '/' . $this->blobName
+                ]
+            ]);
+
+            return new CopyBlobResponse();
+        } catch (RequestException $e) {
+            $this->exceptionHandler->handleRequestException($e);
+        }
+    }
+
+    public function exists(BlobExistsTest $options = null): bool
+    {
+        try {
+            $this->getProperties();
+
+            return true;
+        } catch (BlobNotFoundException) {
+            return false;
+        }
+    }
 }

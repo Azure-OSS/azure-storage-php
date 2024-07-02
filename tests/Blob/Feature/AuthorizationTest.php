@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature;
 
-use AzureOss\Storage\Blob\BlobApiClient;
+use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Exceptions\AuthorizationFailedException;
-use AzureOss\Storage\Common\Auth\SharedKeyAuthScheme;
-use AzureOss\Storage\Common\StorageServiceSettings;
+use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -18,11 +17,8 @@ class AuthorizationTest extends BlobFeatureTestCase
     {
         $this->expectException(AuthorizationFailedException::class);
 
-        $settings = new StorageServiceSettings($this->client->settings->blobEndpoint, 'noop', 'noop');
-        $auth = new SharedKeyAuthScheme($settings);
+        $badClient = new BlobServiceClient($this->serviceClient->blobEndpoint, new StorageSharedKeyCredential('noop', 'noop'));
 
-        $this->client = new BlobApiClient($settings, $auth);
-
-        $this->client->createContainer('test');
+        $badClient->getContainerClient('test')->create();
     }
 }

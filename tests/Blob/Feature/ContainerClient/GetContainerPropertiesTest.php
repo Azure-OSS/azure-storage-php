@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AzureOss\Storage\Tests\Blob\Feature;
+namespace AzureOss\Storage\Tests\Blob\Feature\ContainerClient;
 
+use AzureOss\Storage\Blob\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,8 +16,8 @@ class GetContainerPropertiesTest extends BlobFeatureTestCase
     {
         $this->expectNotToPerformAssertions();
 
-        $this->withContainer(__METHOD__, function (string $container) {
-            $this->client->getContainerProperties($container);
+        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+            $containerClient->getProperties();
         });
     }
 
@@ -25,6 +26,6 @@ class GetContainerPropertiesTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundException::class);
 
-        $this->client->getContainerProperties('noop');
+        $this->serviceClient->getContainerClient('noop')->getProperties();
     }
 }

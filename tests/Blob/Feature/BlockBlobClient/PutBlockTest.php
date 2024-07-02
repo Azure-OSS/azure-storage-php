@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AzureOss\Storage\Tests\Blob\Feature;
+namespace AzureOss\Storage\Tests\Blob\Feature\BlockBlobClient;
 
+use AzureOss\Storage\Blob\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Requests\Block;
 use AzureOss\Storage\Blob\Requests\BlockType;
@@ -13,15 +14,14 @@ use PHPUnit\Framework\Attributes\Test;
 class PutBlockTest extends BlobFeatureTestCase
 {
     #[Test]
-    public function commits_block_list(): void
+    public function puts_block(): void
     {
         $this->expectNotToPerformAssertions();
 
-        $this->withContainer(__METHOD__, function (string $container) {
-            $blob = md5(__METHOD__);
+        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
             $block = new Block('ABCDEF', BlockType::UNCOMMITTED);
 
-            $this->client->putBlock($container, $blob, $block, 'Lorem');
+            $containerClient->getBlockBlobClient("test")->putBlock($block, 'Lorem');
         });
     }
 
@@ -30,6 +30,8 @@ class PutBlockTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundException::class);
 
-        $this->client->putBlockList('noop', 'noop', []);
+        $block = new Block('ABCDEF', BlockType::UNCOMMITTED);
+
+        $this->serviceClient->getContainerClient('noop')->getBlockBlobClient('noop')->putBlock($block, "Lorem");
     }
 }

@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Common\Auth;
 
 use Psr\Http\Message\RequestInterface;
 
-interface AuthScheme
+interface Credentials
 {
     public function computeAuthorizationHeader(RequestInterface $request): string;
 }
