@@ -17,7 +17,7 @@ use AzureOss\Storage\Blob\Responses\ListBlobsResponse;
 use AzureOss\Storage\Blob\Responses\XmlDecodable;
 use AzureOss\Storage\Common\Auth\Credentials;
 use AzureOss\Storage\Common\MiddlewareFactory;
-use AzureOss\Storage\Common\ExceptionHandler;
+use AzureOss\Storage\Common\ExceptionFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
@@ -29,7 +29,7 @@ class ContainerClient
     private readonly Client $client;
     private HandlerStack $handlerStack;
 
-    private readonly ExceptionHandler $exceptionHandler;
+    private readonly ExceptionFactory $exceptionFactory;
 
     public function __construct(
         public readonly string $blobEndpoint,
@@ -38,7 +38,7 @@ class ContainerClient
     ) {
         $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $credentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
-        $this->exceptionHandler = new ExceptionHandler();
+        $this->exceptionFactory = new ExceptionFactory();
     }
 
     public function getBlobClient(string $blobName): BlobClient
@@ -77,7 +77,7 @@ class ContainerClient
 
             return new CreateContainerResponse();
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 
@@ -92,7 +92,7 @@ class ContainerClient
 
             return new GetContainerPropertiesResponse();
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 
@@ -107,7 +107,7 @@ class ContainerClient
 
             return new DeleteContainerResponse();
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 
@@ -127,7 +127,7 @@ class ContainerClient
 
             return $this->decodeBody($response->getBody(), ListBlobsResponse::class);
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 

@@ -14,7 +14,7 @@ use AzureOss\Storage\Blob\Responses\PutBlockListResponse;
 use AzureOss\Storage\Blob\Responses\PutBlockResponse;
 use AzureOss\Storage\Common\Auth\Credentials;
 use AzureOss\Storage\Common\MiddlewareFactory;
-use AzureOss\Storage\Common\ExceptionHandler;
+use AzureOss\Storage\Common\ExceptionFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
@@ -33,7 +33,7 @@ class BlockBlobClient
     private readonly Client $client;
     private HandlerStack $handlerStack;
 
-    private readonly ExceptionHandler $exceptionHandler;
+    private readonly ExceptionFactory $exceptionFactory;
 
     /**
      * @var int[]
@@ -54,7 +54,7 @@ class BlockBlobClient
     ) {
         $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $credentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
-        $this->exceptionHandler = new ExceptionHandler();
+        $this->exceptionFactory = new ExceptionFactory();
     }
 
     private function getUrl(): string
@@ -107,6 +107,9 @@ class BlockBlobClient
         throw new \LogicException('A block blob can include a maximum of 50,000 committed blocks.');
     }
 
+    /**
+     * @param string|resource|StreamInterface $content
+     */
     public function upload($content, ?UploadBlockBlobOptions $options = null): void
     {
         $stream = StreamUtils::streamFor($content);
@@ -144,7 +147,7 @@ class BlockBlobClient
 
         $pool = new Pool($this->client, $putBlockRequestGenerator(), [
             'rejected' => function (RequestException $e) {
-                $this->exceptionHandler->handleRequestException($e);
+                throw $this->exceptionFactory->create($e);
             },
         ]);
 
@@ -153,13 +156,16 @@ class BlockBlobClient
         $this->putBlockList($blocks, new PutBlockListOptions($options?->contentType));
     }
 
+    /**
+     * @param string|resource|StreamInterface $content
+     */
     public function putBlock(Block $block, $content, ?PutBlockOptions $options = null): PutBlockResponse
     {
         try {
             /** @phpstan-ignore-next-line */
             return $this->putBlockAsync($block, StreamUtils::streamFor($content), $options)->wait();
         } catch(RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 
@@ -178,6 +184,9 @@ class BlockBlobClient
             });
     }
 
+    /**
+     * @param Block[] $blocks
+     */
     public function putBlockList(array $blocks, ?PutBlockListOptions $options = null): PutBlockListResponse
     {
         try {
@@ -209,7 +218,7 @@ class BlockBlobClient
 
             return new PutBlockListResponse();
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 

@@ -19,7 +19,7 @@ class ListBlobsTest extends BlobFeatureTestCase
             $containerClient->getBlobClient("blobA")->put("lorem");
             $containerClient->getBlobClient("blobB")->put("lorem");
             $containerClient->getBlobClient("blobC")->put("lorem");
-            $response = $containerClient->listBlobs($container);
+            $response = $containerClient->listBlobs();
 
             $this->assertCount(3, $response->blobs);
         });

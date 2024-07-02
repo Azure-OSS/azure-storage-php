@@ -17,11 +17,12 @@ use AzureOss\Storage\Blob\Responses\GetBlobResponse;
 use AzureOss\Storage\Blob\Responses\PutBlobResponse;
 use AzureOss\Storage\Common\Auth\Credentials;
 use AzureOss\Storage\Common\MiddlewareFactory;
-use AzureOss\Storage\Common\ExceptionHandler;
+use AzureOss\Storage\Common\ExceptionFactory;
 use AzureOss\Storage\Tests\Blob\Feature\BlobClient\BlobExistsTest;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
+use Psr\Http\Message\StreamInterface;
 
 class BlobClient
 {
@@ -29,7 +30,7 @@ class BlobClient
 
     private HandlerStack $handlerStack;
 
-    private readonly ExceptionHandler $exceptionHandler;
+    private readonly ExceptionFactory $exceptionFactory;
 
     public function __construct(
         public readonly string $blobEndpoint,
@@ -39,7 +40,7 @@ class BlobClient
     ) {
         $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $credentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
-        $this->exceptionHandler = new ExceptionHandler();
+        $this->exceptionFactory = new ExceptionFactory();
     }
 
     private function getUrl(): string
@@ -71,7 +72,7 @@ class BlobClient
                 $response->getHeader('Content-Type')[0],
             );
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 
@@ -86,10 +87,13 @@ class BlobClient
                 $response->getHeader('Content-Type')[0],
             );
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 
+    /**
+     * @param string|resource|StreamInterface $content
+     */
     public function put($content, ?PutBlobOptions $options = null): PutBlobResponse
     {
         try {
@@ -103,7 +107,7 @@ class BlobClient
 
             return new PutBlobResponse();
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 
@@ -114,7 +118,7 @@ class BlobClient
 
             return new DeleteBlobResponse();
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 
@@ -129,7 +133,7 @@ class BlobClient
 
             return new CopyBlobResponse();
         } catch (RequestException $e) {
-            $this->exceptionHandler->handleRequestException($e);
+            throw $this->exceptionFactory->create($e);
         }
     }
 

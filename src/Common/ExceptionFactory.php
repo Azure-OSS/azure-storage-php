@@ -12,11 +12,11 @@ use AzureOss\Storage\Blob\Exceptions\InvalidBlockListException;
 use AzureOss\Storage\Blob\Responses\ErrorCode;
 use GuzzleHttp\Exception\RequestException;
 
-class ExceptionHandler
+class ExceptionFactory
 {
-    public function handleRequestException(RequestException $e): void
+    public function create(RequestException $e): \Exception
     {
-        throw match (ErrorCode::fromRequestException($e)) {
+        return match (ErrorCode::fromRequestException($e)) {
             ErrorCode::AUTHORIZATION_FAILURE => new AuthorizationFailedException($e),
             ErrorCode::CONTAINER_NOT_FOUND => new ContainerNotFoundException($e),
             ErrorCode::CONTAINER_ALREADY_EXISTS => new ContainerAlreadyExistsException($e),
