@@ -9,24 +9,24 @@ use JMS\Serializer\Annotation\XmlList;
 
 class ListBlobsResponse
 {
-    public string $prefix;
+    public readonly string $prefix;
 
-    public string $marker;
+    public readonly string $marker;
 
-    public int $maxResults;
+    public readonly int $maxResults;
 
-    public string $delimiter;
+    public readonly string $delimiter;
 
     /**
      * @var Blob[]
      */
     #[XmlList(entry: "Blob")]
-    public array $blobs;
+    public readonly array $blobs;
 
     /**
      * @var BlobPrefix[]
      */
     #[SerializedName("Blobs")]
     #[XmlList(entry: "BlobPrefix")]
-    public array $blobPrefixes;
+    public readonly array $blobPrefixes;
 }

@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Blob\Responses;
 
 class Blob
 {
-    public string $name;
+    public readonly string $name;
 
-    public BlobProperties $properties;
+    public readonly BlobProperties $properties;
 }

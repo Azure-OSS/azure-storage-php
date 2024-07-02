@@ -11,11 +11,11 @@ class BlobProperties
 {
     #[SerializedName('Last-Modified')]
     #[Type("DateTimeImmutable<'" . \DateTimeInterface::RFC1123 ."'>")]
-    public \DateTimeInterface $lastModified;
+    public readonly \DateTimeInterface $lastModified;
 
     #[SerializedName('Content-Length')]
-    public int $contentLength;
+    public readonly int $contentLength;
 
     #[SerializedName('Content-Type')]
-    public string $contentType;
+    public readonly string $contentType;
 }

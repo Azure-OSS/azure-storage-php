@@ -6,5 +6,5 @@ namespace AzureOss\Storage\Blob\Responses;
 
 class BlobPrefix
 {
-    public string $name;
+    public readonly string $name;
 }
