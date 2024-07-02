@@ -5,23 +5,25 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob;
 
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
-use AzureOss\Storage\Blob\Requests\CopyBlobOptions;
-use AzureOss\Storage\Blob\Requests\DeleteBlobOptions;
-use AzureOss\Storage\Blob\Requests\GetBlobOptions;
-use AzureOss\Storage\Blob\Requests\GetBlobPropertiesOptions;
-use AzureOss\Storage\Blob\Requests\PutBlobOptions;
+use AzureOss\Storage\Blob\Options\CopyBlobOptions;
+use AzureOss\Storage\Blob\Options\DeleteBlobOptions;
+use AzureOss\Storage\Blob\Options\GetBlobOptions;
+use AzureOss\Storage\Blob\Options\GetBlobPropertiesOptions;
+use AzureOss\Storage\Blob\Options\PutBlobOptions;
 use AzureOss\Storage\Blob\Responses\CopyBlobResponse;
 use AzureOss\Storage\Blob\Responses\DeleteBlobResponse;
 use AzureOss\Storage\Blob\Responses\GetBlobPropertiesResponse;
 use AzureOss\Storage\Blob\Responses\GetBlobResponse;
 use AzureOss\Storage\Blob\Responses\PutBlobResponse;
 use AzureOss\Storage\Common\Auth\Credentials;
-use AzureOss\Storage\Common\MiddlewareFactory;
-use AzureOss\Storage\Common\ExceptionFactory;
+use AzureOss\Storage\Common\Exceptions\ExceptionFactory;
+use AzureOss\Storage\Common\Middleware\MiddlewareFactory;
+use AzureOss\Storage\Common\Serializer\SerializerFactory;
 use AzureOss\Storage\Tests\Blob\Feature\BlobClient\BlobExistsTest;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
+use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\StreamInterface;
 
 class BlobClient

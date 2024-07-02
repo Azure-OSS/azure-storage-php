@@ -4,25 +4,27 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob;
 
-use AzureOss\Storage\Blob\Requests\Block;
-use AzureOss\Storage\Blob\Requests\BlockType;
-use AzureOss\Storage\Blob\Requests\PutBlobOptions;
-use AzureOss\Storage\Blob\Requests\PutBlockListOptions;
-use AzureOss\Storage\Blob\Requests\PutBlockOptions;
-use AzureOss\Storage\Blob\Requests\UploadBlockBlobOptions;
+use AzureOss\Storage\Blob\Options\Block;
+use AzureOss\Storage\Blob\Options\BlockType;
+use AzureOss\Storage\Blob\Options\PutBlobOptions;
+use AzureOss\Storage\Blob\Options\PutBlockListOptions;
+use AzureOss\Storage\Blob\Options\PutBlockOptions;
+use AzureOss\Storage\Blob\Options\UploadBlockBlobOptions;
+use AzureOss\Storage\Blob\Requests\PutBlockRequestBody;
 use AzureOss\Storage\Blob\Responses\PutBlockListResponse;
 use AzureOss\Storage\Blob\Responses\PutBlockResponse;
 use AzureOss\Storage\Common\Auth\Credentials;
-use AzureOss\Storage\Common\MiddlewareFactory;
-use AzureOss\Storage\Common\ExceptionFactory;
+use AzureOss\Storage\Common\Exceptions\ExceptionFactory;
+use AzureOss\Storage\Common\Middleware\MiddlewareFactory;
+use AzureOss\Storage\Common\Serializer\SerializerFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Utils as StreamUtils;
+use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 class BlockBlobClient
 {
@@ -31,9 +33,12 @@ class BlockBlobClient
     public const MAX_BLOCK_COUNT = 50_000;
 
     private readonly Client $client;
+
     private HandlerStack $handlerStack;
 
     private readonly ExceptionFactory $exceptionFactory;
+
+    private readonly SerializerInterface $serializer;
 
     /**
      * @var int[]
@@ -55,6 +60,7 @@ class BlockBlobClient
         $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $credentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
         $this->exceptionFactory = new ExceptionFactory();
+        $this->serializer = (new SerializerFactory())->create();
     }
 
     private function getUrl(): string
@@ -190,22 +196,6 @@ class BlockBlobClient
     public function putBlockList(array $blocks, ?PutBlockListOptions $options = null): PutBlockListResponse
     {
         try {
-            $blockList = [];
-            foreach ($blocks as $block) {
-                switch ($block->type) {
-                    case BlockType::COMMITTED:
-                        $blockList['Committed'][] = base64_encode($block->id);
-                        break;
-                    case BlockType::UNCOMMITTED:
-                        $blockList['Uncommitted'][] = base64_encode($block->id);
-                        break;
-                    case BlockType::LATEST:
-                        $blockList['Latest'][] = base64_encode($block->id);
-                }
-            }
-
-            $body = $this->encodeBody('BlockList', $blockList);
-
             $this->client->put($this->getUrl(), [
                 'query' => [
                     'comp' => 'blocklist',
@@ -213,22 +203,12 @@ class BlockBlobClient
                 'headers' => [
                     'x-ms-blob-content-type' => $options?->contentType,
                 ],
-                'body' => $body,
+                'body' => $this->serializer->serialize(new PutBlockRequestBody($blocks), 'xml'),
             ]);
 
             return new PutBlockListResponse();
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
         }
-    }
-
-    /**
-     * @param array<string, mixed> $rootNode
-     */
-    private function encodeBody(string $rootNodeName, array $rootNode): string
-    {
-        return (new XmlEncoder())->encode($rootNode, 'xml', [
-            'xml_root_node_name' => $rootNodeName,
-        ]);
     }
 }

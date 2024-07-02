@@ -4,38 +4,29 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Responses;
 
-use AzureOss\Storage\Common\Utils\Xml;
+use JMS\Serializer\Annotation\SerializedName;
+use JMS\Serializer\Annotation\XmlList;
 
-final class ListBlobsResponse implements XmlDecodable
+class ListBlobsResponse
 {
+    public string $prefix;
+
+    public string $marker;
+
+    public int $maxResults;
+
+    public string $delimiter;
+
     /**
-     * @param string $nextMarker
-     * @param Blob[] $blobs
-     * @param BlobPrefix[] $blobPrefixes,
+     * @var Blob[]
      */
-    private function __construct(
-        public string $nextMarker,
-        public array $blobs,
-        public array $blobPrefixes,
-    ) {
-    }
+    #[XmlList(entry: "Blob")]
+    public array $blobs;
 
-    public static function fromXml(array $parsed): static
-    {
-        $blobs = [];
-        foreach (Xml::list($parsed, 'Blobs.Blob') as $blob) {
-            $blobs[] = Blob::fromXml($blob);
-        }
-
-        $blobPrefixes = [];
-        foreach (Xml::list($parsed, 'Blobs.BlobPrefix') as $blobPrefix) {
-            $blobPrefixes[] = BlobPrefix::fromXml($blobPrefix);
-        }
-
-        return new self(
-            Xml::str($parsed, 'NextMarker'),
-            $blobs,
-            $blobPrefixes
-        );
-    }
+    /**
+     * @var BlobPrefix[]
+     */
+    #[SerializedName("Blobs")]
+    #[XmlList(entry: "BlobPrefix")]
+    public array $blobPrefixes;
 }

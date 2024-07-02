@@ -4,21 +4,9 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Responses;
 
-use AzureOss\Storage\Common\Utils\Xml;
-
-final class Blob implements XmlDecodable
+class Blob
 {
-    private function __construct(
-        public string $name,
-        public BlobProperties $properties,
-    ) {
-    }
+    public string $name;
 
-    public static function fromXml(array $parsed): static
-    {
-        return new self(
-            Xml::str($parsed, 'Name'),
-            BlobProperties::fromXml(Xml::assoc($parsed, 'Properties'))
-        );
-    }
+    public BlobProperties $properties;
 }

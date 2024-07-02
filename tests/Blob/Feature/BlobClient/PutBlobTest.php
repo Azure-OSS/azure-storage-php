@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Tests\Blob\Feature\BlobClient;
 use AzureOss\Storage\Blob\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
-use AzureOss\Storage\Blob\Requests\PutBlobOptions;
+use AzureOss\Storage\Blob\Options\PutBlobOptions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 

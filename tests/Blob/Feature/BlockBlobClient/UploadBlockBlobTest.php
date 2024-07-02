@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Tests\Blob\Feature\BlockBlobClient;
 
 use AzureOss\Storage\Blob\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
-use AzureOss\Storage\Blob\Requests\UploadBlockBlobOptions;
+use AzureOss\Storage\Blob\Options\UploadBlockBlobOptions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use GuzzleHttp\Middleware;
 use PHPUnit\Framework\Attributes\Test;

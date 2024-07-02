@@ -7,9 +7,9 @@ namespace AzureOss\Storage\Tests\Blob\Feature\BlockBlobClient;
 use AzureOss\Storage\Blob\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlockListException;
-use AzureOss\Storage\Blob\Requests\Block;
-use AzureOss\Storage\Blob\Requests\BlockType;
-use AzureOss\Storage\Blob\Requests\PutBlockListOptions;
+use AzureOss\Storage\Blob\Options\Block;
+use AzureOss\Storage\Blob\Options\BlockType;
+use AzureOss\Storage\Blob\Options\PutBlockListOptions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 

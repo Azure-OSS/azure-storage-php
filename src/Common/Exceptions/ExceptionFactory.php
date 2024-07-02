@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzureOss\Storage\Common;
+namespace AzureOss\Storage\Common\Exceptions;
 
 use AzureOss\Storage\Blob\Exceptions\AuthorizationFailedException;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;

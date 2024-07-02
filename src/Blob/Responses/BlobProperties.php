@@ -4,59 +4,18 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Responses;
 
-use AzureOss\Storage\Common\Utils\Xml;
+use JMS\Serializer\Annotation\SerializedName;
+use JMS\Serializer\Annotation\Type;
 
-final class BlobProperties implements XmlDecodable
+class BlobProperties
 {
-    private function __construct(
-        //        public string $creationTime,
-        public \DateTimeInterface $lastModified,
-        //        public string $etag,
-        //        public string $owner,
-        //        public string $group,
-        //        public string $permissions,
-        //        public string $acl,
-        //        public string $resourceType,
-        //        public string $placeholder,
-        public int $contentLength,
-        public string $contentType,
-        //        public string $contentEncoding,
-        //        public string $contentLanguage,
-        //        public string $contentMD5,
-        //        public string $cacheControl,
-        //        public string $blobSequenceNumber,
-        //        public string $blobType,
-        //        public string $accessTier,
-        //        public string $leaseStatus,
-        //        public string $leaseState,
-        //        public string $leaseDuration,
-        //        public string $copyId,
-        //        public string $copyStatus,
-        //        public string $copySource,
-        //        public string $copyProgress,
-        //        public string $copyCompletionTime,
-        //        public string $copyStatusDescription,
-        //        public string $serverEncrypted,
-        //        public string $customerProvidedKeySha256,
-        //        public string $encryptionContext,
-        //        public string $encryptionScope,
-        //        public string $incrementalCopy,
-        //        public string $accessTierInferred,
-        //        public string $accessTierChangeTime,
-        //        public string $deletedTime,
-        //        public string $remainingRetentionDays,
-        //        public string $tagCount,
-        //        public string $rehydratePriority,
-        //        public string $expiryTime
-    ) {
-    }
+    #[SerializedName('Last-Modified')]
+    #[Type("DateTimeImmutable<'" . \DateTimeInterface::RFC1123 ."'>")]
+    public \DateTimeInterface $lastModified;
 
-    public static function fromXml(array $parsed): static
-    {
-        return new self(
-            Xml::dateTime($parsed, 'Last-Modified', \DateTimeInterface::RFC1123),
-            Xml::int($parsed, 'Content-Length'),
-            Xml::str($parsed, 'Content-Type')
-        );
-    }
+    #[SerializedName('Content-Length')]
+    public int $contentLength;
+
+    #[SerializedName('Content-Type')]
+    public string $contentType;
 }

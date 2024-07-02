@@ -5,31 +5,31 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob;
 
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
-use AzureOss\Storage\Blob\Requests\ContainerExistsOptions;
-use AzureOss\Storage\Blob\Requests\CreateContainerOptions;
-use AzureOss\Storage\Blob\Requests\DeleteContainerOptions;
-use AzureOss\Storage\Blob\Requests\GetContainerPropertiesOptions;
-use AzureOss\Storage\Blob\Requests\ListBlobsOptions;
+use AzureOss\Storage\Blob\Options\ContainerExistsOptions;
+use AzureOss\Storage\Blob\Options\CreateContainerOptions;
+use AzureOss\Storage\Blob\Options\DeleteContainerOptions;
+use AzureOss\Storage\Blob\Options\GetContainerPropertiesOptions;
+use AzureOss\Storage\Blob\Options\ListBlobsOptions;
 use AzureOss\Storage\Blob\Responses\CreateContainerResponse;
 use AzureOss\Storage\Blob\Responses\DeleteContainerResponse;
 use AzureOss\Storage\Blob\Responses\GetContainerPropertiesResponse;
 use AzureOss\Storage\Blob\Responses\ListBlobsResponse;
-use AzureOss\Storage\Blob\Responses\XmlDecodable;
 use AzureOss\Storage\Common\Auth\Credentials;
-use AzureOss\Storage\Common\MiddlewareFactory;
-use AzureOss\Storage\Common\ExceptionFactory;
+use AzureOss\Storage\Common\Exceptions\ExceptionFactory;
+use AzureOss\Storage\Common\Middleware\MiddlewareFactory;
+use AzureOss\Storage\Common\Serializer\SerializerFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
-use Psr\Http\Message\StreamInterface;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use JMS\Serializer\SerializerInterface;
 
 class ContainerClient
 {
     private readonly Client $client;
-    private HandlerStack $handlerStack;
+    private readonly HandlerStack $handlerStack;
 
     private readonly ExceptionFactory $exceptionFactory;
+    private readonly SerializerInterface $serializer;
 
     public function __construct(
         public readonly string $blobEndpoint,
@@ -39,6 +39,7 @@ class ContainerClient
         $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $credentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
         $this->exceptionFactory = new ExceptionFactory();
+        $this->serializer = (new SerializerFactory())->create();
     }
 
     public function getBlobClient(string $blobName): BlobClient
@@ -125,7 +126,8 @@ class ContainerClient
                 ]
             ]);
 
-            return $this->decodeBody($response->getBody(), ListBlobsResponse::class);
+            /** @phpstan-ignore-next-line */
+            return $this->serializer->deserialize($response->getBody()->getContents(), ListBlobsResponse::class, 'xml');
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
         }
@@ -140,18 +142,5 @@ class ContainerClient
         } catch (ContainerNotFoundException) {
             return false;
         }
-    }
-
-    /**
-     * @template T of XmlDecodable
-     * @param class-string<T> $type
-     * @return T
-     */
-    private function decodeBody(StreamInterface $body, string $type): mixed
-    {
-        $parsed = (new XmlEncoder())->decode($body->getContents(), 'xml');
-
-        /** @phpstan-ignore-next-line */
-        return $type::fromXml($parsed);
     }
 }
