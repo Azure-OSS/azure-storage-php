@@ -18,12 +18,10 @@ use AzureOss\Storage\Blob\Responses\PutBlobResponse;
 use AzureOss\Storage\Common\Auth\Credentials;
 use AzureOss\Storage\Common\Exceptions\ExceptionFactory;
 use AzureOss\Storage\Common\Middleware\MiddlewareFactory;
-use AzureOss\Storage\Common\Serializer\SerializerFactory;
 use AzureOss\Storage\Tests\Blob\Feature\BlobClient\BlobExistsTest;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
-use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\StreamInterface;
 
 class BlobClient
