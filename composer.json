@@ -29,14 +29,11 @@
     "ext-json": "*",
     "ext-curl": "*",
     "guzzlehttp/guzzle": "^7.8",
-    "symfony/serializer": "^6.4",
-    "symfony/property-access": "^6.4",
-    "phpdocumentor/reflection-docblock": "^5.4"
+    "symfony/serializer": "^6.4"
   },
   "require-dev": {
     "laravel/pint": "^1.16",
     "phpunit/phpunit": "^10.5",
-    "phpstan/phpstan": "^1.11",
-    "symfony/var-dumper": "^6.4"
+    "phpstan/phpstan": "^1.11"
   }
 }

@@ -16,7 +16,7 @@ class ListBlobsTest extends BlobFeatureTestCase
         $this->withBlob(__METHOD__, function (string $container) {
             $blobs = $this->client->listBlobs($container);
 
-            $this->assertCount(1, $blobs->blobs->items);
+            $this->assertCount(1, $blobs->blobs);
         });
     }
 

@@ -36,12 +36,12 @@ use AzureOss\Storage\Blob\Responses\ListBlobsResponse;
 use AzureOss\Storage\Blob\Responses\PutBlobResponse;
 use AzureOss\Storage\Blob\Responses\PutBlockListResponse;
 use AzureOss\Storage\Blob\Responses\PutBlockResponse;
+use AzureOss\Storage\Blob\Responses\XmlDecodable;
 use AzureOss\Storage\Common\Auth\AuthScheme;
 use AzureOss\Storage\Common\Middleware\AddAuthorizationHeaderMiddleware;
 use AzureOss\Storage\Common\Middleware\AddContentHeadersMiddleware;
 use AzureOss\Storage\Common\Middleware\AddXMsDateHeaderMiddleware;
 use AzureOss\Storage\Common\Middleware\AddXMsVersionMiddleware;
-use AzureOss\Storage\Common\Serializer\PascalCaseToCamelCaseConverter;
 use AzureOss\Storage\Common\StorageServiceSettings;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -51,15 +51,7 @@ use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\Utils as StreamUtils;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
-use Symfony\Component\Serializer\Mapping\Loader\AttributeLoader;
-use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
-use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\SerializerInterface;
 
 final class BlobApiClient implements BlobClient
 {
@@ -69,7 +61,7 @@ final class BlobApiClient implements BlobClient
 
     private HandlerStack $handlerStack;
 
-    private SerializerInterface $serializer;
+    private XmlEncoder $xmlEncoder;
 
     /**
      * @var int[]
@@ -86,7 +78,7 @@ final class BlobApiClient implements BlobClient
         public StorageServiceSettings $settings,
         private AuthScheme $authScheme,
     ) {
-        $this->serializer = $this->createSerializer();
+        $this->xmlEncoder = new XmlEncoder();
         $this->handlerStack = $this->createHandlerStack();
         $this->client = $this->createHttpClient();
     }
@@ -106,24 +98,6 @@ final class BlobApiClient implements BlobClient
     private function createHttpClient(): Client
     {
         return new Client(['handler' => $this->handlerStack]);
-    }
-
-    private function createSerializer(): SerializerInterface
-    {
-        $classMetadataFactory = new ClassMetadataFactory(new AttributeLoader());
-        $metadataAwareNameConverter = new MetadataAwareNameConverter($classMetadataFactory, new PascalCaseToCamelCaseConverter());
-        $phpDocExtractor = new PhpDocExtractor();
-
-        $normalizers = [
-            new ArrayDenormalizer(),
-            new ObjectNormalizer($classMetadataFactory, $metadataAwareNameConverter, null, $phpDocExtractor),
-        ];
-
-        $encoders = [
-            new XmlEncoder(),
-        ];
-
-        return new Serializer($normalizers, $encoders);
     }
 
     private function buildBlobUri(string $container, string $blob): string
@@ -157,21 +131,22 @@ final class BlobApiClient implements BlobClient
 
     /**
      * @template T of mixed
-     *
-     * @param  class-string<T>  $className
+     * @param class-string<XmlDecodable&T> $type
      * @return T
      */
-    private function deserializeBody(StreamInterface $body, string $className): mixed
+    private function decodeBody(StreamInterface $body, string $type): mixed
     {
-        return $this->serializer->deserialize($body->getContents(), $className, 'xml');
+        $parsed = $this->xmlEncoder->decode($body->getContents(), 'xml');
+
+        return $type::fromXml($parsed);
     }
 
     /**
      * @param array<string, mixed> $rootNode
      */
-    private function serializeBody(string $rootNodeName, array $rootNode): string
+    private function encodeBody(string $rootNodeName, array $rootNode): string
     {
-        return $this->serializer->serialize($rootNode, 'xml', [
+        return $this->xmlEncoder->encode($rootNode, 'xml', [
             'xml_root_node_name' => $rootNodeName,
         ]);
     }
@@ -284,7 +259,7 @@ final class BlobApiClient implements BlobClient
 
             $response = $this->client->get($uri, ['query' => $query]);
 
-            return $this->deserializeBody($response->getBody(), ListBlobsResponse::class);
+            return $this->decodeBody($response->getBody(), ListBlobsResponse::class);
         } catch (RequestException $e) {
             throw $this->convertRequestException($e);
         }
@@ -392,7 +367,7 @@ final class BlobApiClient implements BlobClient
                 }
             }
 
-            $body = $this->serializeBody('BlockList', $blockList);
+            $body = $this->encodeBody('BlockList', $blockList);
 
             $this->client->put($uri, [
                 'query' => $query,
