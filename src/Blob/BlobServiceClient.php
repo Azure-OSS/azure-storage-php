@@ -8,8 +8,6 @@ use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 
 final class BlobServiceClient
 {
-    public const API_VERSION = '2024-08-04';
-
     public function __construct(
         public readonly string      $blobEndpoint,
         public readonly StorageSharedKeyCredential $sharedKeyCredentials

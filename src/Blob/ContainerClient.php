@@ -39,7 +39,7 @@ final class ContainerClient
         public readonly string $containerName,
         public readonly StorageSharedKeyCredential $sharedKeyCredentials
     ) {
-        $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $sharedKeyCredentials);
+        $this->handlerStack = (new MiddlewareFactory())->create($sharedKeyCredentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
         $this->exceptionFactory = new ExceptionFactory();
         $this->serializer = (new SerializerFactory())->create();
