@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob;
 
-use AzureOss\Storage\Common\Auth\Credentials;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 
 class BlobServiceClient
@@ -13,7 +12,7 @@ class BlobServiceClient
 
     public function __construct(
         public readonly string      $blobEndpoint,
-        public readonly Credentials $credentials
+        public readonly StorageSharedKeyCredential $sharedKeyCredentials
     ) {
     }
 
@@ -61,7 +60,7 @@ class BlobServiceClient
         return new ContainerClient(
             $this->blobEndpoint,
             $containerName,
-            $this->credentials
+            $this->sharedKeyCredentials
         );
     }
 }

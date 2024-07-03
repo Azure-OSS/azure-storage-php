@@ -11,11 +11,12 @@ use AzureOss\Storage\Blob\Options\GetBlobOptions;
 use AzureOss\Storage\Blob\Options\GetBlobPropertiesOptions;
 use AzureOss\Storage\Blob\Options\PutBlobOptions;
 use AzureOss\Storage\Blob\Responses\CopyBlobResponse;
+use AzureOss\Storage\Blob\Responses\DeleteBlobIfExistsResponse;
 use AzureOss\Storage\Blob\Responses\DeleteBlobResponse;
 use AzureOss\Storage\Blob\Responses\GetBlobPropertiesResponse;
 use AzureOss\Storage\Blob\Responses\GetBlobResponse;
 use AzureOss\Storage\Blob\Responses\PutBlobResponse;
-use AzureOss\Storage\Common\Auth\Credentials;
+use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Exceptions\ExceptionFactory;
 use AzureOss\Storage\Common\Middleware\MiddlewareFactory;
 use AzureOss\Storage\Tests\Blob\Feature\BlobClient\BlobExistsTest;
@@ -36,26 +37,26 @@ class BlobClient
         public readonly string $blobEndpoint,
         public readonly string $containerName,
         public readonly string $blobName,
-        public Credentials $credentials
+        public StorageSharedKeyCredential $sharedKeyCredentials
     ) {
-        $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $credentials);
+        $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $sharedKeyCredentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
         $this->exceptionFactory = new ExceptionFactory();
     }
 
-    private function getUrl(): string
+    public function getUrl(): string
     {
         return $this->blobEndpoint . '/' . $this->containerName . '/' . $this->blobName;
     }
 
     public function getBlockBlobClient(): BlockBlobClient
     {
-        return new BlockBlobClient($this->blobEndpoint, $this->containerName, $this->blobName, $this->credentials);
+        return new BlockBlobClient($this->blobEndpoint, $this->containerName, $this->blobName, $this->sharedKeyCredentials);
     }
 
     public function getContainerClient(): ContainerClient
     {
-        return new ContainerClient($this->blobEndpoint, $this->containerName, $this->credentials);
+        return new ContainerClient($this->blobEndpoint, $this->containerName, $this->sharedKeyCredentials);
     }
 
     public function get(?GetBlobOptions $options = null): GetBlobResponse
@@ -82,9 +83,10 @@ class BlobClient
             $response = $this->client->head($this->getUrl());
 
             return new GetBlobPropertiesResponse(
-                new \DateTime($response->getHeader('Last-Modified')[0]),
-                (int) $response->getHeader('Content-Length')[0],
-                $response->getHeader('Content-Type')[0],
+                new \DateTime($response->getHeaderLine('Last-Modified')),
+                (int) $response->getHeaderLine('Content-Length'),
+                $response->getHeaderLine('Content-Type'),
+                $response->getHeaderLine('Content-MD5'),
             );
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
@@ -120,6 +122,17 @@ class BlobClient
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
         }
+    }
+
+    public function deleteIfExists(?DeleteBlobOptions $options = null): DeleteBlobIfExistsResponse
+    {
+        try {
+            $this->delete($options);
+        } catch (BlobNotFoundException) {
+            // do nothing
+        }
+
+        return new DeleteBlobIfExistsResponse();
     }
 
     public function copy(string $targetContainer, string $targetBlob, ?CopyBlobOptions $options = null): CopyBlobResponse

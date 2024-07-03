@@ -7,7 +7,8 @@ namespace AzureOss\Storage\Blob\Options;
 class PutBlockListOptions
 {
     public function __construct(
-        public  ?string $contentType = null
-    ) {
+        public ?string $contentType = null,
+    )
+    {
     }
 }

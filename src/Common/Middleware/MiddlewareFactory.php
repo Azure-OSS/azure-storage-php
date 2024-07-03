@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Common\Middleware;
 
-use AzureOss\Storage\Common\Auth\Credentials;
+use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use GuzzleHttp\HandlerStack;
 
 class MiddlewareFactory
 {
-    public function create(string $apiVersion, Credentials $credentials): HandlerStack
+    public function create(string $apiVersion, StorageSharedKeyCredential $sharedKeyCredential): HandlerStack
     {
         $handlerStack = HandlerStack::create();
 
-        $handlerStack->push(new AddContentHeadersMiddleware());
         $handlerStack->push(new AddXMsDateHeaderMiddleware());
         $handlerStack->push(new AddXMsVersionMiddleware($apiVersion));
-        $handlerStack->push(new AddAuthorizationHeaderMiddleware($credentials));
+        $handlerStack->push(new AddAuthorizationHeaderMiddleware($sharedKeyCredential));
 
         return $handlerStack;
     }

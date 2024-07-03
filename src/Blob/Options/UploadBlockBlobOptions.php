@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Blob\Options;
 class UploadBlockBlobOptions
 {
     public function __construct(
-        public ?string $contentType = null
+        public ?string $contentType = null,
     ) {
     }
 }

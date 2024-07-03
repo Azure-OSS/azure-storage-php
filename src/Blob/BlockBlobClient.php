@@ -13,7 +13,7 @@ use AzureOss\Storage\Blob\Options\UploadBlockBlobOptions;
 use AzureOss\Storage\Blob\Requests\PutBlockRequestBody;
 use AzureOss\Storage\Blob\Responses\PutBlockListResponse;
 use AzureOss\Storage\Blob\Responses\PutBlockResponse;
-use AzureOss\Storage\Common\Auth\Credentials;
+use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Exceptions\ExceptionFactory;
 use AzureOss\Storage\Common\Middleware\MiddlewareFactory;
 use AzureOss\Storage\Common\Serializer\SerializerFactory;
@@ -55,9 +55,9 @@ class BlockBlobClient
         public readonly string $blobEndpoint,
         public readonly string $containerName,
         public readonly string $blobName,
-        public readonly Credentials $credentials
+        public readonly StorageSharedKeyCredential $sharedKeyCredentials
     ) {
-        $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $credentials);
+        $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $sharedKeyCredentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
         $this->exceptionFactory = new ExceptionFactory();
         $this->serializer = (new SerializerFactory())->create();
@@ -70,12 +70,12 @@ class BlockBlobClient
 
     public function getBlobClient(): BlobClient
     {
-        return new BlobClient($this->blobEndpoint, $this->containerName, $this->blobName, $this->credentials);
+        return new BlobClient($this->blobEndpoint, $this->containerName, $this->blobName, $this->sharedKeyCredentials);
     }
 
     public function getContainerClient(): ContainerClient
     {
-        return new ContainerClient($this->blobEndpoint, $this->containerName, $this->credentials);
+        return new ContainerClient($this->blobEndpoint, $this->containerName, $this->sharedKeyCredentials);
     }
 
     public function getHandlerStack(): HandlerStack

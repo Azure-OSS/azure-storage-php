@@ -9,24 +9,21 @@ use JMS\Serializer\Annotation\XmlList;
 
 class ListBlobsResponse
 {
-    public readonly string $prefix;
-
-    public readonly string $marker;
-
-    public readonly int $maxResults;
-
-    public readonly string $delimiter;
-
     /**
-     * @var Blob[]
+     * @param  Blob[]  $blobs
+     * @param  BlobPrefix[]  $blobPrefixes
      */
-    #[XmlList(entry: "Blob")]
-    public readonly array $blobs;
-
-    /**
-     * @var BlobPrefix[]
-     */
-    #[SerializedName("Blobs")]
-    #[XmlList(entry: "BlobPrefix")]
-    public readonly array $blobPrefixes;
+    public function __construct(
+        public readonly string $prefix,
+        public readonly string $marker,
+        public readonly int $maxResults,
+        public readonly string $nextMarker,
+        #[XmlList(entry: 'Blob')]
+        public readonly array $blobs,
+        #[SerializedName('Blobs')]
+        #[XmlList(entry: 'BlobPrefix')]
+        public readonly array $blobPrefixes,
+        public readonly ?string $delimiter = null,
+    ) {
+    }
 }

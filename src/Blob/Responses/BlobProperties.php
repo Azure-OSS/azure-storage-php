@@ -9,13 +9,14 @@ use JMS\Serializer\Annotation\Type;
 
 class BlobProperties
 {
-    #[SerializedName('Last-Modified')]
-    #[Type("DateTimeImmutable<'" . \DateTimeInterface::RFC1123 ."'>")]
-    public readonly \DateTimeInterface $lastModified;
-
-    #[SerializedName('Content-Length')]
-    public readonly int $contentLength;
-
-    #[SerializedName('Content-Type')]
-    public readonly string $contentType;
+    public function __construct(
+        #[SerializedName('Last-Modified')]
+        #[Type("DateTimeImmutable<'".\DateTimeInterface::RFC1123."'>")]
+        public readonly \DateTimeInterface $lastModified,
+        #[SerializedName('Content-Length')]
+        public readonly int $contentLength,
+        #[SerializedName('Content-Type')]
+        public readonly string $contentType,
+    ) {
+    }
 }

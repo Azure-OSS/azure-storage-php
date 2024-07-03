@@ -11,10 +11,11 @@ use AzureOss\Storage\Blob\Options\DeleteContainerOptions;
 use AzureOss\Storage\Blob\Options\GetContainerPropertiesOptions;
 use AzureOss\Storage\Blob\Options\ListBlobsOptions;
 use AzureOss\Storage\Blob\Responses\CreateContainerResponse;
+use AzureOss\Storage\Blob\Responses\DeleteContainerIfExistsResponse;
 use AzureOss\Storage\Blob\Responses\DeleteContainerResponse;
 use AzureOss\Storage\Blob\Responses\GetContainerPropertiesResponse;
 use AzureOss\Storage\Blob\Responses\ListBlobsResponse;
-use AzureOss\Storage\Common\Auth\Credentials;
+use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Exceptions\ExceptionFactory;
 use AzureOss\Storage\Common\Middleware\MiddlewareFactory;
 use AzureOss\Storage\Common\Serializer\SerializerFactory;
@@ -26,17 +27,19 @@ use JMS\Serializer\SerializerInterface;
 class ContainerClient
 {
     private readonly Client $client;
+
     private readonly HandlerStack $handlerStack;
 
     private readonly ExceptionFactory $exceptionFactory;
+
     private readonly SerializerInterface $serializer;
 
     public function __construct(
         public readonly string $blobEndpoint,
         public readonly string $containerName,
-        public readonly Credentials $credentials
+        public readonly StorageSharedKeyCredential $sharedKeyCredentials
     ) {
-        $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $credentials);
+        $this->handlerStack = (new MiddlewareFactory())->create(BlobServiceClient::API_VERSION, $sharedKeyCredentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
         $this->exceptionFactory = new ExceptionFactory();
         $this->serializer = (new SerializerFactory())->create();
@@ -48,7 +51,7 @@ class ContainerClient
             $this->blobEndpoint,
             $this->containerName,
             $blobName,
-            $this->credentials,
+            $this->sharedKeyCredentials,
         );
     }
 
@@ -58,13 +61,13 @@ class ContainerClient
             $this->blobEndpoint,
             $this->containerName,
             $blobName,
-            $this->credentials,
+            $this->sharedKeyCredentials,
         );
     }
 
     private function getUrl(): string
     {
-        return $this->blobEndpoint . '/' . $this->containerName;
+        return $this->blobEndpoint.'/'.$this->containerName;
     }
 
     public function create(?CreateContainerOptions $options = null): CreateContainerResponse
@@ -73,7 +76,7 @@ class ContainerClient
             $this->client->put($this->getUrl(), [
                 'query' => [
                     'restype' => 'container',
-                ]
+                ],
             ]);
 
             return new CreateContainerResponse();
@@ -112,6 +115,17 @@ class ContainerClient
         }
     }
 
+    public function deleteIfExists(?DeleteContainerOptions $options = null): DeleteContainerIfExistsResponse
+    {
+        try {
+            $this->delete($options);
+        } catch (ContainerNotFoundException $e) {
+            // do nothing
+        }
+
+        return new DeleteContainerIfExistsResponse();
+    }
+
     public function listBlobs(?ListBlobsOptions $options = null): ListBlobsResponse
     {
         try {
@@ -123,7 +137,7 @@ class ContainerClient
                     'marker' => $options?->marker,
                     'maxresults' => $options?->maxResults,
                     'delimiter' => $options?->delimiter,
-                ]
+                ],
             ]);
 
             /** @phpstan-ignore-next-line */
@@ -133,7 +147,7 @@ class ContainerClient
         }
     }
 
-    public function exists(ContainerExistsOptions $options = null): bool
+    public function exists(?ContainerExistsOptions $options = null): bool
     {
         try {
             $this->getProperties();
