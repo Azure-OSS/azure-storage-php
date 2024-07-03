@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Common\Serializer;
 use JMS\Serializer\SerializerBuilder;
 use JMS\Serializer\SerializerInterface;
 
-class SerializerFactory
+final class SerializerFactory
 {
     public function create(): SerializerInterface
     {

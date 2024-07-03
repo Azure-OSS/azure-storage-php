@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Exceptions;
 
-class InvalidBlockListException extends \RuntimeException
+final class InvalidBlockListException extends \RuntimeException
 {
     public function __construct(?\Throwable $previous = null)
     {

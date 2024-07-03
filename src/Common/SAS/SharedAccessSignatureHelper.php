@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Common\SAS;
 
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 
-class SharedAccessSignatureHelper
+final class SharedAccessSignatureHelper
 {
     public static function generateAccountSASQueryParameters(AccountSASSignatureValues $accountSASSignatureValues, StorageSharedKeyCredential $sharedKeyCredential): string
     {

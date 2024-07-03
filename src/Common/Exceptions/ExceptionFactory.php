@@ -12,7 +12,7 @@ use AzureOss\Storage\Blob\Exceptions\InvalidBlockListException;
 use AzureOss\Storage\Blob\Responses\ErrorCode;
 use GuzzleHttp\Exception\RequestException;
 
-class ExceptionFactory
+final class ExceptionFactory
 {
     public function create(RequestException $e): \Exception
     {

@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Blob\Responses;
 use JMS\Serializer\Annotation\SerializedName;
 use JMS\Serializer\Annotation\XmlList;
 
-class ListBlobsResponse
+final class ListBlobsResponse
 {
     /**
      * @param  Blob[]  $blobs

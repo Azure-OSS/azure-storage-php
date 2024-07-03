@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Common\Auth;
 /**
  * @see https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key
  */
-class StorageSharedKeyCredential
+final class StorageSharedKeyCredential
 {
     public function __construct(
         public readonly string $accountName,

@@ -25,7 +25,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use Psr\Http\Message\StreamInterface;
 
-class BlobClient
+final class BlobClient
 {
     private readonly Client $client;
 

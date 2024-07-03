@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Common\Middleware;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use GuzzleHttp\HandlerStack;
 
-class MiddlewareFactory
+final class MiddlewareFactory
 {
     public function create(string $apiVersion, StorageSharedKeyCredential $sharedKeyCredential): HandlerStack
     {

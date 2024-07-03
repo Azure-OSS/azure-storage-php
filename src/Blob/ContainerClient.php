@@ -24,7 +24,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use JMS\Serializer\SerializerInterface;
 
-class ContainerClient
+final class ContainerClient
 {
     private readonly Client $client;
 

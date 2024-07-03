@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Blob;
 
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 
-class BlobServiceClient
+final class BlobServiceClient
 {
     public const API_VERSION = '2024-08-04';
 
