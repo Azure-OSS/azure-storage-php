@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Blob\Responses;
 use JMS\Serializer\Annotation\SerializedName;
 use JMS\Serializer\Annotation\Type;
 
-class BlobProperties
+final class BlobProperties
 {
     public function __construct(
         #[SerializedName('Last-Modified')]

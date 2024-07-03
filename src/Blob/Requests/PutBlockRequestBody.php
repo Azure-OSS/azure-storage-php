@@ -12,7 +12,7 @@ use JMS\Serializer\Annotation\XmlRoot;
 
 #[XmlRoot("BlockList")]
 #[XmlDiscriminator(attribute: true)]
-class PutBlockRequestBody
+final class PutBlockRequestBody
 {
     /**
      * @var string[]

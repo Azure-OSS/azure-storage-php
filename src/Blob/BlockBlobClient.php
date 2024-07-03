@@ -26,7 +26,7 @@ use GuzzleHttp\Psr7\Utils as StreamUtils;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\StreamInterface;
 
-class BlockBlobClient
+final class BlockBlobClient
 {
     public const MAX_BLOCK_SIZE = 4_000_000_000;
 

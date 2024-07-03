@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Exceptions;
 
-class BlobNotFoundException extends \RuntimeException
+final class BlobNotFoundException extends \RuntimeException
 {
     public function __construct(?\Throwable $previous = null)
     {

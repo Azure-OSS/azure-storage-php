@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Blob\Responses;
 
 use Psr\Http\Message\StreamInterface;
 
-class GetBlobResponse
+final class GetBlobResponse
 {
     public function __construct(
         public StreamInterface $content,

@@ -4,6 +4,6 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Common\Exceptions;
 
-class InvalidXmlException extends \Exception
+final class InvalidXmlException extends \Exception
 {
 }

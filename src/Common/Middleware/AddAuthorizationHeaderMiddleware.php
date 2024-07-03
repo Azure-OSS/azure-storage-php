@@ -8,7 +8,7 @@ use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use GuzzleHttp\Psr7\Query;
 use Psr\Http\Message\RequestInterface;
 
-class AddAuthorizationHeaderMiddleware
+final class AddAuthorizationHeaderMiddleware
 {
     private const INCLUDED_HEADERS = [
         'Content-Encoding',
