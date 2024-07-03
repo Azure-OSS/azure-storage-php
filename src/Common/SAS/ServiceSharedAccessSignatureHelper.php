@@ -8,7 +8,7 @@ use AzureOss\Storage\Common\ApiVersion;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use GuzzleHttp\Psr7\Query;
 
-class ServiceSharedAccessSignatureHelper
+final class ServiceSharedAccessSignatureHelper
 {
     /**
      * @param SASPermission[] $permissions

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Common\SAS;
 
-class SASIpRange
+final class SASIpRange
 {
     public function __construct(
         public readonly string $start,
