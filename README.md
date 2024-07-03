@@ -1,12 +1,15 @@
 # Azure Storage PHP
 
+[![Packagist Downloads](https://img.shields.io/packagist/dm/azure-oss/storage)](https://packagist.org/packages/azure-oss/storage)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/azure-oss/azure-storage-php/tests.yml?branch=main)](https://github.com/azure-oss/azure-storage-php/actions)
+
 ## Minimum Requirements
 
 * PHP 8.1 or above
 * Required PHP extensions
     * curl
     * json
-  
+
 ## Install
 
 ```shell
