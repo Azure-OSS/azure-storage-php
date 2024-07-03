@@ -31,7 +31,6 @@ class ServiceSharedAccessSignatureHelper
         ?string $contentEncoding = null,
         ?string $contentLanguage = null,
         ?string $contentType = null,
-
     ): string {
         $sp = self::computeCanonicalizedPermissions($permissions, $resource);
         $st = $startsOn ? self::formatDate($startsOn) : null;
