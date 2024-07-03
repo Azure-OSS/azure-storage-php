@@ -20,6 +20,15 @@ composer require azure-oss/azure-storage-php
 
 For more information visit the documentation at [azure-oss.github.io](https://azure-oss.github.io).
 
+## Support
+
+Do you need help, do you want to talk to us, or is there anything else?
+
+Join us at:
+
+* [Github Discussions](https://github.com/Azure-OSS/azure-storage-php/discussions)
+* [Slack](https://join.slack.com/t/azure-oss/shared_invite/zt-2lw5knpon-mqPM_LIuRZUoH02AY8uiYw)
+
 ## License
 
 Azure-Storage-PHP is released under the MIT License. See [LICENSE](./LICENSE.md) for details.

@@ -1,8 +1,8 @@
 {
   "name": "azure-oss/storage",
   "description": "Azure Storage PHP SDK",
+  "keywords": ["azure", "storage", "php", "sdk"],
   "type": "library",
-  "version": "0.1.0",
   "license": "MIT",
   "autoload": {
     "psr-4": {
@@ -35,5 +35,8 @@
     "laravel/pint": "^1.16",
     "phpunit/phpunit": "^10.5",
     "phpstan/phpstan": "^1.11"
+  },
+  "config": {
+    "sort-packages": true
   }
 }
