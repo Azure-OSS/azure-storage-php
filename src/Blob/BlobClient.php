@@ -86,7 +86,6 @@ class BlobClient
                 new \DateTime($response->getHeaderLine('Last-Modified')),
                 (int) $response->getHeaderLine('Content-Length'),
                 $response->getHeaderLine('Content-Type'),
-                $response->getHeaderLine('Content-MD5'),
             );
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
