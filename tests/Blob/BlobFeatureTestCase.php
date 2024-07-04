@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob;
 
-use AzureOss\Storage\Blob\BlobServiceClient;
-use AzureOss\Storage\Blob\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobServiceClient;
+use AzureOss\Storage\Blob\Clients\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use GuzzleHttp\Psr7\Utils;

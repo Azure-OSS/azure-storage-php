@@ -1,5 +1,5 @@
 {
-  "preset": "psr12",
+  "preset": "per",
   "rules": {
     "declare_strict_types": true
   }

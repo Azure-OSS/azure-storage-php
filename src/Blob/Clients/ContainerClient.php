@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzureOss\Storage\Blob;
+namespace AzureOss\Storage\Blob\Clients;
 
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Options\ContainerExistsOptions;

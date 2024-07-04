@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature;
 
-use AzureOss\Storage\Blob\BlobServiceClient;
+use AzureOss\Storage\Blob\Clients\BlobServiceClient;
 use AzureOss\Storage\Blob\Exceptions\AuthorizationFailedException;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;

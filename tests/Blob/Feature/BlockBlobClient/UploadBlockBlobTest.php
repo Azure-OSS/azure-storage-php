@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature\BlockBlobClient;
 
-use AzureOss\Storage\Blob\ContainerClient;
+use AzureOss\Storage\Blob\Clients\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Options\UploadBlockBlobOptions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;

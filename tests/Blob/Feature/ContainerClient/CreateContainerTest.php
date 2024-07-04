@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature\ContainerClient;
 
-use AzureOss\Storage\Blob\ContainerClient;
+use AzureOss\Storage\Blob\Clients\ContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
