@@ -8,6 +8,5 @@ final class UploadBlockBlobOptions
 {
     public function __construct(
         public ?string $contentType = null,
-    ) {
-    }
+    ) {}
 }

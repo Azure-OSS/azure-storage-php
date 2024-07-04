@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Blob\SAS;
 use AzureOss\Storage\Common\SAS\SASIpRange;
 use AzureOss\Storage\Common\SAS\SASProtocol;
 
-class blobSASSignatureValues
+class BlobSASSignatureValues
 {
     public function __construct(
         public readonly string $containerName,

@@ -22,7 +22,7 @@ final class ExceptionFactory
             ErrorCode::CONTAINER_ALREADY_EXISTS => new ContainerAlreadyExistsException($e),
             ErrorCode::BLOB_NOT_FOUND => new BlobNotFoundException($e),
             ErrorCode::INVALID_BLOCK_LIST => new InvalidBlockListException($e),
-            default => $e
+            default => $e,
         };
     }
 }

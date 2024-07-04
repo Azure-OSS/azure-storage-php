@@ -8,6 +8,5 @@ final class PutBlockListOptions
 {
     public function __construct(
         public ?string $contentType = null,
-    ) {
-    }
+    ) {}
 }

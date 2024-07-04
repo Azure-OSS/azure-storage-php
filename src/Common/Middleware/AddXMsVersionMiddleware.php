@@ -10,9 +10,8 @@ use Psr\Http\Message\RequestInterface;
 final class AddXMsVersionMiddleware
 {
     public function __construct(
-        private ApiVersion $version
-    ) {
-    }
+        private ApiVersion $version,
+    ) {}
 
     public function __invoke(callable $handler): \Closure
     {

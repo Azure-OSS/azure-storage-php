@@ -36,7 +36,7 @@ final class PutBlockRequestBody
      * @param Block[] $blocks
      */
     public function __construct(
-        array $blocks
+        array $blocks,
     ) {
         foreach($blocks as $block) {
             $id = base64_encode($block->id);

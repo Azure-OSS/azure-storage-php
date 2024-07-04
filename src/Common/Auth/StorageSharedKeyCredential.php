@@ -11,9 +11,8 @@ final class StorageSharedKeyCredential
 {
     public function __construct(
         public readonly string $accountName,
-        public readonly string $accountKey
-    ) {
-    }
+        public readonly string $accountKey,
+    ) {}
 
     public function computeHMACSHA256(string $stringToSign): string
     {
@@ -24,7 +23,7 @@ final class StorageSharedKeyCredential
         }
 
         return base64_encode(
-            hash_hmac('sha256', $stringToSign, $decodedAccountKey, true)
+            hash_hmac('sha256', $stringToSign, $decodedAccountKey, true),
         );
     }
 }

@@ -9,6 +9,5 @@ final class Block
     public function __construct(
         public string $id,
         public BlockType $type,
-    ) {
-    }
+    ) {}
 }

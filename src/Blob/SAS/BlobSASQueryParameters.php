@@ -30,7 +30,7 @@ final class BlobSASQueryParameters
     ) {}
 
     public static function generate(
-        blobSASSignatureValues $blobSASSignatureValues,
+        BlobSASSignatureValues     $blobSASSignatureValues,
         StorageSharedKeyCredential $sharedKeyCredential,
     ): self {
         $signedStart = $blobSASSignatureValues->startsOn?->format(\DateTimeInterface::ATOM);
@@ -39,7 +39,7 @@ final class BlobSASQueryParameters
         $signedIp = $blobSASSignatureValues->ipRange !== null ? (string) $blobSASSignatureValues->ipRange : null;
         $signedProtocol = $blobSASSignatureValues->protocol?->value;
         $signedVersion = $blobSASSignatureValues->version ?? ApiVersion::LATEST->value;
-        $signedSnapshotTime = (string) $blobSASSignatureValues->snapshotTime?->getTimestamp();
+        $signedSnapshotTime = $blobSASSignatureValues->snapshotTime ? (string) $blobSASSignatureValues->snapshotTime->getTimestamp() : null;
 
         $stringToSign = [
             $blobSASSignatureValues->permissions,
@@ -59,7 +59,7 @@ final class BlobSASQueryParameters
             $blobSASSignatureValues->contentLanguage,
             $blobSASSignatureValues->contentType,
         ];
-        $stringToSign = array_map(fn(?string $str) => urldecode($str ?? ""), $stringToSign);
+        $stringToSign = array_map(fn($str) => urldecode($str ?? ""), $stringToSign);
         $stringToSign = implode("\n", $stringToSign);
 
         $signature = urlencode($sharedKeyCredential->computeHMACSHA256($stringToSign));
@@ -85,13 +85,13 @@ final class BlobSASQueryParameters
     }
 
     private static function computeCanonicalizedResource(
-        blobSASSignatureValues $blobSASSignatureValues,
+        BlobSASSignatureValues     $blobSASSignatureValues,
         StorageSharedKeyCredential $sharedKeyCredential,
     ): string {
         $resource = "/blob/$sharedKeyCredential->accountName/$blobSASSignatureValues->containerName";
 
         if ($blobSASSignatureValues->blobName !== null) {
-            $resource = "/$blobSASSignatureValues->blobName";
+            $resource .= "/$blobSASSignatureValues->blobName";
         }
 
         return $resource;
@@ -99,7 +99,7 @@ final class BlobSASQueryParameters
 
     public function __toString(): string
     {
-        return Query::build([
+        return Query::build(array_filter([
             "st" => $this->signedStart,
             "sv" => $this->signedVersion,
             "sr" => $this->signedResource,
@@ -116,6 +116,6 @@ final class BlobSASQueryParameters
             "spr" => $this->signedProtocol,
             "sst" => $this->signedSnapshotTime,
             "ses" => $this->signedEncryptionScope,
-        ]);
+        ]), false);
     }
 }

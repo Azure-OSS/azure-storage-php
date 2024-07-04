@@ -10,9 +10,8 @@ final class BlobServiceClient
 {
     public function __construct(
         public readonly string      $blobEndpoint,
-        public readonly StorageSharedKeyCredential $sharedKeyCredentials
-    ) {
-    }
+        public readonly StorageSharedKeyCredential $sharedKeyCredentials,
+    ) {}
 
     public static function fromConnectionString(string $connectionString): self
     {
@@ -33,7 +32,7 @@ final class BlobServiceClient
                 '%s://%s.blob.%s',
                 $settings['DefaultEndpointsProtocol'],
                 $settings['AccountName'],
-                $settings['EndpointSuffix']
+                $settings['EndpointSuffix'],
             );
 
         return new self(
@@ -49,7 +48,7 @@ final class BlobServiceClient
             new StorageSharedKeyCredential(
                 'devstoreaccount1',
                 'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==',
-            )
+            ),
         );
     }
 
@@ -58,7 +57,7 @@ final class BlobServiceClient
         return new ContainerClient(
             $this->blobEndpoint,
             $containerName,
-            $this->sharedKeyCredentials
+            $this->sharedKeyCredentials,
         );
     }
 }

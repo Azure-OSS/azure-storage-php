@@ -24,9 +24,7 @@ final class AddAuthorizationHeaderMiddleware
         'Range',
     ];
 
-    public function __construct(private readonly StorageSharedKeyCredential $sharedKeyCredential)
-    {
-    }
+    public function __construct(private readonly StorageSharedKeyCredential $sharedKeyCredential) {}
 
     public function __invoke(callable $handler): \Closure
     {
@@ -44,7 +42,7 @@ final class AddAuthorizationHeaderMiddleware
     private function computeStringToSign(RequestInterface $request): string
     {
         $verb = strtoupper($request->getMethod());
-        $headers = array_map(fn ($value) => implode(', ', $value), $request->getHeaders());
+        $headers = array_map(fn($value) => implode(', ', $value), $request->getHeaders());
         $query = Query::parse($request->getUri()->getQuery());
         $url = (string) $request->getUri();
 
@@ -93,7 +91,7 @@ final class AddAuthorizationHeaderMiddleware
 
         $canonicalizedHeaders = [];
         foreach ($normalizedHeaders as $key => $value) {
-            $canonicalizedHeaders[] = $key.':'.$value;
+            $canonicalizedHeaders[] = $key . ':' . $value;
         }
 
         return implode("\n", $canonicalizedHeaders);
@@ -110,7 +108,7 @@ final class AddAuthorizationHeaderMiddleware
 
         // 1. Beginning with an empty string (""), append a forward slash (/),
         //    followed by the name of the account that owns the accessed resource.
-        $canonicalizedResource = '/'.$this->sharedKeyCredential->accountName;
+        $canonicalizedResource = '/' . $this->sharedKeyCredential->accountName;
 
         // 2. Append the resource's encoded URI path, without any query parameters.
         $canonicalizedResource .= parse_url($url, PHP_URL_PATH);
@@ -131,7 +129,7 @@ final class AddAuthorizationHeaderMiddleware
         foreach ($queryParams as $key => $value) {
             // $value must already be ordered lexicographically
             // See: ServiceRestProxy::groupQueryValues
-            $canonicalizedResource .= "\n".$key.':'.$value;
+            $canonicalizedResource .= "\n" . $key . ':' . $value;
         }
 
         return $canonicalizedResource;

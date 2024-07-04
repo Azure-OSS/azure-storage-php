@@ -37,7 +37,7 @@ final class BlobClient
         public readonly string $blobEndpoint,
         public readonly string $containerName,
         public readonly string $blobName,
-        public StorageSharedKeyCredential $sharedKeyCredentials
+        public StorageSharedKeyCredential $sharedKeyCredentials,
     ) {
         $this->handlerStack = (new MiddlewareFactory())->create($sharedKeyCredentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
@@ -139,8 +139,8 @@ final class BlobClient
         try {
             $this->client->put($this->blobEndpoint . '/' . $targetContainer . '/' . $targetBlob, [
                 'headers' => [
-                    'x-ms-copy-source' => $this->blobEndpoint . '/'  . $this->containerName . '/' . $this->blobName
-                ]
+                    'x-ms-copy-source' => $this->blobEndpoint . '/' . $this->containerName . '/' . $this->blobName,
+                ],
             ]);
 
             return new CopyBlobResponse();

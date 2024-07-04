@@ -8,6 +8,5 @@ final class PutBlobOptions
 {
     public function __construct(
         public ?string $contentType = null,
-    ) {
-    }
+    ) {}
 }

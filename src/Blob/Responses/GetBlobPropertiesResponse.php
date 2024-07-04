@@ -10,6 +10,5 @@ final class GetBlobPropertiesResponse
         public \DateTimeInterface $lastModified,
         public int $contentLength,
         public string $contentType,
-    ) {
-    }
+    ) {}
 }

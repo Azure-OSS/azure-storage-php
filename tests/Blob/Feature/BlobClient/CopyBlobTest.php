@@ -26,7 +26,7 @@ class CopyBlobTest extends BlobFeatureTestCase
 
                 $this->assertEquals(
                     $sourceBlobClient->get()->content->getContents(),
-                    $targetContainerClient->getBlobClient($targetBlob)->get()->content->getContents()
+                    $targetContainerClient->getBlobClient($targetBlob)->get()->content->getContents(),
                 );
             });
         });

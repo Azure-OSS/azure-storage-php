@@ -24,6 +24,5 @@ final class ListBlobsResponse
         #[XmlList(entry: 'BlobPrefix')]
         public readonly array $blobPrefixes,
         public readonly ?string $delimiter = null,
-    ) {
-    }
+    ) {}
 }

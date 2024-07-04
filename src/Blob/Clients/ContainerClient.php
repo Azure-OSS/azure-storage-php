@@ -37,7 +37,7 @@ final class ContainerClient
     public function __construct(
         public readonly string $blobEndpoint,
         public readonly string $containerName,
-        public readonly StorageSharedKeyCredential $sharedKeyCredentials
+        public readonly StorageSharedKeyCredential $sharedKeyCredentials,
     ) {
         $this->handlerStack = (new MiddlewareFactory())->create($sharedKeyCredentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
@@ -67,7 +67,7 @@ final class ContainerClient
 
     private function getUrl(): string
     {
-        return $this->blobEndpoint.'/'.$this->containerName;
+        return $this->blobEndpoint . '/' . $this->containerName;
     }
 
     public function create(?CreateContainerOptions $options = null): CreateContainerResponse

@@ -55,7 +55,7 @@ final class BlockBlobClient
         public readonly string $blobEndpoint,
         public readonly string $containerName,
         public readonly string $blobName,
-        public readonly StorageSharedKeyCredential $sharedKeyCredentials
+        public readonly StorageSharedKeyCredential $sharedKeyCredentials,
     ) {
         $this->handlerStack = (new MiddlewareFactory())->create($sharedKeyCredentials);
         $this->client = new Client(['handler' => $this->handlerStack]);
@@ -147,7 +147,7 @@ final class BlockBlobClient
                 $block = new Block($blockId, BlockType::UNCOMMITTED);
                 $blocks[] = $block;
 
-                yield fn () => $this->putBlockAsync($block, $blockContent);
+                yield fn() => $this->putBlockAsync($block, $blockContent);
             }
         };
 

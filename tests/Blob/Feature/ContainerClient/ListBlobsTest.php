@@ -36,7 +36,7 @@ class ListBlobsTest extends BlobFeatureTestCase
 
             $response = $containerClient->listBlobs(new ListBlobsOptions(
                 prefix: "folder/",
-                delimiter: "/"
+                delimiter: "/",
             ));
 
             $this->assertCount(2, $response->blobs);

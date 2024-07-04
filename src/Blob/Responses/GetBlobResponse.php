@@ -13,6 +13,5 @@ final class GetBlobResponse
         public \DateTimeInterface $lastModified,
         public int $contentLength,
         public string $contentType,
-    ) {
-    }
+    ) {}
 }
