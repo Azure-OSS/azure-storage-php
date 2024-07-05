@@ -209,7 +209,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function copy_from_url_works(): void
     {
-        $sourceContainerClient = $this->serviceClient->getContainerClient("blobclienttestscopy");
+        $sourceContainerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
 
         $this->cleanContainer($sourceContainerClient->containerName);
 

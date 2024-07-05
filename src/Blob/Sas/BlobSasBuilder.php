@@ -15,9 +15,9 @@ final class BlobSasBuilder
 {
     private string $version;
     private string $containerName;
-    private \DateTimeInterface $expiresOn;
+    private \DateTime|\DateTimeImmutable $expiresOn;
     private ?string $blobName = null;
-    private ?\DateTimeInterface $startsOn = null;
+    private \DateTime|\DateTimeImmutable|null $startsOn = null;
     private ?string $permissions = null;
     private ?string $identifier = null;
     private ?string $cacheControl = null;
@@ -49,7 +49,7 @@ final class BlobSasBuilder
         return $this;
     }
 
-    public function setExpiresOn(\DateTimeInterface $value): self
+    public function setExpiresOn(\DateTime|\DateTimeImmutable $value): self
     {
         $this->expiresOn = $value;
 
@@ -70,7 +70,7 @@ final class BlobSasBuilder
         return $this;
     }
 
-    public function setStartsOn(\DateTimeInterface $value): self
+    public function setStartsOn(\DateTime $value): self
     {
         $this->startsOn = $value;
 
@@ -153,14 +153,14 @@ final class BlobSasBuilder
             throw new UnableToGenerateSasException();
         }
 
-        $signedStart = $this->startsOn?->format(\DateTimeInterface::ATOM);
-        $signedExpiry = $this->expiresOn->format(\DateTimeInterface::ATOM);
+        $signedStart = $this->startsOn !== null ? $this->formatDate($this->startsOn) : null;
+        $signedExpiry = $this->formatDate($this->expiresOn);
         $signedResource = $this->blobName ? "b" : "c";
         $signedIp = $this->ipRange !== null ? (string) $this->ipRange : null;
         $signedProtocol = $this->protocol?->value;
         $signedVersion = $this->version ?? ApiVersion::LATEST->value;
         $signedSnapshotTime = $this->snapshotTime ? (string) $this->snapshotTime->getTimestamp() : null;
-        $canonicalizedResource = self::getCanonicalizedResource($sharedKeyCredential->accountName);
+        $canonicalizedResource = $this->getCanonicalizedResource($sharedKeyCredential->accountName);
 
         $stringToSign = [
             $this->permissions,
@@ -215,5 +215,13 @@ final class BlobSasBuilder
         }
 
         return $resource;
+    }
+
+    private function formatDate(\DateTime|\DateTimeImmutable $date): string
+    {
+        $date = clone $date;
+        $date = $date->setTimezone(new \DateTimeZone('UTC'));
+
+        return str_replace('+00:00', 'Z', $date->format('c'));
     }
 }
