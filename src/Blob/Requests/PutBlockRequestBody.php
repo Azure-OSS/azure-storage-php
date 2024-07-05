@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Requests;
 
-use AzureOss\Storage\Blob\Options\Block;
-use AzureOss\Storage\Blob\Options\BlockType;
 use JMS\Serializer\Annotation\XmlDiscriminator;
 use JMS\Serializer\Annotation\XmlList;
 use JMS\Serializer\Annotation\XmlRoot;
 
+/**
+ * @internal
+ */
 #[XmlRoot("BlockList")]
 #[XmlDiscriminator(attribute: true)]
 final class PutBlockRequestBody

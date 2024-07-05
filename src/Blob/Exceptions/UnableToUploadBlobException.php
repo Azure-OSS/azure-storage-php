@@ -4,4 +4,4 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Exceptions;
 
-final class InvalidBlockListException extends BlobStorageException {}
+class UnableToUploadBlobException extends \Exception {}
