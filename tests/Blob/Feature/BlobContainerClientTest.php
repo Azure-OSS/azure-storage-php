@@ -16,7 +16,7 @@ use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\Attributes\Test;
 
-class BlobContainerClientTest extends BlobFeatureTestCase
+final class BlobContainerClientTest extends BlobFeatureTestCase
 {
     private BlobContainerClient $containerClient;
 

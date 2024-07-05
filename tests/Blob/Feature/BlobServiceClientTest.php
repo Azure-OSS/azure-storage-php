@@ -8,7 +8,7 @@ use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-class BlobServiceClientTest extends BlobFeatureTestCase
+final class BlobServiceClientTest extends BlobFeatureTestCase
 {
     #[Test]
     public function from_connection_string_with_blob_endpoint_works(): void

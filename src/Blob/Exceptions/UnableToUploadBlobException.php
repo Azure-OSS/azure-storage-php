@@ -4,4 +4,4 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Exceptions;
 
-class UnableToUploadBlobException extends \Exception {}
+final class UnableToUploadBlobException extends \Exception {}

@@ -4,4 +4,4 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Exceptions;
 
-class BlobStorageException extends \RunTimeException {}
+final class BlobStorageException extends \RunTimeException {}

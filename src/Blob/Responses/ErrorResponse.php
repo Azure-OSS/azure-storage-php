@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Blob\Responses;
 /**
  * @internal
  */
-class ErrorResponse
+final class ErrorResponse
 {
     public function __construct(
         public readonly string $code,

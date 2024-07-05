@@ -14,7 +14,7 @@ use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\StreamInterface;
 
-class BlobClientTest extends BlobFeatureTestCase
+final class BlobClientTest extends BlobFeatureTestCase
 {
     private BlobContainerClient $containerClient;
     private BlobClient $blobClient;

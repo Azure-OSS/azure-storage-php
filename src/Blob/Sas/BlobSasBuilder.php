@@ -11,7 +11,7 @@ use AzureOss\Storage\Common\Sas\SasIpRange;
 use AzureOss\Storage\Common\Sas\SasProtocol;
 use GuzzleHttp\Psr7\Query;
 
-class BlobSasBuilder
+final class BlobSasBuilder
 {
     private string $version;
     private string $containerName;

@@ -10,7 +10,7 @@ use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class BlobUriParserTest extends TestCase
+final class BlobUriParserTest extends TestCase
 {
     #[Test]
     public function get_container_name_works(): void
