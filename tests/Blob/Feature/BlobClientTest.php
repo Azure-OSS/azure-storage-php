@@ -199,6 +199,21 @@ final class BlobClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
+    public function upload_works_with_empty_file(): void
+    {
+        $this->blobClient->upload("", new UploadBlobOptions("text/plain", initialTransferSize: 500, maximumTransferSize: 100));
+
+        $properties = $this->blobClient->getProperties();
+
+        $this->assertEquals("text/plain", $properties->contentType);
+        $this->assertEquals(0, $properties->contentLength);
+
+        $afterUploadContent = $this->blobClient->downloadStreaming()->content;
+
+        $this->assertEquals("", $afterUploadContent);
+    }
+
+    #[Test]
     public function upload_throws_if_container_doesnt_exist(): void
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
