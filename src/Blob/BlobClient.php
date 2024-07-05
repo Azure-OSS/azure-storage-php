@@ -78,11 +78,7 @@ final class BlobClient
 
             return new BlobDownloadStreamingResult(
                 $response->getBody(),
-                new BlobProperties(
-                    new \DateTime($response->getHeaderLine('Last-Modified')),
-                    (int) $response->getHeaderLine('Content-Length'),
-                    $response->getHeaderLine('Content-Type'),
-                ),
+                BlobProperties::fromResponseHeaders($response),
             );
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
@@ -94,11 +90,7 @@ final class BlobClient
         try {
             $response = $this->client->head($this->uri);
 
-            return new BlobProperties(
-                new \DateTime($response->getHeaderLine('Last-Modified')),
-                (int) $response->getHeaderLine('Content-Length'),
-                $response->getHeaderLine('Content-Type'),
-            );
+            return BlobProperties::fromResponseHeaders($response);
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
         }
