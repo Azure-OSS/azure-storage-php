@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Tests\Blob;
 
 use AzureOss\Storage\Blob\BlobServiceClient;
+use AzureOss\Storage\Blob\BlobUriParser;
 use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 
@@ -16,11 +17,22 @@ class BlobFeatureTestCase extends TestCase
     {
         $connectionString = getenv('AZURE_STORAGE_BLOB_TEST_CONNECTION_STRING');
 
-        if (! is_string($connectionString)) {
+        if (!is_string($connectionString)) {
             throw new \Exception('Connection string not set!');
         }
 
         $this->serviceClient = BlobServiceClient::fromConnectionString($connectionString);
+    }
+
+    protected function cleanContainer(string $containerName): void
+    {
+        $containerClient = $this->serviceClient->getContainerClient($containerName);
+
+        $containerClient->createIfNotExists();
+
+        foreach ($containerClient->getBlobs() as $blob) {
+            $containerClient->getBlobClient($blob->name)->delete();
+        }
     }
 
     protected function withFile(int $size, callable $callable): void
@@ -41,5 +53,12 @@ class BlobFeatureTestCase extends TestCase
         $callable(Utils::streamFor(Utils::tryFopen($path, 'r')));
 
         unlink($path);
+    }
+
+    protected function markTestSkippedWhenUsingSimulator(): void
+    {
+        if(BlobUriParser::isDevelopmentUri($this->serviceClient->uri)) {
+            $this->markTestSkipped("API unsupported in Azurite.");
+        }
     }
 }

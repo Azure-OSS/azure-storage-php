@@ -114,6 +114,19 @@ final class BlobClient
         }
     }
 
+    public function undelete(): void
+    {
+        try {
+            $this->client->put($this->uri, [
+                'query' => $this->buildQuery([
+                    'comp' => 'undelete',
+                ]),
+            ]);
+        } catch (RequestException $e) {
+            throw $this->exceptionFactory->create($e);
+        }
+    }
+
     public function exists(): bool
     {
         try {
