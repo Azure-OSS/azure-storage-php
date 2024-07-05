@@ -54,9 +54,9 @@ final class BlobClient
         return new BlockBlobClient($this->blobEndpoint, $this->containerName, $this->blobName, $this->sharedKeyCredentials);
     }
 
-    public function getContainerClient(): ContainerClient
+    public function getContainerClient(): BlobContainerClient
     {
-        return new ContainerClient($this->blobEndpoint, $this->containerName, $this->sharedKeyCredentials);
+        return new BlobContainerClient($this->blobEndpoint, $this->containerName, $this->sharedKeyCredentials);
     }
 
     public function get(?GetBlobOptions $options = null): GetBlobResponse
@@ -68,9 +68,9 @@ final class BlobClient
 
             return new GetBlobResponse(
                 $response->getBody(),
-                new \DateTime($response->getHeader('Last-Modified')[0]),
-                (int) $response->getHeader('Content-Length')[0],
-                $response->getHeader('Content-Type')[0],
+                new \DateTime($response->getHeaderLine('Last-Modified')),
+                (int) $response->getHeaderLine('Content-Length'),
+                $response->getHeaderLine('Content-Type'),
             );
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);

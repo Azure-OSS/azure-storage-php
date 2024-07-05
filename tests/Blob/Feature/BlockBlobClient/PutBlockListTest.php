@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature\BlockBlobClient;
 
-use AzureOss\Storage\Blob\Clients\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlockListException;
 use AzureOss\Storage\Blob\Options\Block;
@@ -18,7 +18,7 @@ class PutBlockListTest extends BlobFeatureTestCase
     #[Test]
     public function commits_block_list(): void
     {
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $blob = md5(__METHOD__);
             $blockA = new Block('ABCDEF', BlockType::UNCOMMITTED);
             $blockB = new Block('GHIJKL', BlockType::UNCOMMITTED);
@@ -43,7 +43,7 @@ class PutBlockListTest extends BlobFeatureTestCase
     {
         $this->expectException(InvalidBlockListException::class);
 
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $containerClient->getBlockBlobClient("test")->putBlockList([new Block('ABCDEF', BlockType::UNCOMMITTED)]);
         });
     }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Tests\Blob;
 
 use AzureOss\Storage\Blob\Clients\BlobServiceClient;
-use AzureOss\Storage\Blob\Clients\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use GuzzleHttp\Psr7\Utils;
@@ -50,7 +50,7 @@ class BlobFeatureTestCase extends TestCase
 
     protected function withBlob(string $method, callable $callable): void
     {
-        $this->withContainer($method, function (ContainerClient $containerClient) use ($method, $callable) {
+        $this->withContainer($method, function (BlobContainerClient $containerClient) use ($method, $callable) {
             $blob = md5($method);
 
             $client = $containerClient->getBlobClient($blob);

@@ -16,7 +16,7 @@ enum ErrorCode: string
 
     public static function fromRequestException(RequestException $e): ?self
     {
-        $code = $e->getResponse()?->getHeader('x-ms-error-code')[0] ?? null;
+        $code = $e->getResponse()?->getHeaderLine('x-ms-error-code');
 
         if ($code === null) {
             return null;

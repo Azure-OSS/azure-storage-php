@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature\ContainerClient;
 
-use AzureOss\Storage\Blob\Clients\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,7 +14,7 @@ class CreateContainerTest extends BlobFeatureTestCase
     #[Test]
     public function container_is_created(): void
     {
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $this->assertTrue($containerClient->exists());
         });
     }
@@ -24,7 +24,7 @@ class CreateContainerTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerAlreadyExistsException::class);
 
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $containerClient->create();
         });
     }

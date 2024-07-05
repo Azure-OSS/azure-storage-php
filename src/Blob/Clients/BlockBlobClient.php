@@ -73,9 +73,9 @@ final class BlockBlobClient
         return new BlobClient($this->blobEndpoint, $this->containerName, $this->blobName, $this->sharedKeyCredentials);
     }
 
-    public function getContainerClient(): ContainerClient
+    public function getContainerClient(): BlobContainerClient
     {
-        return new ContainerClient($this->blobEndpoint, $this->containerName, $this->sharedKeyCredentials);
+        return new BlobContainerClient($this->blobEndpoint, $this->containerName, $this->sharedKeyCredentials);
     }
 
     public function getHandlerStack(): HandlerStack

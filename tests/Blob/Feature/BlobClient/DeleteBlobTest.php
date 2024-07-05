@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Tests\Blob\Feature\BlobClient;
 
 use AzureOss\Storage\Blob\Clients\BlobClient;
-use AzureOss\Storage\Blob\Clients\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
@@ -38,7 +38,7 @@ class DeleteBlobTest extends BlobFeatureTestCase
     {
         $this->expectException(BlobNotFoundException::class);
 
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $containerClient->getBlobClient('noop')->delete();
         });
     }

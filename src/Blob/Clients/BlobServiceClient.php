@@ -52,9 +52,9 @@ final class BlobServiceClient
         );
     }
 
-    public function getContainerClient(string $containerName): ContainerClient
+    public function getContainerClient(string $containerName): BlobContainerClient
     {
-        return new ContainerClient(
+        return new BlobContainerClient(
             $this->blobEndpoint,
             $containerName,
             $this->sharedKeyCredentials,

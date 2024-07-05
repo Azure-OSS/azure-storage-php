@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Tests\Blob\Feature\BlobClient;
 
 use AzureOss\Storage\Blob\Clients\BlobClient;
-use AzureOss\Storage\Blob\Clients\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
@@ -17,7 +17,7 @@ class CopyBlobTest extends BlobFeatureTestCase
     public function copies_blob(): void
     {
         $this->withBlob(__METHOD__, function (BlobClient $sourceBlobClient) {
-            $this->withContainer(__METHOD__, function (ContainerClient $targetContainerClient) use ($sourceBlobClient) {
+            $this->withContainer(__METHOD__, function (BlobContainerClient $targetContainerClient) use ($sourceBlobClient) {
                 $targetBlob = "copy";
                 $sourceBlobClient->copy($targetContainerClient->containerName, $targetBlob);
 
@@ -37,7 +37,7 @@ class CopyBlobTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundException::class);
 
-        $this->withContainer(__METHOD__, function (ContainerClient $sourceContainerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $sourceContainerClient) {
             $this->serviceClient->getContainerClient("noop")->getBlobClient('noop')->copy($sourceContainerClient->containerName, "copy");
         });
     }
@@ -47,8 +47,8 @@ class CopyBlobTest extends BlobFeatureTestCase
     {
         $this->expectException(BlobNotFoundException::class);
 
-        $this->withContainer(__METHOD__, function (ContainerClient $sourceContainerClient) {
-            $this->withContainer(__METHOD__, function (ContainerClient $targetContainerClient) use ($sourceContainerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $sourceContainerClient) {
+            $this->withContainer(__METHOD__, function (BlobContainerClient $targetContainerClient) use ($sourceContainerClient) {
                 $sourceContainerClient->getBlobClient('noop')->copy($targetContainerClient->containerName, "noop");
             });
         });

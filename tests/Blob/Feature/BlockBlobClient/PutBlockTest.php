@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature\BlockBlobClient;
 
-use AzureOss\Storage\Blob\Clients\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Options\Block;
 use AzureOss\Storage\Blob\Options\BlockType;
@@ -18,7 +18,7 @@ class PutBlockTest extends BlobFeatureTestCase
     {
         $this->expectNotToPerformAssertions();
 
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $block = new Block('ABCDEF', BlockType::UNCOMMITTED);
 
             $containerClient->getBlockBlobClient("test")->putBlock($block, 'Lorem');

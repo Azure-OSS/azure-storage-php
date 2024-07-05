@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Tests\Blob\Feature\BlobClient;
 
 use AzureOss\Storage\Blob\Clients\BlobClient;
-use AzureOss\Storage\Blob\Clients\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,7 +15,7 @@ class BlobExistsTest extends BlobFeatureTestCase
     #[Test]
     public function checks_existence(): void
     {
-        $this->withContainer(__METHOD__, function (ContainerClient $client) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $client) {
             $this->assertFalse($client->getBlobClient('noop')->exists());
         });
 

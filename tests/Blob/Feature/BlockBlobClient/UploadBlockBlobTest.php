@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature\BlockBlobClient;
 
-use AzureOss\Storage\Blob\Clients\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Options\UploadBlockBlobOptions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
@@ -17,7 +17,7 @@ class UploadBlockBlobTest extends BlobFeatureTestCase
     #[Test]
     public function uploads_small_file_in_single_request(): void
     {
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $this->withFile(__METHOD__, 32, function (StreamInterface $file) use ($containerClient) {
                 $blockClient = $containerClient->getBlockBlobClient('test');
 
@@ -41,7 +41,7 @@ class UploadBlockBlobTest extends BlobFeatureTestCase
     #[Test]
     public function uploads_large_file_in_multiple_requests(): void
     {
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $this->withFile(__METHOD__, 64, function (StreamInterface $file) use ($containerClient) {
                 $blockClient = $containerClient->getBlockBlobClient('test');
 

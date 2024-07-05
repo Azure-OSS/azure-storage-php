@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature\ContainerClient;
 
-use AzureOss\Storage\Blob\Clients\ContainerClient;
+use AzureOss\Storage\Blob\Clients\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Options\ListBlobsOptions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
@@ -15,7 +15,7 @@ class ListBlobsTest extends BlobFeatureTestCase
     #[Test]
     public function gets_blobs(): void
     {
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $containerClient->getBlobClient("blobA")->put("lorem");
             $containerClient->getBlobClient("blobB")->put("lorem");
             $containerClient->getBlobClient("blobC")->put("lorem");
@@ -28,7 +28,7 @@ class ListBlobsTest extends BlobFeatureTestCase
     #[Test]
     public function gets_blobs_with_delimiter_and_prefix(): void
     {
-        $this->withContainer(__METHOD__, function (ContainerClient $containerClient) {
+        $this->withContainer(__METHOD__, function (BlobContainerClient $containerClient) {
             $containerClient->getBlobClient("blobA")->put("lorem");
             $containerClient->getBlobClient("folder/blobB")->put("lorem");
             $containerClient->getBlobClient("folder/blobC")->put("lorem");
