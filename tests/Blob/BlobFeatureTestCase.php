@@ -24,6 +24,11 @@ class BlobFeatureTestCase extends TestCase
         $this->serviceClient = BlobServiceClient::fromConnectionString($connectionString);
     }
 
+    protected function randomContainerName(): string
+    {
+        return substr(md5((string) mt_rand()), 0, 7);
+    }
+
     protected function cleanContainer(string $containerName): void
     {
         $containerClient = $this->serviceClient->getContainerClient($containerName);

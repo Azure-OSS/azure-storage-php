@@ -161,16 +161,14 @@ final class BlobClient
         }
     }
 
-    /**
-     * @param string|resource|StreamInterface $content
-     */
-    private function uploadSingle($content, UploadBlobOptions $options): void
+    private function uploadSingle(StreamInterface $content, UploadBlobOptions $options): void
     {
         try {
             $this->client->put($this->uri, [
                 'headers' => [
                     'x-ms-blob-type' => 'BlockBlob',
                     'Content-Type' => $options->contentType,
+                    'Content-Length' => $content->getSize(),
                 ],
                 'body' => $content,
             ]);
@@ -184,9 +182,13 @@ final class BlobClient
         $blocks = [];
 
         $putBlockRequestGenerator = function () use ($content, $options, &$blocks): \Iterator {
-            while (! $content->eof()) {
+            while (true) {
                 $blockContent = StreamUtils::streamFor();
                 StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);
+
+                if($blockContent->getSize() === 0) {
+                    break;
+                }
 
                 $blockId = str_pad((string) count($blocks), 6, '0', STR_PAD_LEFT);
                 $block = new Block($blockId, BlockType::UNCOMMITTED);
@@ -216,6 +218,9 @@ final class BlobClient
                     'comp' => 'block',
                     'blockid' => base64_encode($block->id),
                 ]),
+                'headers' => [
+                    'Content-Length' => $content->getSize(),
+                ],
                 'body' => $content,
             ]);
     }

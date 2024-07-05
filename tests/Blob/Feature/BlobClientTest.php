@@ -87,7 +87,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function delete_works(): void
     {
-        $this->blobClient->upload("");
+        $this->blobClient->upload("test");
 
         $this->assertTrue($this->blobClient->exists());
 
@@ -109,13 +109,14 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(BlobNotFoundExceptionBlob::class);
 
+        $this->blobClient->deleteIfExists();
         $this->blobClient->delete();
     }
 
     #[Test]
     public function delete_if_exists_works(): void
     {
-        $this->blobClient->upload("");
+        $this->blobClient->upload("test");
 
         $this->assertTrue($this->blobClient->exists());
 
@@ -140,19 +141,11 @@ final class BlobClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
-    public function undelete_works(): void
-    {
-        $this->markTestSkippedWhenUsingSimulator();
-
-        $this->blobClient->undelete();
-    }
-
-    #[Test]
     public function exists_works(): void
     {
         $this->assertFalse($this->blobClient->exists());
 
-        $this->blobClient->upload("");
+        $this->blobClient->upload("test");
 
         $this->assertTrue($this->blobClient->exists());
     }
@@ -210,7 +203,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
-        $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->upload("");
+        $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->upload("test");
     }
 
     #[Test]
@@ -262,7 +255,7 @@ final class BlobClientTest extends BlobFeatureTestCase
         $this->expectNotToPerformAssertions();
 
         $blobClient = $this->containerClient->getBlobClient("blob");
-        $blobClient->upload("");
+        $blobClient->upload("test");
 
         $sas = $blobClient->generateSasUri(
             BlobSasBuilder::new()

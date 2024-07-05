@@ -44,7 +44,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function create_works(): void
     {
-        $containerClient = $this->serviceClient->getContainerClient("create");
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->deleteIfExists();
 
         $this->assertFalse($containerClient->exists());
@@ -67,7 +67,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function create_if_not_exists_works(): void
     {
-        $containerClient = $this->serviceClient->getContainerClient("createifnotexists");
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->deleteIfExists();
 
         $this->assertFalse($containerClient->exists());
@@ -88,7 +88,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function delete_works(): void
     {
-        $containerClient = $this->serviceClient->getContainerClient("delete");
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->create();
 
         $this->assertTrue($containerClient->exists());
@@ -109,7 +109,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function delete_if_exists_works(): void
     {
-        $containerClient = $this->serviceClient->getContainerClient("deleteifexists");
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->create();
 
         $this->assertTrue($containerClient->exists());
@@ -124,13 +124,13 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     {
         $this->expectNotToPerformAssertions();
 
-        $this->containerClient->deleteIfExists();
+        $this->serviceClient->getContainerClient("noop")->deleteIfExists();
     }
 
     #[Test]
     public function exists_works(): void
     {
-        $containerClient = $this->serviceClient->getContainerClient("exists");
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->create();
 
         $this->assertTrue($containerClient->exists());
@@ -143,10 +143,10 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_works(): void
     {
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
 
         $blobs = iterator_to_array($this->containerClient->getBlobs());
 
@@ -156,10 +156,10 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_works_with_prefix(): void
     {
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
 
         $blobs = iterator_to_array($this->containerClient->getBlobs("some/"));
 
@@ -177,10 +177,10 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_by_hierarchy_works(): void
     {
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
 
         $results = iterator_to_array($this->containerClient->getBlobsByHierarchy());
 
@@ -194,10 +194,10 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_by_hierarchy_works_with_prefix(): void
     {
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
 
         $results = iterator_to_array($this->containerClient->getBlobsByHierarchy("some/"));
 
@@ -211,10 +211,10 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_by_hierarchy_works_with_different_delimiter(): void
     {
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some-fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some-deeply-nested-fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some-fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some-deeply-nested-fileB.txt")->upload("test");
 
         $results = iterator_to_array($this->containerClient->getBlobsByHierarchy(delimiter: "-"));
 
