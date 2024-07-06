@@ -82,6 +82,14 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
+    public function from_connection_string_without_account_key_and_without_sas_throws(): void
+    {
+        $this->expectException(InvalidConnectionStringException::class);
+        $connectionString = "BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;";
+        BlobServiceClient::fromConnectionString($connectionString);
+    }
+
+    #[Test]
     public function from_connection_string_default_endpoint_protocol_overwrites_protocol_of_blob_endpoint(): void
     {
         $connectionString = "DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;";
