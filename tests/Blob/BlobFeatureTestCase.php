@@ -9,7 +9,7 @@ use AzureOss\Storage\Blob\BlobUriParser;
 use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 
-class BlobFeatureTestCase extends TestCase
+abstract class BlobFeatureTestCase extends TestCase
 {
     protected BlobServiceClient $serviceClient;
 
