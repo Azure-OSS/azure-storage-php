@@ -7,6 +7,9 @@ namespace AzureOss\Storage\Common\Serializer;
 use JMS\Serializer\Metadata\PropertyMetadata;
 use JMS\Serializer\Naming\PropertyNamingStrategyInterface;
 
+/**
+ * @internal
+ */
 final class PascalCaseToCamelCaseNamingStrategy implements PropertyNamingStrategyInterface
 {
     public function translateName(PropertyMetadata $property): string

@@ -7,6 +7,9 @@ namespace AzureOss\Storage\Common\Middleware;
 use AzureOss\Storage\Common\ApiVersion;
 use Psr\Http\Message\RequestInterface;
 
+/**
+ * @internal
+ */
 final class AddXMsVersionMiddleware
 {
     public function __construct(
