@@ -21,13 +21,17 @@ final class BlobStorageExceptionFactory
     {
         $error = $this->getErrorResponse($e);
 
-        return match ($error?->code) {
+        if ($error === null) {
+            return $e;
+        }
+
+        return match ($error->code) {
             'AuthorizationFailure' => new AuthorizationFailedExceptionBlob($error->message, previous: $e),
             'ContainerNotFound' => new ContainerNotFoundExceptionBlob($error->message, previous: $e),
             'ContainerAlreadyExists' => new ContainerAlreadyExistsExceptionBlob($error->message, previous: $e),
             'BlobNotFound' => new BlobNotFoundExceptionBlob($error->message, previous: $e),
             'InvalidBlockList' => new InvalidBlockListException($error->message, previous: $e),
-            default => $e,
+            default => new BlobStorageException($error->message, previous: $e),
         };
     }
 

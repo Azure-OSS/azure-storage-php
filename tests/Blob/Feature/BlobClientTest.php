@@ -22,17 +22,14 @@ final class BlobClientTest extends BlobFeatureTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->containerClient = $this->serviceClient->getContainerClient("blobclienttests");
+        $this->containerClient = $this->serviceClient->getContainerClient("blobclient");
         $this->blobClient = $this->containerClient->getBlobClient("some/file.txt");
-
-        $this->containerClient->deleteIfExists(); // cleanup
+        $this->cleanContainer($this->containerClient->containerName);
     }
 
     #[Test]
     public function download_stream_works(): void
     {
-        $this->containerClient->create();
-
         $content = "Lorem ipsum dolor sit amet";
         $this->blobClient->upload($content, new UploadBlobOptions("text/plain"));
 
@@ -48,14 +45,12 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
-        $this->blobClient->downloadStreaming();
+        $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->downloadStreaming();
     }
 
     #[Test]
     public function download_stream_throws_if_blob_doesnt_exist(): void
     {
-        $this->containerClient->create();
-
         $this->expectException(BlobNotFoundExceptionBlob::class);
 
         $this->blobClient->downloadStreaming();
@@ -64,8 +59,6 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_properties_works(): void
     {
-        $this->containerClient->create();
-
         $content = "Lorem ipsum dolor sit amet";
         $this->blobClient->upload($content, new UploadBlobOptions("text/plain"));
 
@@ -80,14 +73,12 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
-        $this->blobClient->getProperties();
+        $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->getProperties();
     }
 
     #[Test]
     public function get_properties_throws_if_blob_doesnt_exist(): void
     {
-        $this->containerClient->create();
-
         $this->expectException(BlobNotFoundExceptionBlob::class);
 
         $this->blobClient->getProperties();
@@ -96,9 +87,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function delete_works(): void
     {
-        $this->containerClient->create();
-
-        $this->blobClient->upload("");
+        $this->blobClient->upload("test");
 
         $this->assertTrue($this->blobClient->exists());
 
@@ -112,25 +101,22 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
-        $this->blobClient->delete();
+        $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->delete();
     }
 
     #[Test]
     public function delete_works_throws_if_blob_doesnt_exist(): void
     {
-        $this->containerClient->create();
-
         $this->expectException(BlobNotFoundExceptionBlob::class);
 
+        $this->blobClient->deleteIfExists();
         $this->blobClient->delete();
     }
 
     #[Test]
     public function delete_if_exists_works(): void
     {
-        $this->containerClient->create();
-
-        $this->blobClient->upload("");
+        $this->blobClient->upload("test");
 
         $this->assertTrue($this->blobClient->exists());
 
@@ -149,8 +135,6 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function delete_if_exists_doesnt_throws_if_blob_doesnt_exist(): void
     {
-        $this->containerClient->create();
-
         $this->expectNotToPerformAssertions();
 
         $this->blobClient->deleteIfExists();
@@ -159,11 +143,9 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function exists_works(): void
     {
-        $this->containerClient->create();
-
         $this->assertFalse($this->blobClient->exists());
 
-        $this->blobClient->upload("");
+        $this->blobClient->upload("test");
 
         $this->assertTrue($this->blobClient->exists());
     }
@@ -173,14 +155,12 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
-        $this->blobClient->exists();
+        $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->exists();
     }
 
     #[Test]
     public function upload_works_with_single_upload(): void
     {
-        $this->containerClient->create();
-
         $this->withFile(1000, function (StreamInterface $file) {
             $beforeUploadContent = $file->getContents();
             $file->rewind();
@@ -201,8 +181,6 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function upload_works_with_parallel_upload(): void
     {
-        $this->containerClient->create();
-
         $this->withFile(1000, function (StreamInterface $file) {
             $beforeUploadContent = $file->getContents();
             $file->rewind();
@@ -221,21 +199,34 @@ final class BlobClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
+    public function upload_works_with_empty_file(): void
+    {
+        $this->blobClient->upload("", new UploadBlobOptions("text/plain", initialTransferSize: 500, maximumTransferSize: 100));
+
+        $properties = $this->blobClient->getProperties();
+
+        $this->assertEquals("text/plain", $properties->contentType);
+        $this->assertEquals(0, $properties->contentLength);
+
+        $afterUploadContent = $this->blobClient->downloadStreaming()->content;
+
+        $this->assertEquals("", $afterUploadContent);
+    }
+
+    #[Test]
     public function upload_throws_if_container_doesnt_exist(): void
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
-        $this->blobClient->upload("");
+        $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->upload("test");
     }
 
     #[Test]
     public function copy_from_url_works(): void
     {
-        $sourceContainerClient = $this->serviceClient->getContainerClient("blobclienttestscopy");
-        $sourceContainerClient->deleteIfExists(); // cleanup
+        $sourceContainerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
 
-        $sourceContainerClient->create();
-        $this->containerClient->create();
+        $this->cleanContainer($sourceContainerClient->containerName);
 
         $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
         $sourceBlobClient->upload("This should be copied!");
@@ -254,8 +245,6 @@ final class BlobClientTest extends BlobFeatureTestCase
         $sourceContainerClient = $this->serviceClient->getContainerClient("blobclienttestscopy");
         $sourceContainerClient->deleteIfExists(); // cleanup
 
-        $this->containerClient->create();
-
         $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
@@ -265,11 +254,9 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function copy_from_url_works_throws_if_source_blob_doesnt_exist(): void
     {
-        $sourceContainerClient = $this->serviceClient->getContainerClient("blobclienttestscopy");
-        $sourceContainerClient->deleteIfExists(); // cleanup
+        $sourceContainerClient = $this->serviceClient->getContainerClient("copyfromurl");
 
-        $this->containerClient->create();
-        $sourceContainerClient->create();
+        $this->cleanContainer($sourceContainerClient->containerName);
 
         $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
         $this->expectException(BlobNotFoundExceptionBlob::class);
@@ -282,10 +269,8 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectNotToPerformAssertions();
 
-        $this->containerClient->create();
-
         $blobClient = $this->containerClient->getBlobClient("blob");
-        $blobClient->upload("");
+        $blobClient->upload("test");
 
         $sas = $blobClient->generateSasUri(
             BlobSasBuilder::new()

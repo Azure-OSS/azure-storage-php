@@ -23,8 +23,8 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->containerClient = $this->serviceClient->getContainerClient("blobcontainerclienttests");
-        $this->containerClient->deleteIfExists(); // cleanup
+        $this->containerClient = $this->serviceClient->getContainerClient("blobclienttests");
+        $this->cleanContainer($this->containerClient->containerName);
     }
 
     #[Test]
@@ -44,38 +44,42 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function create_works(): void
     {
-        $this->containerClient->create();
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+        $containerClient->deleteIfExists();
 
-        $this->assertTrue($this->containerClient->exists());
+        $this->assertFalse($containerClient->exists());
 
-        $this->containerClient->delete(); // cleanup
+        $containerClient->create();
+
+        $this->assertTrue($containerClient->exists());
+
+        $containerClient->delete(); // cleanup
     }
 
     #[Test]
     public function create_throws_when_container_already_exists(): void
     {
-        $this->containerClient->create();
-
         $this->expectException(ContainerAlreadyExistsExceptionBlob::class);
 
         $this->containerClient->create();
     }
 
     #[Test]
-    public function create_if_not_exists_creates_container(): void
+    public function create_if_not_exists_works(): void
     {
-        $this->containerClient->createIfNotExists();
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+        $containerClient->deleteIfExists();
 
-        $this->assertTrue($this->containerClient->exists());
+        $this->assertFalse($containerClient->exists());
 
-        $this->containerClient->delete(); // cleanup
+        $containerClient->createIfNotExists();
+
+        $this->assertTrue($containerClient->exists());
     }
 
     #[Test]
     public function create_if_not_exists_doesnt_throw_when_container_already_exists(): void
     {
-        $this->containerClient->create();
-
         $this->expectNotToPerformAssertions();
 
         $this->containerClient->createIfNotExists();
@@ -84,13 +88,14 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function delete_works(): void
     {
-        $this->containerClient->create();
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+        $containerClient->create();
 
-        $this->assertTrue($this->containerClient->exists());
+        $this->assertTrue($containerClient->exists());
 
-        $this->containerClient->delete();
+        $containerClient->delete();
 
-        $this->assertFalse($this->containerClient->exists());
+        $this->assertFalse($containerClient->exists());
     }
 
     #[Test]
@@ -98,19 +103,20 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
-        $this->containerClient->delete();
+        $this->serviceClient->getContainerClient("noop")->delete();
     }
 
     #[Test]
     public function delete_if_exists_works(): void
     {
-        $this->containerClient->create();
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+        $containerClient->create();
 
-        $this->assertTrue($this->containerClient->exists());
+        $this->assertTrue($containerClient->exists());
 
-        $this->containerClient->deleteIfExists();
+        $containerClient->deleteIfExists();
 
-        $this->assertFalse($this->containerClient->exists());
+        $this->assertFalse($containerClient->exists());
     }
 
     #[Test]
@@ -118,29 +124,29 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     {
         $this->expectNotToPerformAssertions();
 
-        $this->containerClient->deleteIfExists();
+        $this->serviceClient->getContainerClient("noop")->deleteIfExists();
     }
 
     #[Test]
     public function exists_works(): void
     {
-        $this->containerClient->create();
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+        $containerClient->create();
 
-        $this->assertTrue($this->containerClient->exists());
+        $this->assertTrue($containerClient->exists());
 
-        $this->containerClient->delete();
+        $containerClient->delete();
 
-        $this->assertFalse($this->containerClient->exists());
+        $this->assertFalse($containerClient->exists());
     }
 
     #[Test]
     public function get_blobs_works(): void
     {
-        $this->containerClient->create();
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
 
         $blobs = iterator_to_array($this->containerClient->getBlobs());
 
@@ -150,11 +156,10 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_works_with_prefix(): void
     {
-        $this->containerClient->create();
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
 
         $blobs = iterator_to_array($this->containerClient->getBlobs("some/"));
 
@@ -166,17 +171,16 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
-        iterator_to_array($this->containerClient->getBlobs());
+        iterator_to_array($this->serviceClient->getContainerClient("noop")->getBlobs());
     }
 
     #[Test]
     public function get_blobs_by_hierarchy_works(): void
     {
-        $this->containerClient->create();
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
 
         $results = iterator_to_array($this->containerClient->getBlobsByHierarchy());
 
@@ -190,11 +194,10 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_by_hierarchy_works_with_prefix(): void
     {
-        $this->containerClient->create();
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
 
         $results = iterator_to_array($this->containerClient->getBlobsByHierarchy("some/"));
 
@@ -208,11 +211,10 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_by_hierarchy_works_with_different_delimiter(): void
     {
-        $this->containerClient->create();
-        $this->containerClient->getBlobClient("fileA.txt")->upload("");
-        $this->containerClient->getBlobClient("fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some-fileB.txt")->upload("");
-        $this->containerClient->getBlobClient("some-deeply-nested-fileB.txt")->upload("");
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some-fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some-deeply-nested-fileB.txt")->upload("test");
 
         $results = iterator_to_array($this->containerClient->getBlobsByHierarchy(delimiter: "-"));
 
@@ -228,7 +230,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
 
-        iterator_to_array($this->containerClient->getBlobsByHierarchy());
+        iterator_to_array($this->serviceClient->getContainerClient("noop")->getBlobsByHierarchy());
     }
 
     #[Test]
@@ -250,8 +252,6 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     public function generate_sas_uri_works(): void
     {
         $this->expectNotToPerformAssertions();
-
-        $this->containerClient->create();
 
         $sas = $this->containerClient->generateSasUri(
             BlobSasBuilder::new()

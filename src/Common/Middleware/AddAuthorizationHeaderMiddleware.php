@@ -45,7 +45,12 @@ final class AddAuthorizationHeaderMiddleware
     private function computeStringToSign(RequestInterface $request): string
     {
         $verb = strtoupper($request->getMethod());
+
         $headers = array_map(fn($value) => implode(', ', $value), $request->getHeaders());
+        if (isset($headers['Content-Length']) && $headers['Content-Length'] === "0") {
+            $headers['Content-Length'] = "";
+        }
+
         $query = Query::parse($request->getUri()->getQuery());
         $url = (string) $request->getUri();
 
