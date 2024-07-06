@@ -7,6 +7,6 @@ namespace AzureOss\Storage\Blob\Models;
 final class GetBlobsOptions
 {
     public function __construct(
-        public readonly int $pageSize = 5000,
+        public readonly ?int $pageSize = null,
     ) {}
 }
