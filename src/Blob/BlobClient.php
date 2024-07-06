@@ -187,8 +187,12 @@ final class BlobClient
 
         $pool = new Pool($this->client, $putBlockRequestGenerator(), [
             'concurrency' => $options->maximumConcurrency,
-            'rejected' => function (RequestException $e) {
-                throw $this->exceptionFactory->create($e);
+            'rejected' => function (\Exception $e) {
+                if ($e instanceof RequestException) {
+                    throw $this->exceptionFactory->create($e);
+                }
+
+                throw $e;
             },
         ]);
 
