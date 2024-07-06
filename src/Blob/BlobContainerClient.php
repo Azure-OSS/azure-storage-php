@@ -11,6 +11,7 @@ use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
+use AzureOss\Storage\Blob\Models\GetBlobsOptions;
 use AzureOss\Storage\Blob\Responses\ListBlobsResponseBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
@@ -122,31 +123,35 @@ final class BlobContainerClient
     /**
      * @return \Iterator<int, Blob>
      */
-    public function getBlobs(?string $prefix = null): \Iterator
+    public function getBlobs(?string $prefix = null, ?GetBlobsOptions $options = null): \Iterator
     {
-        do {
-            $nextMarker = "";
+        $nextMarker = "";
 
-            $response = $this->listBlobs($prefix, null, $nextMarker);
+        while (true) {
+            $response = $this->listBlobs($prefix, null, $nextMarker, $options?->pageSize);
+            $nextMarker = $response->nextMarker;
 
             foreach ($response->blobs as $blob) {
                 yield $blob;
             }
 
-            $nextMarker = $response->nextMarker;
-        } while ($nextMarker !== "");
+            if ($nextMarker === "") {
+                break;
+            }
+        }
     }
 
     /**
      * @param string $delimiter
      * @return \Iterator<int, Blob|BlobPrefix>
      */
-    public function getBlobsByHierarchy(?string $prefix = null, string $delimiter = "/"): \Iterator
+    public function getBlobsByHierarchy(?string $prefix = null, string $delimiter = "/", ?GetBlobsOptions $options = null): \Iterator
     {
-        do {
-            $nextMarker = "";
+        $nextMarker = "";
 
-            $response = $this->listBlobs($prefix, $delimiter, $nextMarker);
+        while(true) {
+            $response = $this->listBlobs($prefix, $delimiter, $nextMarker, $options?->pageSize);
+            $nextMarker = $response->nextMarker;
 
             foreach ($response->blobs as $blob) {
                 yield $blob;
@@ -156,11 +161,13 @@ final class BlobContainerClient
                 yield $blobPrefix;
             }
 
-            $nextMarker = $response->nextMarker;
-        } while ($nextMarker !== "");
+            if ($nextMarker === "") {
+                break;
+            }
+        }
     }
 
-    private function listBlobs(?string $prefix, ?string $delimiter, string $marker): ListBlobsResponseBody
+    private function listBlobs(?string $prefix, ?string $delimiter, string $marker, ?int $maxResults): ListBlobsResponseBody
     {
         try {
             $response = $this->client->get($this->uri, [
@@ -170,6 +177,7 @@ final class BlobContainerClient
                     'prefix' => $prefix,
                     'marker' => $marker,
                     'delimiter' => $delimiter,
+                    'maxresults' => $maxResults,
                 ],
             ]);
 

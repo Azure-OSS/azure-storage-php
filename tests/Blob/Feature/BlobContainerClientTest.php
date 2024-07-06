@@ -10,6 +10,7 @@ use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsExceptionBlob;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundExceptionBlob;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
+use AzureOss\Storage\Blob\Models\GetBlobsOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
@@ -167,6 +168,19 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
+    public function get_blobs_works_with_max_results(): void
+    {
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
+
+        $blobs = iterator_to_array($this->containerClient->getBlobs(options: new GetBlobsOptions(pageSize: 2)));
+
+        $this->assertCount(4, $blobs);
+    }
+
+    #[Test]
     public function get_blobs_throws_if_container_doesnt_exist(): void
     {
         $this->expectException(ContainerNotFoundExceptionBlob::class);
@@ -205,6 +219,23 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $prefixes = array_filter($results, fn($item) => $item instanceof BlobPrefix);
 
         $this->assertCount(1, $blobs);
+        $this->assertCount(1, $prefixes);
+    }
+
+    #[Test]
+    public function get_blobs_by_hierarchy_works_with_max_results(): void
+    {
+        $this->containerClient->getBlobClient("fileA.txt")->upload("test");
+        $this->containerClient->getBlobClient("fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
+        $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
+
+        $results = iterator_to_array($this->containerClient->getBlobsByHierarchy(options: new GetBlobsOptions(pageSize:  2)));
+
+        $blobs = array_filter($results, fn($item) => $item instanceof Blob);
+        $prefixes = array_filter($results, fn($item) => $item instanceof BlobPrefix);
+
+        $this->assertCount(2, $blobs);
         $this->assertCount(1, $prefixes);
     }
 
