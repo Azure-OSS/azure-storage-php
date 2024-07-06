@@ -31,7 +31,7 @@ Join us at:
 
 ## License
 
-Azure-Storage-PHP is released under the MIT License. See [LICENSE](./LICENSE.md) for details.
+Azure-Storage-PHP is released under the MIT License. See [LICENSE](./LICENSE) for details.
 
 ## PHP Version Support Policy
 
