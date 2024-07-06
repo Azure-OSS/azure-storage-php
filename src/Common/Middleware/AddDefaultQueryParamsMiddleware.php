@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestInterface;
 /**
  * @internal
  */
-class AddDefaultQueryParamsMiddleware
+final class AddDefaultQueryParamsMiddleware
 {
     public function __construct(
         private readonly string $defaultQuery,

@@ -9,7 +9,7 @@ use Psr\Http\Message\RequestInterface;
 /**
  * @internal
  */
-class AddXMsClientRequestIdMiddleware
+final class AddXMsClientRequestIdMiddleware
 {
     public function __invoke(callable $handler): \Closure
     {
