@@ -153,8 +153,8 @@ final class BlobSasBuilder
             throw new UnableToGenerateSasException();
         }
 
-        $signedStart = $this->startsOn !== null ? $this->formatDate($this->startsOn) : null;
-        $signedExpiry = $this->formatDate($this->expiresOn);
+        $signedStart = $this->startsOn !== null ? $this->dateTo8601Zulu($this->startsOn) : null;
+        $signedExpiry = $this->dateTo8601Zulu($this->expiresOn);
         $signedResource = $this->blobName ? "b" : "c";
         $signedIp = $this->ipRange !== null ? (string) $this->ipRange : null;
         $signedProtocol = $this->protocol?->value;
@@ -217,11 +217,10 @@ final class BlobSasBuilder
         return $resource;
     }
 
-    private function formatDate(\DateTime|\DateTimeImmutable $date): string
+    private function dateTo8601Zulu(\DateTime|\DateTimeImmutable $date): string
     {
-        $date = clone $date;
-        $date = $date->setTimezone(new \DateTimeZone('UTC'));
-
-        return str_replace('+00:00', 'Z', $date->format('c'));
+        return (clone $date)
+            ->setTimezone(new \DateTimeZone('UTC'))
+            ->format('Y-m-d\TH:i:s\Z');
     }
 }
