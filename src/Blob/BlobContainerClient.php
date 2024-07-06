@@ -19,7 +19,6 @@ use AzureOss\Storage\Common\Sas\SasProtocol;
 use AzureOss\Storage\Common\Serializer\SerializerFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\Uri;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\UriInterface;
@@ -42,7 +41,7 @@ final class BlobContainerClient
         public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
     ) {
         $this->containerName = BlobUriParser::getContainerName($uri);
-        $this->client = (new ClientFactory())->create($sharedKeyCredentials);
+        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
         $this->serializer = (new SerializerFactory())->create();
         $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
     }
@@ -55,25 +54,13 @@ final class BlobContainerClient
         );
     }
 
-    /**
-     * @param array<string, string|null> $query
-     * @return array<string, string>
-     */
-    private function buildQuery(array $query): array
-    {
-        return array_filter([
-            ...Query::parse($this->uri->getQuery()),
-            ...$query,
-        ]);
-    }
-
     public function create(): void
     {
         try {
             $this->client->put($this->uri, [
-                'query' => $this->buildQuery([
+                'query' => [
                     'restype' => 'container',
-                ]),
+                ],
             ]);
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
@@ -93,9 +80,9 @@ final class BlobContainerClient
     {
         try {
             $this->client->delete($this->uri, [
-                'query' => $this->buildQuery([
+                'query' => [
                     'restype' => 'container',
-                ]),
+                ],
             ]);
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
@@ -115,9 +102,9 @@ final class BlobContainerClient
     {
         try {
             $this->client->head($this->uri, [
-                'query' => $this->buildQuery([
+                'query' => [
                     'restype' => 'container',
-                ]),
+                ],
             ]);
 
             return true;
@@ -177,13 +164,13 @@ final class BlobContainerClient
     {
         try {
             $response = $this->client->get($this->uri, [
-                'query' => $this->buildQuery([
+                'query' => [
                     'restype' => 'container',
                     'comp' => 'list',
                     'prefix' => $prefix,
                     'marker' => $marker,
                     'delimiter' => $delimiter,
-                ]),
+                ],
             ]);
 
             /** @phpstan-ignore-next-line */

@@ -24,7 +24,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\Utils as StreamUtils;
 use JMS\Serializer\SerializerInterface;
@@ -52,21 +51,9 @@ final class BlobClient
     ) {
         $this->containerName = BlobUriParser::getContainerName($uri);
         $this->blobName = BlobUriParser::getBlobName($uri);
-        $this->client = (new ClientFactory())->create($sharedKeyCredentials);
+        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
         $this->serializer = (new SerializerFactory())->create();
         $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
-    }
-
-    /**
-     * @param array<string, string|null> $query
-     * @return array<string, string>
-     */
-    private function buildQuery(array $query): array
-    {
-        return array_filter([
-            ...Query::parse($this->uri->getQuery()),
-            ...$query,
-        ]);
     }
 
     public function downloadStreaming(): BlobDownloadStreamingResult
@@ -199,10 +186,10 @@ final class BlobClient
     {
         return $this->client
             ->putAsync($this->uri, [
-                'query' => $this->buildQuery([
+                'query' => [
                     'comp' => 'block',
                     'blockid' => base64_encode($block->id),
-                ]),
+                ],
                 'body' => $content,
             ]);
     }
@@ -214,9 +201,9 @@ final class BlobClient
     {
         try {
             $this->client->put($this->uri, [
-                'query' => $this->buildQuery([
+                'query' => [
                     'comp' => 'blocklist',
-                ]),
+                ],
                 'headers' => [
                     'x-ms-blob-content-type' => $options->contentType,
                 ],
