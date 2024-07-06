@@ -19,6 +19,9 @@ final class BlobServiceClient
     public static function fromConnectionString(string $connectionString): self
     {
         $uri = ConnectionStringParser::getBlobEndpoint($connectionString);
+        if ($uri === null) {
+            throw new InvalidConnectionStringException();
+        }
 
         $sas = ConnectionStringParser::getSas($connectionString);
         if($sas !== null) {

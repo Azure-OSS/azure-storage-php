@@ -19,7 +19,7 @@ final class ConnectionStringParser
     private const DEV_BLOB_ACCOUNT_NAME = "devstoreaccount1";
     private const DEV_BLOB_ACCOUNT_KEY = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";
 
-    public static function getBlobEndpoint(string $connectionString): UriInterface
+    public static function getBlobEndpoint(string $connectionString): ?UriInterface
     {
         if($connectionString === self::DEV_CONNECTION_STRING_SHORTCUT) {
             return new Uri(self::DEV_BLOB_ENDPOINT);
@@ -29,11 +29,10 @@ final class ConnectionStringParser
 
         if (isset($segments['BlobEndpoint'])) {
             $uri = $segments['BlobEndpoint'];
+        } elseif(isset($segments['AccountName'], $segments['EndpointSuffix'])) {
+            $uri = sprintf('%s.blob.%s', $segments['AccountName'], $segments['EndpointSuffix']);
         } else {
-            $accountName = $segments['AccountName'] ?? throw new InvalidConnectionStringException();
-            $endpointSuffix = $segments['EndpointSuffix'] ?? throw new InvalidConnectionStringException();
-
-            $uri = sprintf('%s.blob.%s', $accountName, $endpointSuffix);
+            return null;
         }
 
         $uriWithoutScheme = preg_replace("(^https?://)", "", $uri);
