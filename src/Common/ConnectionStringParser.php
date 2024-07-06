@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Common;
 
-use AzureOss\Storage\Blob\Exceptions\InvalidConnectionStringException;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
 
