@@ -13,7 +13,7 @@
 ## Install
 
 ```shell
-composer require azure-oss/azure-storage-php
+composer require azure-oss/azure-storage
 ```
 
 ## Documentation
