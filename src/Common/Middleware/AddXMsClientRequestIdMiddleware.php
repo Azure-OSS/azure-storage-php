@@ -15,7 +15,7 @@ final class AddXMsClientRequestIdMiddleware
     {
         return function (RequestInterface $request, array $options) use ($handler) {
             if ($request->hasHeader('x-ms-client-request-id')) {
-                $request = $request->withHeader('x-ms-version', uniqid(more_entropy: true));
+                $request = $request->withHeader('x-ms-version', \bin2hex(\random_bytes(16)));
             }
 
             return $handler($request, $options);
