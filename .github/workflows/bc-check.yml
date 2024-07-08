@@ -16,4 +16,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check for breaking changes
-        run: docker run -u $(id -u) -v $(pwd):/app nyholm/roave-bc-check-ga
+        run: docker run --env GITHUB_REPOSITORY="Azure-OSS/azure-storage-php" -u $(id -u) -v $(pwd):/app nyholm/roave-bc-check-ga

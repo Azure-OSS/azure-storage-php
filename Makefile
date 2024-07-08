@@ -36,3 +36,6 @@ baseline: ## Generate baseline files
 clean:   ## Cleans up build and vendor files
 	rm -rf vendor composer.lock .build
 
+.PHONY: bc
+bc: ## Check for breaking changes since last release
+	docker run --env GITHUB_REPOSITORY="Azure-OSS/azure-storage-php" -u $(shell id -u) -v $(shell pwd):/app nyholm/roave-bc-check-ga
