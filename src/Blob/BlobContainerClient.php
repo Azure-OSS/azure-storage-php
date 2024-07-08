@@ -10,6 +10,7 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundExceptionBlob;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Models\Blob;
+use AzureOss\Storage\Blob\Models\BlobContainerProperties;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
 use AzureOss\Storage\Blob\Responses\ListBlobsResponseBody;
@@ -117,6 +118,45 @@ final class BlobContainerClient
             }
 
             throw $e;
+        }
+    }
+
+    public function getProperties(): BlobContainerProperties
+    {
+        try {
+            $response = $this->client->get($this->uri, [
+                'query' => [
+                    'restype' => 'container',
+                ],
+            ]);
+
+            return BlobContainerProperties::fromResponseHeaders($response);
+        } catch (RequestException $e) {
+            throw $this->exceptionFactory->create($e);
+        }
+    }
+
+    /**
+     * @param array<string, string> $metadata
+     */
+    public function setMetadata(array $metadata): void
+    {
+        $headers = [];
+
+        foreach ($metadata as $key => $value) {
+            $headers["x-ms-meta-$key"] = $value;
+        }
+
+        try {
+            $this->client->put($this->uri, [
+                'query' => [
+                    'restype' => 'container',
+                    'comp' => 'metadata',
+                ],
+                'headers' => $headers,
+            ]);
+        } catch (RequestException $e) {
+            throw $this->exceptionFactory->create($e);
         }
     }
 
