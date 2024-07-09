@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob;
 
-use AzureOss\Storage\Blob\Exceptions\BlobNotFoundExceptionBlob;
+use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionFactory;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Exceptions\UnableToUploadBlobException;
+use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
+use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
 use AzureOss\Storage\Blob\Models\BlobProperties;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
@@ -49,8 +51,8 @@ final class BlobClient
         public readonly UriInterface $uri,
         public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
     ) {
-        $this->containerName = BlobUriParser::getContainerName($uri);
-        $this->blobName = BlobUriParser::getBlobName($uri);
+        $this->containerName = BlobUriParserHelper::getContainerName($uri);
+        $this->blobName = BlobUriParserHelper::getBlobName($uri);
         $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
         $this->serializer = (new SerializerFactory())->create();
         $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
@@ -83,6 +85,24 @@ final class BlobClient
         }
     }
 
+    /**
+     * @param array<string, string> $metadata
+     * @return void
+     */
+    public function setMetadata(array $metadata): void
+    {
+        try {
+            $this->client->put($this->uri, [
+                'query' => [
+                    'comp' => 'metadata',
+                ],
+                'headers' => MetadataHelper::metadataToHeaders($metadata),
+            ]);
+        } catch (RequestException $e) {
+            throw $this->exceptionFactory->create($e);
+        }
+    }
+
     public function delete(): void
     {
         try {
@@ -96,7 +116,7 @@ final class BlobClient
     {
         try {
             $this->delete();
-        } catch (BlobNotFoundExceptionBlob) {
+        } catch (BlobNotFoundException) {
             // do nothing
         }
     }
@@ -107,7 +127,7 @@ final class BlobClient
             $this->getProperties();
 
             return true;
-        } catch (BlobNotFoundExceptionBlob) {
+        } catch (BlobNotFoundException) {
             return false;
         }
     }
@@ -242,7 +262,7 @@ final class BlobClient
             throw new UnableToGenerateSasException();
         }
 
-        if (BlobUriParser::isDevelopmentUri($this->uri)) {
+        if (BlobUriParserHelper::isDevelopmentUri($this->uri)) {
             $blobSasBuilder->setProtocol(SasProtocol::HTTPS_AND_HTTP);
         }
 

@@ -6,8 +6,8 @@ namespace AzureOss\Storage\Tests\Blob\Feature;
 
 use AzureOss\Storage\Blob\BlobClient;
 use AzureOss\Storage\Blob\BlobContainerClient;
-use AzureOss\Storage\Blob\Exceptions\BlobNotFoundExceptionBlob;
-use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundExceptionBlob;
+use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
+use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
@@ -43,7 +43,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function download_streams_throws_if_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->downloadStreaming();
     }
@@ -51,7 +51,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function download_stream_throws_if_blob_doesnt_exist(): void
     {
-        $this->expectException(BlobNotFoundExceptionBlob::class);
+        $this->expectException(BlobNotFoundException::class);
 
         $this->blobClient->downloadStreaming();
     }
@@ -71,7 +71,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_properties_throws_if_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->getProperties();
     }
@@ -79,7 +79,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_properties_throws_if_blob_doesnt_exist(): void
     {
-        $this->expectException(BlobNotFoundExceptionBlob::class);
+        $this->expectException(BlobNotFoundException::class);
 
         $this->blobClient->getProperties();
     }
@@ -99,7 +99,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function delete_works_throws_if_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->delete();
     }
@@ -107,7 +107,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function delete_works_throws_if_blob_doesnt_exist(): void
     {
-        $this->expectException(BlobNotFoundExceptionBlob::class);
+        $this->expectException(BlobNotFoundException::class);
 
         $this->blobClient->deleteIfExists();
         $this->blobClient->delete();
@@ -127,7 +127,7 @@ final class BlobClientTest extends BlobFeatureTestCase
 
     public function delete_if_exists_throws_if_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->blobClient->deleteIfExists();
     }
@@ -153,7 +153,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function exists_works_throws_if_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->exists();
     }
@@ -216,7 +216,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function upload_throws_if_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient('noop')->getBlobClient('noop')->upload("test");
     }
@@ -246,7 +246,7 @@ final class BlobClientTest extends BlobFeatureTestCase
         $sourceContainerClient->deleteIfExists(); // cleanup
 
         $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->blobClient->copyFromUri($sourceBlobClient->uri);
     }
@@ -259,7 +259,7 @@ final class BlobClientTest extends BlobFeatureTestCase
         $this->cleanContainer($sourceContainerClient->containerName);
 
         $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
-        $this->expectException(BlobNotFoundExceptionBlob::class);
+        $this->expectException(BlobNotFoundException::class);
 
         $this->blobClient->copyFromUri($sourceBlobClient->uri);
     }
@@ -281,5 +281,37 @@ final class BlobClientTest extends BlobFeatureTestCase
         $sasBlobClient = new BlobClient($sas);
 
         $sasBlobClient->downloadStreaming();
+    }
+
+    #[Test]
+    public function set_metadata_works(): void
+    {
+        $this->blobClient->upload("");
+        $props = $this->blobClient->getProperties();
+
+        $this->assertEmpty($props->metadata);
+
+        $this->blobClient->setMetadata(['foo' => 'bar', 'baz' => 'qaz']);
+
+        $props = $this->blobClient->getProperties();
+
+        $this->assertEquals('bar', $props->metadata['foo']);
+        $this->assertEquals('qaz', $props->metadata['baz']);
+    }
+
+    #[Test]
+    public function set_metadata_throws_when_container_doesnt_exist(): void
+    {
+        $this->expectException(ContainerNotFoundException::class);
+
+        $this->serviceClient->getContainerClient("noop")->getBlobClient("noop")->setMetadata(["foo" => "bar"]);
+    }
+
+    #[Test]
+    public function set_metadata_throws_if_blob_doesnt_exist(): void
+    {
+        $this->expectException(BlobNotFoundException::class);
+
+        $this->containerClient->getBlobClient("noop")->setMetadata(["foo" => "bar"]);
     }
 }

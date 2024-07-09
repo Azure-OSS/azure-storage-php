@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Blob;
 
 use AzureOss\Storage\Blob\Exceptions\InvalidConnectionStringException;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
-use AzureOss\Storage\Common\ConnectionStringParser;
+use AzureOss\Storage\Common\Helpers\ConnectionStringHelper;
 use Psr\Http\Message\UriInterface;
 
 final class BlobServiceClient
@@ -18,18 +18,18 @@ final class BlobServiceClient
 
     public static function fromConnectionString(string $connectionString): self
     {
-        $uri = ConnectionStringParser::getBlobEndpoint($connectionString);
+        $uri = ConnectionStringHelper::getBlobEndpoint($connectionString);
         if ($uri === null) {
             throw new InvalidConnectionStringException();
         }
 
-        $sas = ConnectionStringParser::getSas($connectionString);
+        $sas = ConnectionStringHelper::getSas($connectionString);
         if($sas !== null) {
             return new self($uri->withQuery($sas));
         }
 
-        $accountName = ConnectionStringParser::getAccountName($connectionString);
-        $accountKey = ConnectionStringParser::getAccountKey($connectionString);
+        $accountName = ConnectionStringHelper::getAccountName($connectionString);
+        $accountKey = ConnectionStringHelper::getAccountKey($connectionString);
         if ($accountName !== null && $accountKey !== null) {
             return new self($uri, new StorageSharedKeyCredential($accountName, $accountKey));
         }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Unit;
 
-use AzureOss\Storage\Blob\BlobUriParser;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
+use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +17,7 @@ final class BlobUriParserTest extends TestCase
     {
         $uri = new Uri("https://testing.blob.core.windows.net/testing");
 
-        $this->assertEquals("testing", BlobUriParser::getContainerName($uri));
+        $this->assertEquals("testing", BlobUriParserHelper::getContainerName($uri));
     }
 
     #[Test]
@@ -25,7 +25,7 @@ final class BlobUriParserTest extends TestCase
     {
         $uri = new Uri("http://127.0.0.1:10000/devstoreaccount1/testing");
 
-        $this->assertEquals("testing", BlobUriParser::getContainerName($uri));
+        $this->assertEquals("testing", BlobUriParserHelper::getContainerName($uri));
     }
 
     #[Test]
@@ -35,7 +35,7 @@ final class BlobUriParserTest extends TestCase
 
         $this->expectException(InvalidBlobUriException::class);
 
-        BlobUriParser::getContainerName($uri);
+        BlobUriParserHelper::getContainerName($uri);
     }
 
     #[Test]
@@ -43,15 +43,15 @@ final class BlobUriParserTest extends TestCase
     {
         $uri = new Uri("https://testing.blob.core.windows.net/testing/file.txt");
 
-        $this->assertEquals("file.txt", BlobUriParser::getBlobName($uri));
+        $this->assertEquals("file.txt", BlobUriParserHelper::getBlobName($uri));
 
         $uri = new Uri("https://testing.blob.core.windows.net/testing/some/file.txt");
 
-        $this->assertEquals("some/file.txt", BlobUriParser::getBlobName($uri));
+        $this->assertEquals("some/file.txt", BlobUriParserHelper::getBlobName($uri));
 
         $uri = new Uri("https://testing.blob.core.windows.net/testing/some/deep/file.txt");
 
-        $this->assertEquals("some/deep/file.txt", BlobUriParser::getBlobName($uri));
+        $this->assertEquals("some/deep/file.txt", BlobUriParserHelper::getBlobName($uri));
     }
 
     #[Test]
@@ -59,15 +59,15 @@ final class BlobUriParserTest extends TestCase
     {
         $uri = new Uri("http://127.0.0.1:10000/devstoreaccount1/testing/file.txt");
 
-        $this->assertEquals("file.txt", BlobUriParser::getBlobName($uri));
+        $this->assertEquals("file.txt", BlobUriParserHelper::getBlobName($uri));
 
         $uri = new Uri("http://127.0.0.1:10000/devstoreaccount1/testing/some/file.txt");
 
-        $this->assertEquals("some/file.txt", BlobUriParser::getBlobName($uri));
+        $this->assertEquals("some/file.txt", BlobUriParserHelper::getBlobName($uri));
 
         $uri = new Uri("http://127.0.0.1:10000/devstoreaccount1/testing/some/deep/file.txt");
 
-        $this->assertEquals("some/deep/file.txt", BlobUriParser::getBlobName($uri));
+        $this->assertEquals("some/deep/file.txt", BlobUriParserHelper::getBlobName($uri));
     }
 
     #[Test]
@@ -77,7 +77,7 @@ final class BlobUriParserTest extends TestCase
 
         $this->expectException(InvalidBlobUriException::class);
 
-        BlobUriParser::getBlobName($uri);
+        BlobUriParserHelper::getBlobName($uri);
     }
 
     #[Test]
@@ -85,10 +85,10 @@ final class BlobUriParserTest extends TestCase
     {
         $uri = new Uri("http://127.0.0.1:10000/devstoreaccount1/testing");
 
-        $this->assertTrue(BlobUriParser::isDevelopmentUri($uri));
+        $this->assertTrue(BlobUriParserHelper::isDevelopmentUri($uri));
 
         $uri = new Uri("https://testing.blob.core.windows.net/testing/file.txt");
 
-        $this->assertFalse(BlobUriParser::isDevelopmentUri($uri));
+        $this->assertFalse(BlobUriParserHelper::isDevelopmentUri($uri));
     }
 }
