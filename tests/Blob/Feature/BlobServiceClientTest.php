@@ -110,4 +110,27 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $this->assertEquals($client->sharedKeyCredentials, $containerClient->sharedKeyCredentials);
         $this->assertEquals("http://127.0.0.1:10000/devstoreaccount1/testing", (string) $containerClient->uri);
     }
+
+    #[Test]
+    public function get_containers_works(): void
+    {
+        $before = iterator_to_array($this->serviceClient->getBlobContainers());
+
+        $this->serviceClient->getContainerClient($this->randomContainerName())->create();
+
+        $after = iterator_to_array($this->serviceClient->getBlobContainers());
+
+        $this->assertCount(count($before) + 1, $after);
+    }
+
+    #[Test]
+    public function get_containers_works_with_prefix(): void
+    {
+        $name = $this->randomContainerName();
+        $this->serviceClient->getContainerClient($name)->create();
+
+        $after = iterator_to_array($this->serviceClient->getBlobContainers($name));
+
+        $this->assertCount(1, $after);
+    }
 }
