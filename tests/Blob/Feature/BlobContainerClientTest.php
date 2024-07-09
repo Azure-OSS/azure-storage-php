@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Tests\Blob\Feature;
 use AzureOss\Storage\Blob\BlobContainerClient;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsExceptionBlob;
-use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundExceptionBlob;
+use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
@@ -102,7 +102,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function delete_throws_when_container_doesnt_exists(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient("noop")->delete();
     }
@@ -183,7 +183,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_throws_if_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         iterator_to_array($this->serviceClient->getContainerClient("noop")->getBlobs());
     }
@@ -259,7 +259,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_blobs_by_hierarchy_throws_if_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         iterator_to_array($this->serviceClient->getContainerClient("noop")->getBlobsByHierarchy());
     }
@@ -293,5 +293,43 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $sasServiceClient = new BlobContainerClient($sas);
 
         iterator_to_array($sasServiceClient->getBlobs());
+    }
+
+    #[Test]
+    public function get_properties_works(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        $this->containerClient->getProperties();
+    }
+
+    #[Test]
+    public function get_properties_throws_when_container_doesnt_exist(): void
+    {
+        $this->expectException(ContainerNotFoundExceptionBlob::class);
+
+        $this->serviceClient->getContainerClient("noop")->getProperties();
+    }
+
+    #[Test]
+    public function set_metadata_works(): void
+    {
+        $this->containerClient->setMetadata([
+            'foo' => 'bar',
+            'baz' => 'qux',
+        ]);
+
+        $properties = $this->containerClient->getProperties();
+
+        $this->assertEquals('bar', $properties->metadata["foo"]);
+        $this->assertEquals('qux', $properties->metadata["baz"]);
+    }
+
+    #[Test]
+    public function set_metadata_throws_when_container_doesnt_exist(): void
+    {
+        $this->expectException(ContainerNotFoundExceptionBlob::class);
+
+        $this->serviceClient->getContainerClient("noop")->setMetadata([]);
     }
 }
