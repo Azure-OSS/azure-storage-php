@@ -4,4 +4,4 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Exceptions;
 
-final class BlobNotFoundExceptionBlob extends BlobStorageException {}
+final class AuthorizationFailedException extends BlobStorageException {}

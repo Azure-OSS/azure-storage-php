@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzureOss\Storage\Common;
+namespace AzureOss\Storage\Common\Helpers;
 
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
@@ -11,7 +11,7 @@ use Psr\Http\Message\UriInterface;
  * @internal
  * @see https://learn.microsoft.com/en-us/azure/storage/common/storage-configure-connection-string
  */
-final class ConnectionStringParser
+final class ConnectionStringHelper
 {
     private const DEV_CONNECTION_STRING_SHORTCUT = 'UseDevelopmentStorage=true';
     private const DEV_BLOB_ENDPOINT = 'http://127.0.0.1:10000/devstoreaccount1';

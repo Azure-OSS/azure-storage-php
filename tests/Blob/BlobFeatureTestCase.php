@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Tests\Blob;
 
 use AzureOss\Storage\Blob\BlobServiceClient;
-use AzureOss\Storage\Blob\BlobUriParser;
+use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 
@@ -62,7 +62,7 @@ abstract class BlobFeatureTestCase extends TestCase
 
     protected function markTestSkippedWhenUsingSimulator(): void
     {
-        if(BlobUriParser::isDevelopmentUri($this->serviceClient->uri)) {
+        if(BlobUriParserHelper::isDevelopmentUri($this->serviceClient->uri)) {
             $this->markTestSkipped("API unsupported in Azurite.");
         }
     }

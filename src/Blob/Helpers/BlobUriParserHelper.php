@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
-namespace AzureOss\Storage\Blob;
+namespace AzureOss\Storage\Blob\Helpers;
 
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use Psr\Http\Message\UriInterface;
 
-final class BlobUriParser
+/**
+ * @internal
+ */
+final class BlobUriParserHelper
 {
     public static function getContainerName(UriInterface $uri): string
     {
