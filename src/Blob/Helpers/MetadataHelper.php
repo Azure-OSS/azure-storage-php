@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Blob\Helpers;
 /**
  * @internal
  */
-class MetadataHelper
+final class MetadataHelper
 {
     /**
      * @param array<string, string> $metadata
