@@ -10,7 +10,7 @@ use JMS\Serializer\Annotation\XmlList;
 /**
  * @internal
  */
-class ListContainersResponseBody
+final class ListContainersResponseBody
 {
     /**
      * @param BlobContainer[]  $containers

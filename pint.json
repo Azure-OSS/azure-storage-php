@@ -1,6 +1,7 @@
 {
   "preset": "per",
   "rules": {
-    "declare_strict_types": true
+    "declare_strict_types": true,
+    "final_internal_class": true
   }
 }
