@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Tests\Blob\Feature;
 
 use AzureOss\Storage\Blob\BlobContainerClient;
 use AzureOss\Storage\Blob\BlobServiceClient;
-use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsExceptionBlob;
+use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
@@ -60,7 +60,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function create_throws_when_container_already_exists(): void
     {
-        $this->expectException(ContainerAlreadyExistsExceptionBlob::class);
+        $this->expectException(ContainerAlreadyExistsException::class);
 
         $this->containerClient->create();
     }
@@ -306,7 +306,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_properties_throws_when_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient("noop")->getProperties();
     }
@@ -328,7 +328,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function set_metadata_throws_when_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient("noop")->setMetadata([]);
     }

@@ -6,8 +6,8 @@ namespace AzureOss\Storage\Tests\Blob\Feature;
 
 use AzureOss\Storage\Blob\BlobClient;
 use AzureOss\Storage\Blob\BlobContainerClient;
-use AzureOss\Storage\Blob\Exceptions\BlobNotFoundExceptionBlob;
-use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundExceptionBlob;
+use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
+use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\TagsTooLargeException;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
@@ -299,7 +299,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function set_tags_throws_when_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient("noop")->getBlobClient("noop")->setTags([]);
     }
@@ -307,7 +307,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function set_tags_throws_if_blob_doesnt_exist(): void
     {
-        $this->expectException(BlobNotFoundExceptionBlob::class);
+        $this->expectException(BlobNotFoundException::class);
 
         $this->blobClient->setTags([]);
     }
@@ -357,7 +357,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_tags_throws_when_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient("noop")->getBlobClient("noop")->getTags();
     }
@@ -365,7 +365,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_tags_throws_if_blob_doesnt_exist(): void
     {
-        $this->expectException(BlobNotFoundExceptionBlob::class);
+        $this->expectException(BlobNotFoundException::class);
 
         $this->blobClient->getTags();
     }

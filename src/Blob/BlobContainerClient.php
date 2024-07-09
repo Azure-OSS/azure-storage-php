@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob;
 
 use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionFactory;
-use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsExceptionBlob;
+use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
@@ -74,7 +74,7 @@ final class BlobContainerClient
     {
         try {
             $this->create();
-        } catch (ContainerAlreadyExistsExceptionBlob) {
+        } catch (ContainerAlreadyExistsException) {
             // do nothing
         }
     }
