@@ -294,4 +294,42 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
 
         iterator_to_array($sasServiceClient->getBlobs());
     }
+
+    #[Test]
+    public function get_properties_works(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        $this->containerClient->getProperties();
+    }
+
+    #[Test]
+    public function get_properties_throws_when_container_doesnt_exist(): void
+    {
+        $this->expectException(ContainerNotFoundExceptionBlob::class);
+
+        $this->serviceClient->getContainerClient("noop")->getProperties();
+    }
+
+    #[Test]
+    public function set_metadata_works(): void
+    {
+        $this->containerClient->setMetadata([
+            'foo' => 'bar',
+            'baz' => 'qux',
+        ]);
+
+        $properties = $this->containerClient->getProperties();
+
+        $this->assertEquals('bar', $properties->metadata["foo"]);
+        $this->assertEquals('qux', $properties->metadata["baz"]);
+    }
+
+    #[Test]
+    public function set_metadata_throws_when_container_doesnt_exist(): void
+    {
+        $this->expectException(ContainerNotFoundExceptionBlob::class);
+
+        $this->serviceClient->getContainerClient("noop")->setMetadata([]);
+    }
 }

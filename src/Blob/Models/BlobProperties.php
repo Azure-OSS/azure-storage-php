@@ -24,8 +24,13 @@ final class BlobProperties
 
     public static function fromResponseHeaders(ResponseInterface $response): self
     {
+        $lastModified = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC1123, $response->getHeaderLine('Last-Modified'));
+        if ($lastModified === false) {
+            throw new \Exception("Should not happen!");
+        }
+
         return new BlobProperties(
-            new \DateTime($response->getHeaderLine('Last-Modified')),
+            $lastModified,
             (int) $response->getHeaderLine('Content-Length'),
             $response->getHeaderLine('Content-Type'),
             $response->getHeaderLine('Content-MD5'),

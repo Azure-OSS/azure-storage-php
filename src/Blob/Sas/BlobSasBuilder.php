@@ -15,9 +15,9 @@ final class BlobSasBuilder
 {
     private string $version;
     private string $containerName;
-    private \DateTime|\DateTimeImmutable $expiresOn;
+    private \DateTimeInterface $expiresOn;
     private ?string $blobName = null;
-    private \DateTime|\DateTimeImmutable|null $startsOn = null;
+    private ?\DateTimeInterface $startsOn = null;
     private ?string $permissions = null;
     private ?string $identifier = null;
     private ?string $cacheControl = null;
@@ -49,7 +49,7 @@ final class BlobSasBuilder
         return $this;
     }
 
-    public function setExpiresOn(\DateTime|\DateTimeImmutable $value): self
+    public function setExpiresOn(\DateTimeInterface $value): self
     {
         $this->expiresOn = $value;
 
@@ -70,7 +70,7 @@ final class BlobSasBuilder
         return $this;
     }
 
-    public function setStartsOn(\DateTime $value): self
+    public function setStartsOn(\DateTimeInterface $value): self
     {
         $this->startsOn = $value;
 
@@ -217,9 +217,9 @@ final class BlobSasBuilder
         return $resource;
     }
 
-    private function dateTo8601Zulu(\DateTime|\DateTimeImmutable $date): string
+    private function dateTo8601Zulu(\DateTimeInterface $date): string
     {
-        return (clone $date)
+        return \DateTime::createFromInterface($date)
             ->setTimezone(new \DateTimeZone('UTC'))
             ->format('Y-m-d\TH:i:s\Z');
     }
