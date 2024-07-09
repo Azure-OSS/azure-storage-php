@@ -10,6 +10,7 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
+use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobContainerProperties;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
@@ -142,19 +143,13 @@ final class BlobContainerClient
      */
     public function setMetadata(array $metadata): void
     {
-        $headers = [];
-
-        foreach ($metadata as $key => $value) {
-            $headers["x-ms-meta-$key"] = $value;
-        }
-
         try {
             $this->client->put($this->uri, [
                 'query' => [
                     'restype' => 'container',
                     'comp' => 'metadata',
                 ],
-                'headers' => $headers,
+                'headers' => MetadataHelper::metadataToHeaders($metadata),
             ]);
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
