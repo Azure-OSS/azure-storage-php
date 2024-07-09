@@ -12,6 +12,7 @@ use AzureOss\Storage\Blob\Exceptions\UnableToUploadBlobException;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
 use AzureOss\Storage\Blob\Models\BlobProperties;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
+use AzureOss\Storage\Blob\Requests\BlobTagsBody;
 use AzureOss\Storage\Blob\Requests\Block;
 use AzureOss\Storage\Blob\Requests\BlockType;
 use AzureOss\Storage\Blob\Requests\PutBlockRequestBody;
@@ -252,5 +253,46 @@ final class BlobClient
             ->build($this->sharedKeyCredentials);
 
         return new Uri("$this->uri?$sas");
+    }
+
+    /**
+     * @param array<string, string> $tags
+     * @return void
+     */
+    public function setTags(array $tags): void
+    {
+        try {
+            $body = BlobTagsBody::fromArray($tags);
+
+            $this->client->put($this->uri, [
+                'query' => [
+                    'comp' => 'tags',
+                ],
+                'body' => $this->serializer->serialize($body, 'xml'),
+            ]);
+        } catch (RequestException $e) {
+            throw $this->exceptionFactory->create($e);
+        }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getTags(): array
+    {
+        try {
+            $response = $this->client->get($this->uri, [
+                'query' => [
+                    'comp' => 'tags',
+                ],
+            ]);
+
+            /** @var BlobTagsBody $body */
+            $body = $this->serializer->deserialize($response->getBody()->getContents(), BlobTagsBody::class, 'xml');
+
+            return $body->toArray();
+        } catch (RequestException $e) {
+            throw $this->exceptionFactory->create($e);
+        }
     }
 }

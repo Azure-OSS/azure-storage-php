@@ -31,6 +31,7 @@ final class BlobStorageExceptionFactory
             'ContainerAlreadyExists' => new ContainerAlreadyExistsExceptionBlob($error->message, previous: $e),
             'BlobNotFound' => new BlobNotFoundExceptionBlob($error->message, previous: $e),
             'InvalidBlockList' => new InvalidBlockListException($error->message, previous: $e),
+            'TagsTooLarge' => new TagsTooLargeException($error->message, previous: $e),
             default => new BlobStorageException($error->message, previous: $e),
         };
     }

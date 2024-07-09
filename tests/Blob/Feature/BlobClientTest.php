@@ -8,6 +8,7 @@ use AzureOss\Storage\Blob\BlobClient;
 use AzureOss\Storage\Blob\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundExceptionBlob;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundExceptionBlob;
+use AzureOss\Storage\Blob\Exceptions\TagsTooLargeException;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
@@ -281,5 +282,91 @@ final class BlobClientTest extends BlobFeatureTestCase
         $sasBlobClient = new BlobClient($sas);
 
         $sasBlobClient->downloadStreaming();
+    }
+
+    #[Test]
+    public function set_tags_works(): void
+    {
+        $this->blobClient->upload("");
+        $this->blobClient->setTags(['foo' => 'bar', 'baz' => 'boo']);
+
+        $tags = $this->blobClient->getTags();
+
+        $this->assertEquals($tags['foo'], 'bar');
+        $this->assertEquals($tags['baz'], 'boo');
+    }
+
+    #[Test]
+    public function set_tags_throws_when_container_doesnt_exist(): void
+    {
+        $this->expectException(ContainerNotFoundExceptionBlob::class);
+
+        $this->serviceClient->getContainerClient("noop")->getBlobClient("noop")->setTags([]);
+    }
+
+    #[Test]
+    public function set_tags_throws_if_blob_doesnt_exist(): void
+    {
+        $this->expectException(BlobNotFoundExceptionBlob::class);
+
+        $this->blobClient->setTags([]);
+    }
+
+    #[Test]
+    public function set_tags_throws_when_tag_key_is_too_large(): void
+    {
+        $this->expectException(TagsTooLargeException::class);
+
+        $this->blobClient->setTags([str_pad("", 1000) => 'noop']);
+    }
+
+    #[Test]
+    public function set_tags_throws_when_tag_value_is_too_large(): void
+    {
+        $this->expectException(TagsTooLargeException::class);
+
+        $this->blobClient->setTags(["noop" => str_pad("", 1000)]);
+    }
+
+    #[Test]
+    public function set_tags_throws_when_too_many_tags_are_provided(): void
+    {
+        $this->expectException(TagsTooLargeException::class);
+
+        $tags = [];
+
+        for($i = 0; $i < 1000; $i++) {
+            $tags["tag-$i"] = "noop";
+        }
+
+        $this->blobClient->setTags($tags);
+    }
+
+    #[Test]
+    public function get_tags_works(): void
+    {
+        $this->blobClient->upload("");
+        $this->blobClient->setTags(['foo' => 'bar', 'baz' => 'boo']);
+
+        $tags = $this->blobClient->getTags();
+
+        $this->assertEquals($tags['foo'], 'bar');
+        $this->assertEquals($tags['baz'], 'boo');
+    }
+
+    #[Test]
+    public function get_tags_throws_when_container_doesnt_exist(): void
+    {
+        $this->expectException(ContainerNotFoundExceptionBlob::class);
+
+        $this->serviceClient->getContainerClient("noop")->getBlobClient("noop")->getTags();
+    }
+
+    #[Test]
+    public function get_tags_throws_if_blob_doesnt_exist(): void
+    {
+        $this->expectException(BlobNotFoundExceptionBlob::class);
+
+        $this->blobClient->getTags();
     }
 }
