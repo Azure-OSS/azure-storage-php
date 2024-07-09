@@ -11,6 +11,9 @@ use Psr\Http\Message\ResponseInterface;
 
 final class BlobContainerProperties
 {
+    /**
+     * @param array<string, string> $metadata
+     */
     public function __construct(
         #[SerializedName('Last-Modified')]
         #[Type("DateTimeImmutable<'" . \DateTimeInterface::RFC1123 . "'>")]

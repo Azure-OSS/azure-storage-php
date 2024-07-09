@@ -306,7 +306,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function get_properties_throws_when_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient("noop")->getProperties();
     }
@@ -328,7 +328,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function set_metadata_throws_when_container_doesnt_exist(): void
     {
-        $this->expectException(ContainerNotFoundExceptionBlob::class);
+        $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient("noop")->setMetadata([]);
     }
