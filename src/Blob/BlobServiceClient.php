@@ -68,9 +68,9 @@ final class BlobServiceClient
     }
 
     /**
-     * @return iterable<BlobContainer>
+     * @return \Generator<BlobContainer>
      */
-    public function getBlobContainers(?string $prefix = null): iterable
+    public function getBlobContainers(?string $prefix = null): \Generator
     {
         try {
             $nextMarker = "";
@@ -102,9 +102,9 @@ final class BlobServiceClient
 
 
     /**
-     * @return iterable<TaggedBlob>
+     * @return \Generator<TaggedBlob>
      */
-    public function findBlobsByTag(string $tagFilterSqlExpression): iterable
+    public function findBlobsByTag(string $tagFilterSqlExpression): \Generator
     {
         try {
             $nextMarker = "";

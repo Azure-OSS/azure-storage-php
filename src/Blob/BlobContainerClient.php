@@ -164,9 +164,9 @@ final class BlobContainerClient
     }
 
     /**
-     * @return iterable<Blob>
+     * @return \Generator<Blob>
      */
-    public function getBlobs(?string $prefix = null, ?GetBlobsOptions $options = null): iterable
+    public function getBlobs(?string $prefix = null, ?GetBlobsOptions $options = null): \Generator
     {
         $nextMarker = "";
 
@@ -186,9 +186,9 @@ final class BlobContainerClient
 
     /**
      * @param string $delimiter
-     * @return iterable<Blob|BlobPrefix>
+     * @return \Generator<Blob|BlobPrefix>
      */
-    public function getBlobsByHierarchy(?string $prefix = null, string $delimiter = "/", ?GetBlobsOptions $options = null): iterable
+    public function getBlobsByHierarchy(?string $prefix = null, string $delimiter = "/", ?GetBlobsOptions $options = null): \Generator
     {
         $nextMarker = "";
 
@@ -254,9 +254,9 @@ final class BlobContainerClient
     }
 
     /**
-     * @return iterable<TaggedBlob>
+     * @return \Generator<TaggedBlob>
      */
-    public function findBlobsByTag(string $tagFilterSqlExpression): iterable
+    public function findBlobsByTag(string $tagFilterSqlExpression): \Generator
     {
         try {
             $nextMarker = "";
