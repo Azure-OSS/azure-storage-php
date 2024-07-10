@@ -20,7 +20,7 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $this->assertNotNull($client->sharedKeyCredentials);
         $this->assertEquals('devstoreaccount1', $client->sharedKeyCredentials->accountName);
         $this->assertEquals('Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==', $client->sharedKeyCredentials->accountKey);
-        $this->assertEquals("http://127.0.0.1:10000/devstoreaccount1", (string) $client->uri);
+        $this->assertEquals("http://127.0.0.1:10000/devstoreaccount1/", (string) $client->uri);
     }
 
     #[Test]
@@ -32,7 +32,7 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $this->assertNotNull($client->sharedKeyCredentials);
         $this->assertEquals('testing', $client->sharedKeyCredentials->accountName);
         $this->assertEquals('Y2hlZXNlMWNoZWVzZTEyY2hlZXNlMTIzCg==', $client->sharedKeyCredentials->accountKey);
-        $this->assertEquals("https://testing.blob.core.windows.net", (string) $client->uri);
+        $this->assertEquals("https://testing.blob.core.windows.net/", (string) $client->uri);
     }
 
     #[Test]
@@ -44,7 +44,7 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $this->assertNotNull($client->sharedKeyCredentials);
         $this->assertEquals('devstoreaccount1', $client->sharedKeyCredentials->accountName);
         $this->assertEquals('Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==', $client->sharedKeyCredentials->accountKey);
-        $this->assertEquals("http://127.0.0.1:10000/devstoreaccount1", (string) $client->uri);
+        $this->assertEquals("http://127.0.0.1:10000/devstoreaccount1/", (string) $client->uri);
     }
 
     #[Test]
@@ -78,7 +78,7 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $client = BlobServiceClient::fromConnectionString($connectionString);
 
         $this->assertNull($client->sharedKeyCredentials);
-        $this->assertEquals("https://storagesample.blob.core.windows.net?sv=2015-07-08&sig=iCvQmdZngZNW%2F4vw43j6%2BVz6fndHF5LI639QJba4r8o%3D&spr=https&st=2016-04-12T03%3A24%3A31Z&se=2016-04-13T03%3A29%3A31Z&srt=s&ss=bf&sp=rwl", (string) $client->uri);
+        $this->assertEquals("https://storagesample.blob.core.windows.net/?sv=2015-07-08&sig=iCvQmdZngZNW%2F4vw43j6%2BVz6fndHF5LI639QJba4r8o%3D&spr=https&st=2016-04-12T03%3A24%3A31Z&se=2016-04-13T03%3A29%3A31Z&srt=s&ss=bf&sp=rwl", (string) $client->uri);
     }
 
     #[Test]
@@ -95,7 +95,7 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $connectionString = "DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;";
         $client = BlobServiceClient::fromConnectionString($connectionString);
 
-        $this->assertEquals("https://127.0.0.1:10000/devstoreaccount1", (string) $client->uri);
+        $this->assertEquals("https://127.0.0.1:10000/devstoreaccount1/", (string) $client->uri);
     }
 
     #[Test]
@@ -132,5 +132,24 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $after = iterator_to_array($this->serviceClient->getBlobContainers($name));
 
         $this->assertCount(1, $after);
+    }
+
+    #[Test]
+    public function find_blobs_by_tag_works(): void
+    {
+        $this->markTestSkippedWhenUsingSimulator();
+
+        $containerClient = $this->serviceClient->getContainerClient("tagging");
+        $containerClient->createIfNotExists();
+
+        $blobClient = $containerClient->getBlobClient('tagged');
+        $blobClient->deleteIfExists();
+        $blobClient->upload("");
+        $blobClient->setTags(['foo' => 'bar']);
+
+        sleep(1); // tagging doesn't seem to be instant
+
+        $this->assertCount(0, iterator_to_array($this->serviceClient->findBlobsByTag("foo = 'noop'")));
+        $this->assertCount(1, iterator_to_array($this->serviceClient->findBlobsByTag("foo = 'bar'")));
     }
 }
