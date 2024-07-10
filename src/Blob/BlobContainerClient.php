@@ -14,6 +14,8 @@ use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobContainerProperties;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
+use AzureOss\Storage\Blob\Models\TaggedBlob;
+use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListBlobsResponseBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
@@ -162,9 +164,9 @@ final class BlobContainerClient
     }
 
     /**
-     * @return \Iterator<int, Blob>
+     * @return \Generator<int, Blob>
      */
-    public function getBlobs(?string $prefix = null, ?GetBlobsOptions $options = null): \Iterator
+    public function getBlobs(?string $prefix = null, ?GetBlobsOptions $options = null): \Generator
     {
         $nextMarker = "";
 
@@ -184,9 +186,9 @@ final class BlobContainerClient
 
     /**
      * @param string $delimiter
-     * @return \Iterator<int, Blob|BlobPrefix>
+     * @return \Generator<int, Blob|BlobPrefix>
      */
-    public function getBlobsByHierarchy(?string $prefix = null, string $delimiter = "/", ?GetBlobsOptions $options = null): \Iterator
+    public function getBlobsByHierarchy(?string $prefix = null, string $delimiter = "/", ?GetBlobsOptions $options = null): \Generator
     {
         $nextMarker = "";
 
@@ -216,7 +218,7 @@ final class BlobContainerClient
                     'restype' => 'container',
                     'comp' => 'list',
                     'prefix' => $prefix,
-                    'marker' => $marker,
+                    'marker' => $marker !== "" ? $marker : null,
                     'delimiter' => $delimiter,
                     'maxresults' => $maxResults,
                 ],
@@ -249,5 +251,40 @@ final class BlobContainerClient
             ->build($this->sharedKeyCredentials);
 
         return new Uri("$this->uri?$sas");
+    }
+
+    /**
+     * @return iterable<TaggedBlob>
+     */
+    public function findBlobsByTag(string $tagFilterSqlExpression): iterable
+    {
+        try {
+            $nextMarker = "";
+
+            while(true) {
+                $response = $this->client->get($this->uri, [
+                    'query' => [
+                        'restype' => 'container',
+                        'comp' => 'blobs',
+                        'where' => $tagFilterSqlExpression,
+                        'marker' => $nextMarker !== "" ? $nextMarker : null,
+                    ],
+                ]);
+
+                /** @var FindBlobsByTagBody $body */
+                $body = $this->serializer->deserialize($response->getBody()->getContents(), FindBlobsByTagBody::class, 'xml');
+                $nextMarker = $body->nextMarker;
+
+                foreach ($body->blobs as $blob) {
+                    yield $blob;
+                }
+
+                if ($nextMarker === "") {
+                    break;
+                }
+            }
+        } catch (RequestException $e) {
+            throw $this->exceptionFactory->create($e);
+        }
     }
 }

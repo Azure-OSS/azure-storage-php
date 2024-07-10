@@ -332,4 +332,31 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
 
         $this->serviceClient->getContainerClient("noop")->setMetadata([]);
     }
+
+    #[Test]
+    public function find_blobs_by_tag_works(): void
+    {
+        $this->markTestSkippedWhenUsingSimulator();
+
+        $blobClient = $this->containerClient->getBlobClient('tagged');
+
+        $blobClient->deleteIfExists();
+        $blobClient->upload("");
+        $blobClient->setTags(['foo' => 'bar']);
+
+        sleep(1); // tagging doesn't seem to be instant
+
+        $this->assertCount(0, iterator_to_array($this->containerClient->findBlobsByTag("foo = 'noop'")));
+        $this->assertCount(1, iterator_to_array($this->containerClient->findBlobsByTag("foo = 'bar'")));
+    }
+
+    #[Test]
+    public function find_blobs_by_tag_works_throws_when_container_doesnt_exist(): void
+    {
+        $this->markTestSkippedWhenUsingSimulator();
+
+        $this->expectException(ContainerNotFoundException::class);
+
+        iterator_to_array($this->serviceClient->getContainerClient("noop")->findBlobsByTag("foo = 'bar'"));
+    }
 }

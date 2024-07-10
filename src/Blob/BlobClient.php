@@ -176,7 +176,7 @@ final class BlobClient
     {
         $blocks = [];
 
-        $putBlockRequestGenerator = function () use ($content, $options, &$blocks): \Iterator {
+        $putBlockRequestGenerator = function () use ($content, $options, &$blocks): iterable {
             while (true) {
                 $blockContent = StreamUtils::streamFor();
                 StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);

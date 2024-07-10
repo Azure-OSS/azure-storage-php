@@ -301,7 +301,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(ContainerNotFoundException::class);
 
-        $this->serviceClient->getContainerClient("noop")->getBlobClient("noop")->setTags([]);
+        $this->serviceClient->getContainerClient("noop")->getBlobClient("noop")->setTags(['foo' => 'bar']);
     }
 
     #[Test]
@@ -309,7 +309,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(BlobNotFoundException::class);
 
-        $this->blobClient->setTags([]);
+        $this->blobClient->setTags(['foo' => 'bar']);
     }
 
     #[Test]
