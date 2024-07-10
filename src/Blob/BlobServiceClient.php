@@ -7,6 +7,8 @@ namespace AzureOss\Storage\Blob;
 use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionFactory;
 use AzureOss\Storage\Blob\Exceptions\InvalidConnectionStringException;
 use AzureOss\Storage\Blob\Models\BlobContainer;
+use AzureOss\Storage\Blob\Models\TaggedBlob;
+use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListContainersResponseBody;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Helpers\ConnectionStringHelper;
@@ -30,7 +32,7 @@ final class BlobServiceClient
         public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
     ) {
         // must always include the forward slash (/) to separate the host name from the path and query portions of the URI.
-        $this->uri = $uri->withPath("/");
+        $this->uri = $uri->withPath(ltrim($uri->getPath(), '/') . "/");
         $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
         $this->serializer = (new SerializerFactory())->create();
         $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
@@ -66,9 +68,9 @@ final class BlobServiceClient
     }
 
     /**
-     * @return \Iterator<int, BlobContainer>
+     * @return iterable<BlobContainer>
      */
-    public function getBlobContainers(?string $prefix = null): \Iterator
+    public function getBlobContainers(?string $prefix = null): iterable
     {
         try {
             $nextMarker = "";
@@ -87,6 +89,41 @@ final class BlobServiceClient
 
                 foreach ($body->containers as $container) {
                     yield $container;
+                }
+
+                if ($nextMarker === "") {
+                    break;
+                }
+            }
+        } catch (RequestException $e) {
+            throw $this->exceptionFactory->create($e);
+        }
+    }
+
+
+    /**
+     * @return iterable<TaggedBlob>
+     */
+    public function findBlobsByTag(string $tagFilterSqlExpression): iterable
+    {
+        try {
+            $nextMarker = "";
+
+            while(true) {
+                $response = $this->client->get($this->uri, [
+                    'query' => [
+                        'comp' => 'blobs',
+                        'where' => $tagFilterSqlExpression,
+                        'marker' => $nextMarker !== "" ? $nextMarker : null,
+                    ],
+                ]);
+
+                /** @var FindBlobsByTagBody $body */
+                $body = $this->serializer->deserialize($response->getBody()->getContents(), FindBlobsByTagBody::class, 'xml');
+                $nextMarker = $body->nextMarker;
+
+                foreach ($body->blobs as $blob) {
+                    yield $blob;
                 }
 
                 if ($nextMarker === "") {
