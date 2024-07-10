@@ -164,9 +164,9 @@ final class BlobContainerClient
     }
 
     /**
-     * @return \Generator<int, Blob>
+     * @return iterable<Blob>
      */
-    public function getBlobs(?string $prefix = null, ?GetBlobsOptions $options = null): \Generator
+    public function getBlobs(?string $prefix = null, ?GetBlobsOptions $options = null): iterable
     {
         $nextMarker = "";
 
@@ -186,9 +186,9 @@ final class BlobContainerClient
 
     /**
      * @param string $delimiter
-     * @return \Generator<int, Blob|BlobPrefix>
+     * @return iterable<Blob|BlobPrefix>
      */
-    public function getBlobsByHierarchy(?string $prefix = null, string $delimiter = "/", ?GetBlobsOptions $options = null): \Generator
+    public function getBlobsByHierarchy(?string $prefix = null, string $delimiter = "/", ?GetBlobsOptions $options = null): iterable
     {
         $nextMarker = "";
 
