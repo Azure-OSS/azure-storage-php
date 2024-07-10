@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob\Models;
 
 use AzureOss\Storage\Blob\Exceptions\DateMalformedStringException;
+use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use JMS\Serializer\Annotation\SerializedName;
 use JMS\Serializer\Annotation\Type;
 use Psr\Http\Message\ResponseInterface;
@@ -28,18 +29,6 @@ final class BlobContainerProperties
             throw new DateMalformedStringException("Azure returned a malformed date.");
         }
 
-
-        $metadata = [];
-
-        foreach ($response->getHeaders() as $header => $values) {
-            if (str_starts_with($header, "x-ms-meta-")) {
-                $metadataKey = substr($header, strlen("x-ms-meta-"));
-                $metadataValue = $response->getHeaderLine($header);
-
-                $metadata[$metadataKey] = $metadataValue;
-            }
-        }
-
-        return new self($lastModified, $metadata);
+        return new self($lastModified, MetadataHelper::headersToMetadata($response->getHeaders()));
     }
 }

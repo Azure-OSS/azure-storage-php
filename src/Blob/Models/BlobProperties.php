@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Models;
 
+use AzureOss\Storage\Blob\Exceptions\DateMalformedStringException;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use JMS\Serializer\Annotation\SerializedName;
 use JMS\Serializer\Annotation\Type;
@@ -31,7 +32,7 @@ final class BlobProperties
     {
         $lastModified = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC1123, $response->getHeaderLine('Last-Modified'));
         if ($lastModified === false) {
-            throw new \Exception("Should not happen!");
+            throw new DateMalformedStringException("Azure returned a malformed date.");
         }
 
         return new BlobProperties(
