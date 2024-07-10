@@ -29,6 +29,8 @@ final class BlobServiceClient
         public UriInterface $uri,
         public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
     ) {
+        // must always include the forward slash (/) to separate the host name from the path and query portions of the URI.
+        $this->uri = $uri->withPath("/");
         $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
         $this->serializer = (new SerializerFactory())->create();
         $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
@@ -58,7 +60,7 @@ final class BlobServiceClient
     public function getContainerClient(string $containerName): BlobContainerClient
     {
         return new BlobContainerClient(
-            $this->uri->withPath($this->uri->getPath() . "/" . $containerName),
+            $this->uri->withPath($this->uri->getPath() . $containerName),
             $this->sharedKeyCredentials,
         );
     }
@@ -75,7 +77,7 @@ final class BlobServiceClient
                 $response = $this->client->get($this->uri, [
                     'query' => [
                         'comp' => 'list',
-                        'marker' => $nextMarker,
+                        'marker' => $nextMarker !== "" ? $nextMarker : null,
                         'prefix' => $prefix,
                     ],
                 ]);
