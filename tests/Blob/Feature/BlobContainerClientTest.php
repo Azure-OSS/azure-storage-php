@@ -11,6 +11,7 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
+use AzureOss\Storage\Blob\Sas\BlobContainerSasPermissions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
@@ -286,7 +287,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
 
         $sas = $this->containerClient->generateSasUri(
             BlobSasBuilder::new()
-                ->setPermissions("l")
+                ->setPermissions(new BlobContainerSasPermissions(list: true))
                 ->setExpiresOn((new \DateTime())->modify("+ 1min")),
         );
 

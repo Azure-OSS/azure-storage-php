@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature;
 
+use AzureOss\Storage\Blob\BlobContainerClient;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Exceptions\InvalidConnectionStringException;
+use AzureOss\Storage\Blob\Sas\AccountSasBuilder;
+use AzureOss\Storage\Blob\Sas\BlobContainerSasPermissions;
+use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
+use AzureOss\Storage\Common\Sas\AccountSasPermissions;
+use AzureOss\Storage\Common\Sas\AccountSasResourceTypes;
+use AzureOss\Storage\Common\Sas\AccountSasServices;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -151,5 +158,23 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
 
         $this->assertCount(0, iterator_to_array($this->serviceClient->findBlobsByTag("foo = 'noop'")));
         $this->assertCount(1, iterator_to_array($this->serviceClient->findBlobsByTag("foo = 'bar'")));
+    }
+
+    #[Test]
+    public function generate_account_sas_uri_works(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        $sas = $this->serviceClient->generateAccountSasUri(
+            AccountSasBuilder::new()
+                ->setPermissions(new AccountSasPermissions(list: true))
+                ->setServices(new AccountSasServices(blob: true))
+                ->setResourceTypes(new AccountSasResourceTypes(service: true))
+                ->setExpiresOn((new \DateTime())->modify("+ 1min")),
+        );
+
+        $sasServiceClient = new BlobServiceClient($sas);
+
+        iterator_to_array($sasServiceClient->getBlobContainers());
     }
 }

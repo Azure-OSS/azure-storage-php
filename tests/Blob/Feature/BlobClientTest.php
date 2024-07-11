@@ -11,6 +11,7 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\TagsTooLargeException;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
+use AzureOss\Storage\Blob\Sas\BlobSasPermissions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\StreamInterface;
@@ -275,7 +276,7 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $sas = $blobClient->generateSasUri(
             BlobSasBuilder::new()
-                ->setPermissions("r")
+                ->setPermissions(new BlobSasPermissions(read: true))
                 ->setExpiresOn((new \DateTime())->modify("+ 1min")),
         );
 

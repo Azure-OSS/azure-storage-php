@@ -6,16 +6,21 @@ namespace AzureOss\Storage\Blob;
 
 use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionFactory;
 use AzureOss\Storage\Blob\Exceptions\InvalidConnectionStringException;
+use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
+use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use AzureOss\Storage\Blob\Models\BlobContainer;
 use AzureOss\Storage\Blob\Models\TaggedBlob;
 use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListContainersResponseBody;
+use AzureOss\Storage\Blob\Sas\AccountSasBuilder;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Helpers\ConnectionStringHelper;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
+use AzureOss\Storage\Common\Sas\SasProtocol;
 use AzureOss\Storage\Common\Serializer\SerializerFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Uri;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\UriInterface;
 
@@ -133,5 +138,20 @@ final class BlobServiceClient
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
         }
+    }
+
+    public function generateAccountSasUri(AccountSasBuilder $accountSasBuilder): UriInterface
+    {
+        if ($this->sharedKeyCredentials === null) {
+            throw new UnableToGenerateSasException();
+        }
+
+        if (BlobUriParserHelper::isDevelopmentUri($this->uri)) {
+            $accountSasBuilder->setProtocol(SasProtocol::HTTPS_AND_HTTP);
+        }
+
+        $sas = $accountSasBuilder->build($this->sharedKeyCredentials);
+
+        return new Uri("$this->uri?$sas");
     }
 }

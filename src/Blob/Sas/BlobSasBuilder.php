@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob\Sas;
 
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
+use AzureOss\Storage\Blob\Helpers\DateHelper;
 use AzureOss\Storage\Common\ApiVersion;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Sas\SasIpRange;
@@ -56,9 +57,9 @@ final class BlobSasBuilder
         return $this;
     }
 
-    public function setPermissions(string $value): self
+    public function setPermissions(string|BlobSasPermissions|BlobContainerSasPermissions $value): self
     {
-        $this->permissions = $value;
+        $this->permissions = (string) $value;
 
         return $this;
     }
@@ -153,8 +154,8 @@ final class BlobSasBuilder
             throw new UnableToGenerateSasException();
         }
 
-        $signedStart = $this->startsOn !== null ? $this->dateTo8601Zulu($this->startsOn) : null;
-        $signedExpiry = $this->dateTo8601Zulu($this->expiresOn);
+        $signedStart = $this->startsOn !== null ? DateHelper::formatAs8601Zulu($this->startsOn) : null;
+        $signedExpiry = DateHelper::formatAs8601Zulu($this->expiresOn);
         $signedResource = $this->blobName ? "b" : "c";
         $signedIp = $this->ipRange !== null ? (string) $this->ipRange : null;
         $signedProtocol = $this->protocol?->value;
@@ -180,7 +181,6 @@ final class BlobSasBuilder
             $this->contentLanguage,
             $this->contentType,
         ];
-
         $stringToSign = array_map(fn($str) => urldecode($str ?? ""), $stringToSign);
         $stringToSign = implode("\n", $stringToSign);
 
@@ -215,12 +215,5 @@ final class BlobSasBuilder
         }
 
         return $resource;
-    }
-
-    private function dateTo8601Zulu(\DateTimeInterface $date): string
-    {
-        return \DateTime::createFromInterface($date)
-            ->setTimezone(new \DateTimeZone('UTC'))
-            ->format('Y-m-d\TH:i:s\Z');
     }
 }
