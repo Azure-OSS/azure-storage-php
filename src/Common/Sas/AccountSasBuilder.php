@@ -1,15 +1,12 @@
 <?php
 
-namespace AzureOss\Storage\Blob\Sas;
+declare(strict_types=1);
+
+namespace AzureOss\Storage\Common\Sas;
 
 use AzureOss\Storage\Blob\Helpers\DateHelper;
 use AzureOss\Storage\Common\ApiVersion;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
-use AzureOss\Storage\Common\Sas\AccountSasPermissions;
-use AzureOss\Storage\Common\Sas\AccountSasResourceTypes;
-use AzureOss\Storage\Common\Sas\AccountSasServices;
-use AzureOss\Storage\Common\Sas\SasIpRange;
-use AzureOss\Storage\Common\Sas\SasProtocol;
 use GuzzleHttp\Psr7\Query;
 
 final class AccountSasBuilder
@@ -60,7 +57,7 @@ final class AccountSasBuilder
 
     public function setPermissions(string|AccountSasPermissions $permissions): AccountSasBuilder
     {
-        $this->permissions = $permissions;
+        $this->permissions = (string) $permissions;
 
         return $this;
     }
@@ -121,7 +118,7 @@ final class AccountSasBuilder
             $this->encryptionScope,
         ];
         $stringToSign = array_map(fn($str) => urldecode($str ?? ""), $stringToSign);
-        $stringToSign = implode("\n", $stringToSign);
+        $stringToSign = implode("\n", $stringToSign) . "\n";
 
         $signature = urlencode($sharedKeyCredential->computeHMACSHA256($stringToSign));
 

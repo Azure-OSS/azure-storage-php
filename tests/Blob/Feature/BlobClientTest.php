@@ -37,9 +37,9 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $result = $this->blobClient->downloadStreaming();
 
-        $this->assertEquals($result->properties->contentLength, strlen($content));
-        $this->assertEquals("text/plain", $result->properties->contentType);
-        $this->assertEquals($content, $result->content->getContents());
+        self::assertEquals($result->properties->contentLength, strlen($content));
+        self::assertEquals("text/plain", $result->properties->contentType);
+        self::assertEquals($content, $result->content->getContents());
     }
 
     #[Test]
@@ -66,8 +66,8 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $result = $this->blobClient->getProperties();
 
-        $this->assertEquals($result->contentLength, strlen($content));
-        $this->assertEquals("text/plain", $result->contentType);
+        self::assertEquals($result->contentLength, strlen($content));
+        self::assertEquals("text/plain", $result->contentType);
     }
 
     #[Test]
@@ -91,11 +91,11 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->blobClient->upload("test");
 
-        $this->assertTrue($this->blobClient->exists());
+        self::assertTrue($this->blobClient->exists());
 
         $this->blobClient->delete();
 
-        $this->assertFalse($this->blobClient->exists());
+        self::assertFalse($this->blobClient->exists());
     }
 
     #[Test]
@@ -120,11 +120,11 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->blobClient->upload("test");
 
-        $this->assertTrue($this->blobClient->exists());
+        self::assertTrue($this->blobClient->exists());
 
         $this->blobClient->deleteIfExists();
 
-        $this->assertFalse($this->blobClient->exists());
+        self::assertFalse($this->blobClient->exists());
     }
 
     public function delete_if_exists_throws_if_container_doesnt_exist(): void
@@ -145,11 +145,11 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function exists_works(): void
     {
-        $this->assertFalse($this->blobClient->exists());
+        self::assertFalse($this->blobClient->exists());
 
         $this->blobClient->upload("test");
 
-        $this->assertTrue($this->blobClient->exists());
+        self::assertTrue($this->blobClient->exists());
     }
 
     #[Test]
@@ -171,12 +171,12 @@ final class BlobClientTest extends BlobFeatureTestCase
 
             $properties = $this->blobClient->getProperties();
 
-            $this->assertEquals("text/plain", $properties->contentType);
-            $this->assertEquals(1000, $properties->contentLength);
+            self::assertEquals("text/plain", $properties->contentType);
+            self::assertEquals(1000, $properties->contentLength);
 
             $afterUploadContent = $this->blobClient->downloadStreaming()->content;
 
-            $this->assertEquals($beforeUploadContent, $afterUploadContent);
+            self::assertEquals($beforeUploadContent, $afterUploadContent);
         });
     }
 
@@ -191,12 +191,12 @@ final class BlobClientTest extends BlobFeatureTestCase
 
             $properties = $this->blobClient->getProperties();
 
-            $this->assertEquals("text/plain", $properties->contentType);
-            $this->assertEquals(1000, $properties->contentLength);
+            self::assertEquals("text/plain", $properties->contentType);
+            self::assertEquals(1000, $properties->contentLength);
 
             $afterUploadContent = $this->blobClient->downloadStreaming()->content;
 
-            $this->assertEquals($beforeUploadContent, $afterUploadContent);
+            self::assertEquals($beforeUploadContent, $afterUploadContent);
         });
     }
 
@@ -207,12 +207,12 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $properties = $this->blobClient->getProperties();
 
-        $this->assertEquals("text/plain", $properties->contentType);
-        $this->assertEquals(0, $properties->contentLength);
+        self::assertEquals("text/plain", $properties->contentType);
+        self::assertEquals(0, $properties->contentLength);
 
         $afterUploadContent = $this->blobClient->downloadStreaming()->content;
 
-        $this->assertEquals("", $afterUploadContent);
+        self::assertEquals("", $afterUploadContent);
     }
 
     #[Test]
@@ -238,7 +238,7 @@ final class BlobClientTest extends BlobFeatureTestCase
         $sourceContent = $sourceBlobClient->downloadStreaming()->content->getContents();
         $targetContent = $this->blobClient->downloadStreaming()->content->getContents();
 
-        $this->assertEquals($targetContent, $sourceContent);
+        self::assertEquals($targetContent, $sourceContent);
     }
 
     #[Test]
@@ -293,8 +293,8 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $tags = $this->blobClient->getTags();
 
-        $this->assertEquals($tags['foo'], 'bar');
-        $this->assertEquals($tags['baz'], 'boo');
+        self::assertEquals($tags['foo'], 'bar');
+        self::assertEquals($tags['baz'], 'boo');
     }
 
     #[Test]
@@ -351,8 +351,8 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $tags = $this->blobClient->getTags();
 
-        $this->assertEquals($tags['foo'], 'bar');
-        $this->assertEquals($tags['baz'], 'boo');
+        self::assertEquals($tags['foo'], 'bar');
+        self::assertEquals($tags['baz'], 'boo');
     }
 
     #[Test]
@@ -377,14 +377,14 @@ final class BlobClientTest extends BlobFeatureTestCase
         $this->blobClient->upload("");
         $props = $this->blobClient->getProperties();
 
-        $this->assertEmpty($props->metadata);
+        self::assertEmpty($props->metadata);
 
         $this->blobClient->setMetadata(['foo' => 'bar', 'baz' => 'qaz']);
 
         $props = $this->blobClient->getProperties();
 
-        $this->assertEquals('bar', $props->metadata['foo']);
-        $this->assertEquals('qaz', $props->metadata['baz']);
+        self::assertEquals('bar', $props->metadata['foo']);
+        self::assertEquals('qaz', $props->metadata['baz']);
     }
 
     #[Test]

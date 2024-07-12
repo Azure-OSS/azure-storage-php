@@ -70,8 +70,7 @@ final class ConnectionStringHelper
     {
         $segments = [];
         foreach (explode(';', $connectionString) as $segment) {
-            // todo exception if invalid (no = sign)
-            if (!empty($segment)) {
+            if ($segment !== "") {
                 [$key, $value] = explode('=', $segment, 2);
                 $segments[$key] = $value;
             }

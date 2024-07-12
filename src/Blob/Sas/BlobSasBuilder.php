@@ -156,11 +156,11 @@ final class BlobSasBuilder
 
         $signedStart = $this->startsOn !== null ? DateHelper::formatAs8601Zulu($this->startsOn) : null;
         $signedExpiry = DateHelper::formatAs8601Zulu($this->expiresOn);
-        $signedResource = $this->blobName ? "b" : "c";
+        $signedResource = $this->blobName !== null ? "b" : "c";
         $signedIp = $this->ipRange !== null ? (string) $this->ipRange : null;
         $signedProtocol = $this->protocol?->value;
         $signedVersion = $this->version ?? ApiVersion::LATEST->value;
-        $signedSnapshotTime = $this->snapshotTime ? (string) $this->snapshotTime->getTimestamp() : null;
+        $signedSnapshotTime = $this->snapshotTime !== null ? (string) $this->snapshotTime->getTimestamp() : null;
         $canonicalizedResource = $this->getCanonicalizedResource($sharedKeyCredential->accountName);
 
         $stringToSign = [

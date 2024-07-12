@@ -39,8 +39,8 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $containerClient = $client->getContainerClient("testing");
         $blobClient = $containerClient->getBlobClient("some/file.txt");
 
-        $this->assertEquals($blobClient->sharedKeyCredentials, $containerClient->sharedKeyCredentials);
-        $this->assertEquals("http://127.0.0.1:10000/devstoreaccount1/testing/some/file.txt", (string) $blobClient->uri);
+        self::assertEquals($blobClient->sharedKeyCredentials, $containerClient->sharedKeyCredentials);
+        self::assertEquals("http://127.0.0.1:10000/devstoreaccount1/testing/some/file.txt", (string) $blobClient->uri);
     }
 
     #[Test]
@@ -49,11 +49,11 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->deleteIfExists();
 
-        $this->assertFalse($containerClient->exists());
+        self::assertFalse($containerClient->exists());
 
         $containerClient->create();
 
-        $this->assertTrue($containerClient->exists());
+        self::assertTrue($containerClient->exists());
 
         $containerClient->delete(); // cleanup
     }
@@ -72,11 +72,11 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->deleteIfExists();
 
-        $this->assertFalse($containerClient->exists());
+        self::assertFalse($containerClient->exists());
 
         $containerClient->createIfNotExists();
 
-        $this->assertTrue($containerClient->exists());
+        self::assertTrue($containerClient->exists());
     }
 
     #[Test]
@@ -93,11 +93,11 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->create();
 
-        $this->assertTrue($containerClient->exists());
+        self::assertTrue($containerClient->exists());
 
         $containerClient->delete();
 
-        $this->assertFalse($containerClient->exists());
+        self::assertFalse($containerClient->exists());
     }
 
     #[Test]
@@ -114,11 +114,11 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->create();
 
-        $this->assertTrue($containerClient->exists());
+        self::assertTrue($containerClient->exists());
 
         $containerClient->deleteIfExists();
 
-        $this->assertFalse($containerClient->exists());
+        self::assertFalse($containerClient->exists());
     }
 
     #[Test]
@@ -135,11 +135,11 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $containerClient->create();
 
-        $this->assertTrue($containerClient->exists());
+        self::assertTrue($containerClient->exists());
 
         $containerClient->delete();
 
-        $this->assertFalse($containerClient->exists());
+        self::assertFalse($containerClient->exists());
     }
 
     #[Test]
@@ -152,7 +152,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
 
         $blobs = iterator_to_array($this->containerClient->getBlobs());
 
-        $this->assertCount(4, $blobs);
+        self::assertCount(4, $blobs);
     }
 
     #[Test]
@@ -165,7 +165,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
 
         $blobs = iterator_to_array($this->containerClient->getBlobs("some/"));
 
-        $this->assertCount(2, $blobs);
+        self::assertCount(2, $blobs);
     }
 
     #[Test]
@@ -178,7 +178,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
 
         $blobs = iterator_to_array($this->containerClient->getBlobs(options: new GetBlobsOptions(pageSize: 2)));
 
-        $this->assertCount(4, $blobs);
+        self::assertCount(4, $blobs);
     }
 
     #[Test]
@@ -202,8 +202,8 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $blobs = array_filter($results, fn($item) => $item instanceof Blob);
         $prefixes = array_filter($results, fn($item) => $item instanceof BlobPrefix);
 
-        $this->assertCount(2, $blobs);
-        $this->assertCount(1, $prefixes);
+        self::assertCount(2, $blobs);
+        self::assertCount(1, $prefixes);
     }
 
     #[Test]
@@ -219,8 +219,8 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $blobs = array_filter($results, fn($item) => $item instanceof Blob);
         $prefixes = array_filter($results, fn($item) => $item instanceof BlobPrefix);
 
-        $this->assertCount(1, $blobs);
-        $this->assertCount(1, $prefixes);
+        self::assertCount(1, $blobs);
+        self::assertCount(1, $prefixes);
     }
 
     #[Test]
@@ -236,8 +236,8 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $blobs = array_filter($results, fn($item) => $item instanceof Blob);
         $prefixes = array_filter($results, fn($item) => $item instanceof BlobPrefix);
 
-        $this->assertCount(2, $blobs);
-        $this->assertCount(1, $prefixes);
+        self::assertCount(2, $blobs);
+        self::assertCount(1, $prefixes);
     }
 
     #[Test]
@@ -253,8 +253,8 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $blobs = array_filter($results, fn($item) => $item instanceof Blob);
         $prefixes = array_filter($results, fn($item) => $item instanceof BlobPrefix);
 
-        $this->assertCount(2, $blobs);
-        $this->assertCount(1, $prefixes);
+        self::assertCount(2, $blobs);
+        self::assertCount(1, $prefixes);
     }
 
     #[Test]
@@ -270,14 +270,14 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     {
         $containerClient = new BlobContainerClient(new Uri("https://testing.blob.core.windows.net/testing"));
 
-        $this->assertFalse($containerClient->canGenerateSasUri());
+        self::assertFalse($containerClient->canGenerateSasUri());
 
         $containerClient = new BlobContainerClient(
             new Uri("https://testing.blob.core.windows.net/testing"),
             new StorageSharedKeyCredential("noop", "noop"),
         );
 
-        $this->assertTrue($containerClient->canGenerateSasUri());
+        self::assertTrue($containerClient->canGenerateSasUri());
     }
 
     #[Test]
@@ -322,8 +322,8 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
 
         $properties = $this->containerClient->getProperties();
 
-        $this->assertEquals('bar', $properties->metadata["foo"]);
-        $this->assertEquals('qux', $properties->metadata["baz"]);
+        self::assertEquals('bar', $properties->metadata["foo"]);
+        self::assertEquals('qux', $properties->metadata["baz"]);
     }
 
     #[Test]
@@ -347,8 +347,8 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
 
         sleep(1); // tagging doesn't seem to be instant
 
-        $this->assertCount(0, iterator_to_array($this->containerClient->findBlobsByTag("foo = 'noop'")));
-        $this->assertCount(1, iterator_to_array($this->containerClient->findBlobsByTag("foo = 'bar'")));
+        self::assertCount(0, iterator_to_array($this->containerClient->findBlobsByTag("foo = 'noop'")));
+        self::assertCount(1, iterator_to_array($this->containerClient->findBlobsByTag("foo = 'bar'")));
     }
 
     #[Test]

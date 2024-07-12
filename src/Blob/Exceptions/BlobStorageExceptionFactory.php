@@ -26,6 +26,7 @@ final class BlobStorageExceptionFactory
         }
 
         return match ($error->code) {
+            'AuthenticationFailed' => new AuthenticationFailedException($error->message, previous: $e),
             'AuthorizationFailure' => new AuthorizationFailedException($error->message, previous: $e),
             'ContainerNotFound' => new ContainerNotFoundException($error->message, previous: $e),
             'ContainerAlreadyExists' => new ContainerAlreadyExistsException($error->message, previous: $e),
