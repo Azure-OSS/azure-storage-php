@@ -7,9 +7,9 @@ namespace AzureOss\Storage\Blob\Requests;
 /**
  * @internal
  */
-enum BlockType
+enum BlockType: string
 {
-    case COMMITTED;
-    case UNCOMMITTED;
-    case LATEST;
+    case COMMITTED = "Committed";
+    case UNCOMMITTED = "Uncommitted";
+    case LATEST = "Latest";
 }
