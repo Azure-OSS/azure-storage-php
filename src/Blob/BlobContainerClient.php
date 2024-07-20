@@ -22,11 +22,9 @@ use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\SasProtocol;
-use AzureOss\Storage\Common\Serializer\SerializerFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Uri;
-use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\UriInterface;
 
 final class BlobContainerClient
@@ -34,8 +32,6 @@ final class BlobContainerClient
     private readonly Client $client;
 
     private readonly BlobStorageExceptionFactory $exceptionFactory;
-
-    private readonly SerializerInterface $serializer;
 
     public readonly string $containerName;
 
@@ -48,7 +44,6 @@ final class BlobContainerClient
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
-        $this->serializer = (new SerializerFactory())->create();
         $this->exceptionFactory = new BlobStorageExceptionFactory();
     }
 
@@ -265,8 +260,7 @@ final class BlobContainerClient
                     ],
                 ]);
 
-                /** @var FindBlobsByTagBody $body */
-                $body = $this->serializer->deserialize($response->getBody()->getContents(), FindBlobsByTagBody::class, 'xml');
+                $body = FindBlobsByTagBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
                 $nextMarker = $body->nextMarker;
 
                 foreach ($body->blobs as $blob) {
