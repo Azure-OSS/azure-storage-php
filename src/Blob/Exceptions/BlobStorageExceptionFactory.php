@@ -6,21 +6,26 @@ namespace AzureOss\Storage\Blob\Exceptions;
 
 use AzureOss\Storage\Blob\Responses\ErrorResponse;
 use GuzzleHttp\Exception\RequestException;
-use JMS\Serializer\SerializerInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * @internal
  */
 final class BlobStorageExceptionFactory
 {
-    public function __construct(
-        private readonly SerializerInterface $serializer,
-    ) {}
-
-    public function create(RequestException $e): \Exception
+    public function create(\Throwable $e): \Throwable
     {
-        $error = $this->getErrorResponse($e);
+        return $e instanceof RequestException ? $this->createFromRequestException($e) : $e;
+    }
 
+    private function createFromRequestException(RequestException $e): \Exception
+    {
+        $response = $e->getResponse();
+        if($response === null) {
+            return $e;
+        }
+
+        $error = $this->getErrorFromResponseBody($response) ?? $this->getErrorResponseFromHeaders($response);
         if ($error === null) {
             return $e;
         }
@@ -37,28 +42,23 @@ final class BlobStorageExceptionFactory
         };
     }
 
-    public function getErrorResponse(RequestException $e): ?ErrorResponse
+    public function getErrorResponseFromHeaders(ResponseInterface $response): ?ErrorResponse
     {
-        $response = $e->getResponse();
-        if ($response === null) {
-            throw $e;
-        }
-
-        $content = $response->getBody()->getContents();
-        if ($content !== "") {
-            try {
-                /** @phpstan-ignore-next-line */
-                return $this->serializer->deserialize($content, ErrorResponse::class, 'xml');
-            } catch (\Exception) {
-                return null;
-            }
-        }
-
         $code = $response->getHeaderLine("x-ms-error-code");
-        if ($code !== "") {
-            return new ErrorResponse($code, $response->getHeaderLine("x-ms-request-id"));
+        if ($code === "") {
+            return null;
         }
 
-        return null;
+        return new ErrorResponse($code, $response->getHeaderLine("x-ms-request-id"));
+    }
+
+    private function getErrorFromResponseBody(ResponseInterface $response): ?ErrorResponse
+    {
+        $content = $response->getBody()->getContents();
+        if ($content === "") {
+            return null;
+        }
+
+        return ErrorResponse::fromXml(new \SimpleXMLElement($content));
     }
 }

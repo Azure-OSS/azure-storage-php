@@ -31,4 +31,17 @@ final class BlobContainerProperties
 
         return new self($lastModified, MetadataHelper::headersToMetadata($response->getHeaders()));
     }
+
+    public static function fromXml(\SimpleXMLElement $xml): self
+    {
+        $lastModified = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC1123, (string) $xml->{'Last-Modified'});
+        if ($lastModified === false) {
+            throw new DateMalformedStringException("Azure returned a malformed date.");
+        }
+
+        return new self(
+            $lastModified,
+            []
+        );
+    }
 }

@@ -41,7 +41,7 @@ final class BlobServiceClient
         $this->uri = $uri->withPath(rtrim($uri->getPath(), '/') . "/");
         $this->client = (new ClientFactory())->create($this->uri, $sharedKeyCredentials);
         $this->serializer = (new SerializerFactory())->create();
-        $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
+        $this->exceptionFactory = new BlobStorageExceptionFactory();
     }
 
     public static function fromConnectionString(string $connectionString): self
@@ -89,8 +89,7 @@ final class BlobServiceClient
                         'prefix' => $prefix,
                     ],
                 ]);
-                /** @var ListContainersResponseBody $body */
-                $body = $this->serializer->deserialize($response->getBody()->getContents(), ListContainersResponseBody::class, 'xml');
+                $body = ListContainersResponseBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
                 $nextMarker = $body->nextMarker;
 
                 foreach ($body->containers as $container) {

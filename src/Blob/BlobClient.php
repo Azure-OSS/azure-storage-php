@@ -56,7 +56,7 @@ final class BlobClient
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
         $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
         $this->serializer = (new SerializerFactory())->create();
-        $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
+        $this->exceptionFactory = new BlobStorageExceptionFactory();
     }
 
     public function downloadStreaming(): BlobDownloadStreamingResult

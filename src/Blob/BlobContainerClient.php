@@ -49,7 +49,7 @@ final class BlobContainerClient
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
         $this->serializer = (new SerializerFactory())->create();
-        $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
+        $this->exceptionFactory = new BlobStorageExceptionFactory();
     }
 
     public function getBlobClient(string $blobName): BlobClient
@@ -219,8 +219,7 @@ final class BlobContainerClient
                 ],
             ]);
 
-            /** @phpstan-ignore-next-line */
-            return $this->serializer->deserialize($response->getBody()->getContents(), ListBlobsResponseBody::class, 'xml');
+            return ListBlobsResponseBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
         }
