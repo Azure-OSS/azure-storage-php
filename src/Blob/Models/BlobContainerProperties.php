@@ -6,8 +6,6 @@ namespace AzureOss\Storage\Blob\Models;
 
 use AzureOss\Storage\Blob\Exceptions\DateMalformedStringException;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
-use JMS\Serializer\Annotation\SerializedName;
-use JMS\Serializer\Annotation\Type;
 use Psr\Http\Message\ResponseInterface;
 
 final class BlobContainerProperties
@@ -16,8 +14,6 @@ final class BlobContainerProperties
      * @param array<string, string> $metadata
      */
     public function __construct(
-        #[SerializedName('Last-Modified')]
-        #[Type("DateTimeImmutable<'" . \DateTimeInterface::RFC1123 . "'>")]
         public readonly \DateTimeInterface $lastModified,
         public readonly array $metadata,
     ) {}
@@ -41,7 +37,7 @@ final class BlobContainerProperties
 
         return new self(
             $lastModified,
-            []
+            [],
         );
     }
 }
