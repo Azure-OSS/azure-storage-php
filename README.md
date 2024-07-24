@@ -14,7 +14,7 @@
 ## Install
 
 ```shell
-composer require azure-oss/azure-storage
+composer require azure-oss/storage
 ```
 
 ## Documentation
