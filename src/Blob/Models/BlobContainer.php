@@ -6,7 +6,7 @@ namespace AzureOss\Storage\Blob\Models;
 
 final class BlobContainer
 {
-    private function __construct(
+    public function __construct(
         public readonly string $name,
         public readonly BlobContainerProperties $properties,
     ) {}

@@ -13,7 +13,7 @@ final class BlobProperties
     /**
      * @param array<string, string> $metadata
      */
-    private function __construct(
+    public function __construct(
         public readonly \DateTimeInterface $lastModified,
         public readonly int $contentLength,
         public readonly string $contentType,
