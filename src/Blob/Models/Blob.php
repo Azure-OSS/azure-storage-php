@@ -10,4 +10,12 @@ final class Blob
         public readonly string         $name,
         public readonly BlobProperties $properties,
     ) {}
+
+    public static function fromXml(\SimpleXMLElement $xml): self
+    {
+        return new self(
+            (string) $xml->Name,
+            BlobProperties::fromXml($xml->Properties),
+        );
+    }
 }

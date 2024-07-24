@@ -148,12 +148,12 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $blobClient = $containerClient->getBlobClient('tagged');
         $blobClient->deleteIfExists();
         $blobClient->upload("");
-        $blobClient->setTags(['foo' => 'bar']);
+        $blobClient->setTags(['foo' => 'blobservice']);
 
         sleep(1); // tagging doesn't seem to be instant
 
         self::assertCount(0, iterator_to_array($this->serviceClient->findBlobsByTag("foo = 'noop'")));
-        self::assertCount(1, iterator_to_array($this->serviceClient->findBlobsByTag("foo = 'bar'")));
+        self::assertCount(1, iterator_to_array($this->serviceClient->findBlobsByTag("foo = 'blobservice'")));
     }
 
     #[Test]

@@ -22,14 +22,12 @@ use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\SasProtocol;
-use AzureOss\Storage\Common\Serializer\SerializerFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\Utils as StreamUtils;
-use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 
@@ -38,8 +36,6 @@ final class BlobClient
     private readonly Client $client;
 
     private readonly BlobStorageExceptionFactory $exceptionFactory;
-
-    private readonly SerializerInterface $serializer;
 
     public readonly string $containerName;
 
@@ -55,8 +51,7 @@ final class BlobClient
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
         $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
-        $this->serializer = (new SerializerFactory())->create();
-        $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
+        $this->exceptionFactory = new BlobStorageExceptionFactory();
     }
 
     public function downloadStreaming(): BlobDownloadStreamingResult
@@ -196,11 +191,7 @@ final class BlobClient
         $pool = new Pool($this->client, $putBlockRequestGenerator(), [
             'concurrency' => $options->maximumConcurrency,
             'rejected' => function (\Exception $e) {
-                if ($e instanceof RequestException) {
-                    throw $this->exceptionFactory->create($e);
-                }
-
-                throw $e;
+                throw $this->exceptionFactory->create($e);
             },
         ]);
 
@@ -237,7 +228,7 @@ final class BlobClient
                 'headers' => [
                     'x-ms-blob-content-type' => $options->contentType,
                 ],
-                'body' => $this->serializer->serialize(new PutBlockRequestBody($blocks), 'xml'),
+                'body' => (new PutBlockRequestBody($blocks))->toXml()->asXML(),
             ]);
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
@@ -282,13 +273,11 @@ final class BlobClient
     public function setTags(array $tags): void
     {
         try {
-            $body = BlobTagsBody::fromArray($tags);
-
             $this->client->put($this->uri, [
                 'query' => [
                     'comp' => 'tags',
                 ],
-                'body' => $this->serializer->serialize($body, 'xml'),
+                'body' => (new BlobTagsBody($tags))->toXml()->asXML(),
             ]);
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
@@ -307,10 +296,8 @@ final class BlobClient
                 ],
             ]);
 
-            /** @var BlobTagsBody $body */
-            $body = $this->serializer->deserialize($response->getBody()->getContents(), BlobTagsBody::class, 'xml');
-
-            return $body->toArray();
+            $body = BlobTagsBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
+            return $body->tags;
         } catch (RequestException $e) {
             throw $this->exceptionFactory->create($e);
         }

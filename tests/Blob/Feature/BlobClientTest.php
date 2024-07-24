@@ -318,7 +318,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(TagsTooLargeException::class);
 
-        $this->blobClient->setTags([str_pad("", 1000) => 'noop']);
+        $this->blobClient->setTags([str_pad("", 1000, 'a') => 'noop']);
     }
 
     #[Test]
@@ -326,7 +326,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         $this->expectException(TagsTooLargeException::class);
 
-        $this->blobClient->setTags(["noop" => str_pad("", 1000)]);
+        $this->blobClient->setTags(["noop" => str_pad("", 1000, 'a')]);
     }
 
     #[Test]

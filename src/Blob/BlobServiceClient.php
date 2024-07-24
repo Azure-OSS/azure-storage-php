@@ -18,11 +18,9 @@ use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\AccountSasBuilder;
 use AzureOss\Storage\Common\Sas\AccountSasServices;
 use AzureOss\Storage\Common\Sas\SasProtocol;
-use AzureOss\Storage\Common\Serializer\SerializerFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Uri;
-use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\UriInterface;
 
 final class BlobServiceClient
@@ -31,8 +29,6 @@ final class BlobServiceClient
 
     private readonly BlobStorageExceptionFactory $exceptionFactory;
 
-    private readonly SerializerInterface $serializer;
-
     public function __construct(
         public UriInterface $uri,
         public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
@@ -40,8 +36,7 @@ final class BlobServiceClient
         // must always include the forward slash (/) to separate the host name from the path and query portions of the URI.
         $this->uri = $uri->withPath(rtrim($uri->getPath(), '/') . "/");
         $this->client = (new ClientFactory())->create($this->uri, $sharedKeyCredentials);
-        $this->serializer = (new SerializerFactory())->create();
-        $this->exceptionFactory = new BlobStorageExceptionFactory($this->serializer);
+        $this->exceptionFactory = new BlobStorageExceptionFactory();
     }
 
     public static function fromConnectionString(string $connectionString): self
@@ -89,8 +84,7 @@ final class BlobServiceClient
                         'prefix' => $prefix,
                     ],
                 ]);
-                /** @var ListContainersResponseBody $body */
-                $body = $this->serializer->deserialize($response->getBody()->getContents(), ListContainersResponseBody::class, 'xml');
+                $body = ListContainersResponseBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
                 $nextMarker = $body->nextMarker;
 
                 foreach ($body->containers as $container) {
@@ -124,8 +118,7 @@ final class BlobServiceClient
                     ],
                 ]);
 
-                /** @var FindBlobsByTagBody $body */
-                $body = $this->serializer->deserialize($response->getBody()->getContents(), FindBlobsByTagBody::class, 'xml');
+                $body = FindBlobsByTagBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
                 $nextMarker = $body->nextMarker;
 
                 foreach ($body->blobs as $blob) {
