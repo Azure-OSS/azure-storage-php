@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob\Models;
 
 use AzureOss\Storage\Blob\Exceptions\DeserializationException;
+use AzureOss\Storage\Blob\Helpers\DateHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use Psr\Http\Message\ResponseInterface;
 
@@ -24,7 +25,7 @@ final class BlobProperties
     public static function fromResponseHeaders(ResponseInterface $response): self
     {
         return new BlobProperties(
-            self::deserializeDateRfc1123Date($response->getHeaderLine('Last-Modified')),
+            DateHelper::deserializeDateRfc1123Date($response->getHeaderLine('Last-Modified')),
             (int) $response->getHeaderLine('Content-Length'),
             $response->getHeaderLine('Content-Type'),
             self::deserializeContentMD5($response->getHeaderLine('Content-MD5')),
@@ -35,22 +36,12 @@ final class BlobProperties
     public static function fromXml(\SimpleXMLElement $xml): self
     {
         return new self(
-            self::deserializeDateRfc1123Date((string) $xml->{'Last-Modified'}),
+            DateHelper::deserializeDateRfc1123Date((string) $xml->{'Last-Modified'}),
             (int) $xml->{'Content-Length'},
             (string) $xml->{'Content-Type'},
             self::deserializeContentMD5((string) $xml->{'Content-MD5'}),
             [],
         );
-    }
-
-    public static function deserializeDateRfc1123Date(string $date): \DateTimeInterface
-    {
-        $result = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC1123, $date);
-        if ($result === false) {
-            throw new DeserializationException("Azure returned a malformed date.");
-        }
-
-        return $result;
     }
 
     public static function deserializeContentMD5(string $contentMD5): ?string
