@@ -13,4 +13,12 @@ final class ErrorResponse
         public readonly string $code,
         public readonly string $message,
     ) {}
+
+    public static function fromXml(\SimpleXMLElement $xml): self
+    {
+        return new self(
+            (string) $xml->Code,
+            (string) $xml->Message,
+        );
+    }
 }

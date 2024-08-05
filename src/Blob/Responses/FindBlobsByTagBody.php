@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob\Responses;
 
 use AzureOss\Storage\Blob\Models\TaggedBlob;
-use JMS\Serializer\Annotation\XmlList;
+use SimpleXMLElement;
 
 /**
  * @internal
@@ -16,9 +16,22 @@ final class FindBlobsByTagBody
      * @param string $nextMarker
      * @param TaggedBlob[] $blobs
      */
-    public function __construct(
+    private function __construct(
         public readonly string $nextMarker,
-        #[XmlList(entry: 'Blob')]
         public readonly array $blobs,
     ) {}
+
+    public static function fromXml(SimpleXMLElement $xml): self
+    {
+        $blobs = [];
+
+        foreach ($xml->Blobs->children() as $blob) {
+            $blobs[] = TaggedBlob::fromXml($blob);
+        }
+
+        return new self(
+            (string) $xml->NextMarker,
+            $blobs,
+        );
+    }
 }
