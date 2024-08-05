@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Models;
 
-use AzureOss\Storage\Blob\Exceptions\DateMalformedStringException;
+use AzureOss\Storage\Blob\Exceptions\DeserializationException;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use Psr\Http\Message\ResponseInterface;
 
@@ -22,7 +22,7 @@ final class BlobContainerProperties
     {
         $lastModified = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC1123, $response->getHeaderLine('Last-Modified'));
         if ($lastModified === false) {
-            throw new DateMalformedStringException("Azure returned a malformed date.");
+            throw new DeserializationException("Azure returned a malformed date.");
         }
 
         return new self($lastModified, MetadataHelper::headersToMetadata($response->getHeaders()));
@@ -32,7 +32,7 @@ final class BlobContainerProperties
     {
         $lastModified = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC1123, (string) $xml->{'Last-Modified'});
         if ($lastModified === false) {
-            throw new DateMalformedStringException("Azure returned a malformed date.");
+            throw new DeserializationException("Azure returned a malformed date.");
         }
 
         return new self(

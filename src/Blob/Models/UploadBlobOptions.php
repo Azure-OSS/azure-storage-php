@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Blob\Models;
 final class UploadBlobOptions
 {
     /**
-     * @param int $initialTransferSize The size of the first range request in bytes. Blobs smaller than this limit will be downloaded in a single request. Blobs larger than this limit will continue being downloaded in chunks of size MaximumTransferSize.
+     * @param int $initialTransferSize The size of the first range request in bytes. Blobs smaller than this limit will be transferred in a single request. Blobs larger than this limit will continue being transferred in chunks of size MaximumTransferSize.
      * @param int $maximumTransferSize The maximum length of a transfer in bytes.
      * @param int $maximumConcurrency The maximum number of workers that may be used in a parallel transfer.
      */

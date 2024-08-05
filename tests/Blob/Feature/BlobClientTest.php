@@ -194,9 +194,10 @@ final class BlobClientTest extends BlobFeatureTestCase
             self::assertEquals("text/plain", $properties->contentType);
             self::assertEquals(1000, $properties->contentLength);
 
-            $afterUploadContent = $this->blobClient->downloadStreaming()->content;
+            $blob = $this->blobClient->downloadStreaming();
 
-            self::assertEquals($beforeUploadContent, $afterUploadContent);
+            self::assertEquals($beforeUploadContent, $blob->content);
+            self::assertEquals(md5($beforeUploadContent), $blob->properties->contentMD5);
         });
     }
 
