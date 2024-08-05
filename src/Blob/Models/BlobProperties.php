@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Models;
 
-use AzureOss\Storage\Blob\Exceptions\DeserializationException;
 use AzureOss\Storage\Blob\Helpers\DateHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use Psr\Http\Message\ResponseInterface;
