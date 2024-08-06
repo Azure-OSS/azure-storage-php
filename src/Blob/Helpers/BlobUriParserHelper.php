@@ -46,7 +46,7 @@ final class BlobUriParserHelper
 
     public static function isDevelopmentUri(UriInterface $uri): bool
     {
-        return ! str_contains($uri->getHost(), "blob.core.windows.net");
+        return $uri->getPort() !== null;
     }
 
     /**
