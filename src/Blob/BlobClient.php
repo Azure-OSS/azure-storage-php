@@ -197,7 +197,11 @@ final class BlobClient
 
         $pool->promise()->wait();
 
-        $this->putBlockList($blocks, $options);
+        $this->putBlockList(
+            $blocks,
+            $options->contentType,
+            StreamUtils::hash($content, 'md5', true),
+        );
     }
 
     private function putBlockAsync(Block $block, StreamInterface $content): PromiseInterface
@@ -218,7 +222,7 @@ final class BlobClient
     /**
      * @param Block[] $blocks
      */
-    private function putBlockList(array $blocks, UploadBlobOptions $options): void
+    private function putBlockList(array $blocks, ?string $contentType, string $contentMD5): void
     {
         try {
             $this->client->put($this->uri, [
@@ -226,7 +230,8 @@ final class BlobClient
                     'comp' => 'blocklist',
                 ],
                 'headers' => [
-                    'x-ms-blob-content-type' => $options->contentType,
+                    'x-ms-blob-content-type' => $contentType,
+                    'x-ms-blob-content-md5' => base64_encode($contentMD5),
                 ],
                 'body' => (new PutBlockRequestBody($blocks))->toXml()->asXML(),
             ]);
