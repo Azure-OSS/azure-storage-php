@@ -21,6 +21,14 @@ final class BlobUriParserTest extends TestCase
     }
 
     #[Test]
+    public function get_container_name_works_for_government_endpoints(): void
+    {
+        $uri = new Uri("https://blob.core.usgovcloudapi.net/testing");
+
+        self::assertEquals("testing", BlobUriParserHelper::getContainerName($uri));
+    }
+
+    #[Test]
     public function get_container_name_works_for_dev_account(): void
     {
         $uri = new Uri("http://127.0.0.1:10000/devstoreaccount1/testing");
