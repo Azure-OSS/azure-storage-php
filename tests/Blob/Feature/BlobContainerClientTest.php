@@ -335,6 +335,18 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
+    public function filter_duplicate_slashes_in_path(): void
+    {
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+
+        $randomContainer = 'randomContainer';
+        $withoutSlash = $containerClient->getBlobClient($randomContainer);
+        $withSlash = $containerClient->getBlobClient('/' . $randomContainer);
+
+        self::assertEquals($withoutSlash->uri, $withSlash->uri);
+    }
+
+    #[Test]
     public function find_blobs_by_tag_works(): void
     {
         $this->markTestSkippedWhenUsingSimulator();
