@@ -44,6 +44,20 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
+    public function create_blob_clients_works_with_leading_slash_in_blob_name(): void
+    {
+        $connectionString = "UseDevelopmentStorage=true";
+
+        $client = BlobServiceClient::fromConnectionString($connectionString);
+
+        $containerClient = $client->getContainerClient("testing");
+        $blobClient = $containerClient->getBlobClient("/some/file.txt");
+
+        self::assertEquals($blobClient->sharedKeyCredentials, $containerClient->sharedKeyCredentials);
+        self::assertEquals("http://127.0.0.1:10000/devstoreaccount1/testing/some/file.txt", (string) $blobClient->uri);
+    }
+
+    #[Test]
     public function create_works(): void
     {
         $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
@@ -231,7 +245,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $this->containerClient->getBlobClient("some/fileB.txt")->upload("test");
         $this->containerClient->getBlobClient("some/deeply/nested/fileB.txt")->upload("test");
 
-        $results = iterator_to_array($this->containerClient->getBlobsByHierarchy(options: new GetBlobsOptions(pageSize:  2)));
+        $results = iterator_to_array($this->containerClient->getBlobsByHierarchy(options: new GetBlobsOptions(pageSize: 2)));
 
         $blobs = array_filter($results, fn($item) => $item instanceof Blob);
         $prefixes = array_filter($results, fn($item) => $item instanceof BlobPrefix);
@@ -332,18 +346,6 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $this->expectException(ContainerNotFoundException::class);
 
         $this->serviceClient->getContainerClient("noop")->setMetadata([]);
-    }
-
-    #[Test]
-    public function filter_duplicate_slashes_in_path(): void
-    {
-        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
-
-        $randomContainer = 'randomContainer';
-        $withoutSlash = $containerClient->getBlobClient($randomContainer);
-        $withSlash = $containerClient->getBlobClient('/' . $randomContainer);
-
-        self::assertEquals($withoutSlash->uri, $withSlash->uri);
     }
 
     #[Test]
