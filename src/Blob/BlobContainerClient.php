@@ -182,7 +182,7 @@ final class BlobContainerClient
     {
         $nextMarker = "";
 
-        while(true) {
+        while (true) {
             $response = $this->listBlobs($prefix, $delimiter, $nextMarker, $options?->pageSize);
             $nextMarker = $response->nextMarker;
 
@@ -250,7 +250,7 @@ final class BlobContainerClient
         try {
             $nextMarker = "";
 
-            while(true) {
+            while (true) {
                 $response = $this->client->get($this->uri, [
                     'query' => [
                         'restype' => 'container',

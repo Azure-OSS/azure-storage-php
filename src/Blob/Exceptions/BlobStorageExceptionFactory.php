@@ -21,7 +21,7 @@ final class BlobStorageExceptionFactory
     private function createFromRequestException(RequestException $e): \Exception
     {
         $response = $e->getResponse();
-        if($response === null) {
+        if ($response === null) {
             return $e;
         }
 

@@ -47,7 +47,7 @@ final class BlobServiceClient
         }
 
         $sas = ConnectionStringHelper::getSas($connectionString);
-        if($sas !== null) {
+        if ($sas !== null) {
             return new self($uri->withQuery($sas));
         }
 
@@ -76,7 +76,7 @@ final class BlobServiceClient
         try {
             $nextMarker = "";
 
-            while(true) {
+            while (true) {
                 $response = $this->client->get($this->uri, [
                     'query' => [
                         'comp' => 'list',
@@ -109,7 +109,7 @@ final class BlobServiceClient
         try {
             $nextMarker = "";
 
-            while(true) {
+            while (true) {
                 $response = $this->client->get($this->uri, [
                     'query' => [
                         'comp' => 'blobs',

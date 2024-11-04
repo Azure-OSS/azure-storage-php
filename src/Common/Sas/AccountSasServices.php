@@ -17,16 +17,16 @@ final class AccountSasServices
     {
         $permissions = "";
 
-        if($this->blob) {
+        if ($this->blob) {
             $permissions .= "b";
         }
-        if($this->queue) {
+        if ($this->queue) {
             $permissions .= "q";
         }
-        if($this->table) {
+        if ($this->table) {
             $permissions .= "t";
         }
-        if($this->file) {
+        if ($this->file) {
             $permissions .= "f";
         }
 

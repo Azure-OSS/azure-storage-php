@@ -16,13 +16,13 @@ final class AccountSasResourceTypes
     {
         $permissions = "";
 
-        if($this->service) {
+        if ($this->service) {
             $permissions .= "s";
         }
-        if($this->container) {
+        if ($this->container) {
             $permissions .= "c";
         }
-        if($this->object) {
+        if ($this->object) {
             $permissions .= "o";
         }
 

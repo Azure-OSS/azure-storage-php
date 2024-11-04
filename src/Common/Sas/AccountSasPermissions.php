@@ -25,40 +25,40 @@ final class AccountSasPermissions
     {
         $permissions = "";
 
-        if($this->read) {
+        if ($this->read) {
             $permissions .= "r";
         }
-        if($this->write) {
+        if ($this->write) {
             $permissions .= "w";
         }
-        if($this->delete) {
+        if ($this->delete) {
             $permissions .= "d";
         }
-        if($this->permanentDelete) {
+        if ($this->permanentDelete) {
             $permissions .= "y";
         }
-        if($this->list) {
+        if ($this->list) {
             $permissions .= "l";
         }
-        if($this->add) {
+        if ($this->add) {
             $permissions .= "a";
         }
-        if($this->create) {
+        if ($this->create) {
             $permissions .= "c";
         }
-        if($this->update) {
+        if ($this->update) {
             $permissions .= "u";
         }
-        if($this->process) {
+        if ($this->process) {
             $permissions .= "p";
         }
-        if($this->tags) {
+        if ($this->tags) {
             $permissions .= "t";
         }
-        if($this->filter) {
+        if ($this->filter) {
             $permissions .= "f";
         }
-        if($this->setImmutabilityPolicy) {
+        if ($this->setImmutabilityPolicy) {
             $permissions .= "i";
         }
 

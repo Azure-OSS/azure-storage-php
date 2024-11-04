@@ -20,7 +20,7 @@ final class ConnectionStringHelper
 
     public static function getBlobEndpoint(string $connectionString): ?UriInterface
     {
-        if($connectionString === self::DEV_CONNECTION_STRING_SHORTCUT) {
+        if ($connectionString === self::DEV_CONNECTION_STRING_SHORTCUT) {
             return new Uri(self::DEV_BLOB_ENDPOINT);
         }
 
@@ -28,7 +28,7 @@ final class ConnectionStringHelper
 
         if (isset($segments['BlobEndpoint'])) {
             $uri = $segments['BlobEndpoint'];
-        } elseif(isset($segments['AccountName'], $segments['EndpointSuffix'])) {
+        } elseif (isset($segments['AccountName'], $segments['EndpointSuffix'])) {
             $uri = sprintf('%s.blob.%s', $segments['AccountName'], $segments['EndpointSuffix']);
         } else {
             return null;
@@ -42,7 +42,7 @@ final class ConnectionStringHelper
 
     public static function getAccountName(string $connectionString): ?string
     {
-        if($connectionString === self::DEV_CONNECTION_STRING_SHORTCUT) {
+        if ($connectionString === self::DEV_CONNECTION_STRING_SHORTCUT) {
             return self::DEV_BLOB_ACCOUNT_NAME;
         }
 
@@ -51,7 +51,7 @@ final class ConnectionStringHelper
 
     public static function getAccountKey(string $connectionString): ?string
     {
-        if($connectionString === self::DEV_CONNECTION_STRING_SHORTCUT) {
+        if ($connectionString === self::DEV_CONNECTION_STRING_SHORTCUT) {
             return self::DEV_BLOB_ACCOUNT_KEY;
         }
 

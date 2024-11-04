@@ -27,46 +27,46 @@ final class BlobSasPermissions
     {
         $permissions = "";
 
-        if($this->read) {
+        if ($this->read) {
             $permissions .= "r";
         }
-        if($this->add) {
+        if ($this->add) {
             $permissions .= "a";
         }
-        if($this->create) {
+        if ($this->create) {
             $permissions .= "c";
         }
-        if($this->write) {
+        if ($this->write) {
             $permissions .= "w";
         }
-        if($this->delete) {
+        if ($this->delete) {
             $permissions .= "d";
         }
-        if($this->deleteVersion) {
+        if ($this->deleteVersion) {
             $permissions .= "x";
         }
-        if($this->permanentDelete) {
+        if ($this->permanentDelete) {
             $permissions .= "y";
         }
-        if($this->list) {
+        if ($this->list) {
             $permissions .= "l";
         }
-        if($this->tags) {
+        if ($this->tags) {
             $permissions .= "t";
         }
-        if($this->move) {
+        if ($this->move) {
             $permissions .= "m";
         }
-        if($this->execute) {
+        if ($this->execute) {
             $permissions .= "e";
         }
-        if($this->ownership) {
+        if ($this->ownership) {
             $permissions .= "o";
         }
-        if($this->permissions) {
+        if ($this->permissions) {
             $permissions .= "p";
         }
-        if($this->setImmutabilityPolicy) {
+        if ($this->setImmutabilityPolicy) {
             $permissions .= "i";
         }
 
