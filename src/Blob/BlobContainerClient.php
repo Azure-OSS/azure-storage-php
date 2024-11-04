@@ -50,7 +50,7 @@ final class BlobContainerClient
     public function getBlobClient(string $blobName): BlobClient
     {
         return new BlobClient(
-            $this->uri->withPath($this->uri->getPath() . "/" . $blobName),
+            $this->uri->withPath($this->uri->getPath() . "/" . ltrim($blobName, "/")),
             $this->sharedKeyCredentials,
         );
     }
