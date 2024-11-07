@@ -25,7 +25,7 @@ final class ListContainersResponseBody
     public static function fromXml(\SimpleXMLElement $xml): self
     {
         $containers = [];
-        foreach($xml->Containers->children() as $container) {
+        foreach ($xml->Containers->children() as $container) {
             $containers[] = BlobContainer::fromXml($container);
         }
 

@@ -133,7 +133,7 @@ final class BlobClient
      */
     public function upload($content, ?UploadBlobOptions $options = null): void
     {
-        if($options === null) {
+        if ($options === null) {
             $options = new UploadBlobOptions();
         }
 
@@ -176,7 +176,7 @@ final class BlobClient
                 $blockContent = StreamUtils::streamFor();
                 StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);
 
-                if($blockContent->getSize() === 0) {
+                if ($blockContent->getSize() === 0) {
                     break;
                 }
 

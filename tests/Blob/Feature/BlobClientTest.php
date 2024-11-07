@@ -337,7 +337,7 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $tags = [];
 
-        for($i = 0; $i < 1000; $i++) {
+        for ($i = 0; $i < 1000; $i++) {
             $tags["tag-$i"] = "noop";
         }
 
