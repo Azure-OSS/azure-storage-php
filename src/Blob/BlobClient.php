@@ -8,7 +8,6 @@ use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionFactory;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
-use AzureOss\Storage\Blob\Exceptions\UnableToUploadBlobException;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
@@ -140,11 +139,7 @@ final class BlobClient
         $content = StreamUtils::streamFor($content);
         $contentLength = $content->getSize();
 
-        if ($contentLength === null) {
-            throw new UnableToUploadBlobException();
-        }
-
-        if ($contentLength <= $options->initialTransferSize) {
+        if ($contentLength !== null && $contentLength <= $options->initialTransferSize) {
             $this->uploadSingle($content, $options);
         } else {
             $this->uploadInBlocks($content, $options);
