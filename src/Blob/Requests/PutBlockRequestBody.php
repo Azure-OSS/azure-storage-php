@@ -21,7 +21,7 @@ final class PutBlockRequestBody
         $xml = new \SimpleXMLElement("<BlockList></BlockList>");
 
         foreach ($this->blocks as $block) {
-            $xml->addChild($block->type->value, base64_encode($block->id));
+            $xml->addChild($block->type->value, $block->getId());
         }
 
         return $xml;

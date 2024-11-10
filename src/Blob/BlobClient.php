@@ -8,7 +8,6 @@ use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionFactory;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
-use AzureOss\Storage\Blob\Exceptions\UnableToUploadBlobException;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
@@ -138,16 +137,13 @@ final class BlobClient
         }
 
         $content = StreamUtils::streamFor($content);
-        $contentLength = $content->getSize();
 
-        if ($contentLength === null) {
-            throw new UnableToUploadBlobException();
-        }
-
-        if ($contentLength <= $options->initialTransferSize) {
-            $this->uploadSingle($content, $options);
+        if ($content->getSize() === null || ! $content->isSeekable()) {
+            $this->uploadInSequentialBlocks($content, $options);
+        } elseif ($content->getSize() > $options->initialTransferSize) {
+            $this->uploadInParallelBlocks($content, $options);
         } else {
-            $this->uploadInBlocks($content, $options);
+            $this->uploadSingle($content, $options);
         }
     }
 
@@ -167,7 +163,37 @@ final class BlobClient
         }
     }
 
-    private function uploadInBlocks(StreamInterface $content, UploadBlobOptions $options): void
+    private function uploadInSequentialBlocks(StreamInterface $content, UploadBlobOptions $options): void
+    {
+        $blocks = [];
+
+        $contextMD5 = hash_init('md5');
+
+        while (true) {
+            $blockContent = $content->read($options->maximumTransferSize);
+
+            if ($blockContent === "") {
+                break;
+            }
+
+            $block = new Block(count($blocks), BlockType::UNCOMMITTED);
+            $blocks[] = $block;
+
+            hash_update($contextMD5, $blockContent);
+
+            $this->putBlockAsync($block, $blockContent)->wait();
+        }
+
+        $contentMD5 = hash_final($contextMD5, true);
+
+        $this->putBlockList(
+            $blocks,
+            $options->contentType,
+            $contentMD5,
+        );
+    }
+
+    private function uploadInParallelBlocks(StreamInterface $content, UploadBlobOptions $options): void
     {
         $blocks = [];
 
@@ -180,8 +206,7 @@ final class BlobClient
                     break;
                 }
 
-                $blockId = str_pad((string) count($blocks), 6, '0', STR_PAD_LEFT);
-                $block = new Block($blockId, BlockType::UNCOMMITTED);
+                $block = new Block(count($blocks), BlockType::UNCOMMITTED);
                 $blocks[] = $block;
 
                 yield fn() => $this->putBlockAsync($block, $blockContent);
@@ -204,16 +229,16 @@ final class BlobClient
         );
     }
 
-    private function putBlockAsync(Block $block, StreamInterface $content): PromiseInterface
+    private function putBlockAsync(Block $block, StreamInterface|string $content): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
                 'query' => [
                     'comp' => 'block',
-                    'blockid' => base64_encode($block->id),
+                    'blockid' => $block->getId(),
                 ],
                 'headers' => [
-                    'Content-Length' => $content->getSize(),
+                    'Content-Length' => is_string($content) ? strlen($content) : $content->getSize(),
                 ],
                 'body' => $content,
             ]);

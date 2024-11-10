@@ -13,6 +13,8 @@ use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Blob\Sas\BlobSasPermissions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
+use GuzzleHttp\Psr7\NoSeekStream;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\StreamInterface;
 
@@ -188,6 +190,59 @@ final class BlobClientTest extends BlobFeatureTestCase
             $file->rewind();
 
             $this->blobClient->upload($file, new UploadBlobOptions("text/plain", initialTransferSize: 500, maximumTransferSize: 100));
+
+            $properties = $this->blobClient->getProperties();
+
+            self::assertEquals("text/plain", $properties->contentType);
+            self::assertEquals(1000, $properties->contentLength);
+
+            $blob = $this->blobClient->downloadStreaming();
+
+            self::assertEquals($beforeUploadContent, $blob->content);
+            self::assertEquals(md5($beforeUploadContent), $blob->properties->contentMD5);
+        });
+    }
+
+    #[Test]
+    public function upload_works_with_unknown_sized_stream(): void
+    {
+        $this->withFile(1000, function (StreamInterface $file) {
+            $stream = new class ($file) implements StreamInterface {
+                use StreamDecoratorTrait;
+
+                public function getSize(): ?int
+                {
+                    return null;
+                }
+            };
+
+            $beforeUploadContent = $file->getContents();
+            $file->rewind();
+
+            $this->blobClient->upload($stream, new UploadBlobOptions("text/plain", initialTransferSize: 500, maximumTransferSize: 100));
+
+            $properties = $this->blobClient->getProperties();
+
+            self::assertEquals("text/plain", $properties->contentType);
+            self::assertEquals(1000, $properties->contentLength);
+
+            $blob = $this->blobClient->downloadStreaming();
+
+            self::assertEquals($beforeUploadContent, $blob->content);
+            self::assertEquals(md5($beforeUploadContent), $blob->properties->contentMD5);
+        });
+    }
+
+    #[Test]
+    public function upload_works_with_non_seekable_stream(): void
+    {
+        $this->withFile(1000, function (StreamInterface $file) {
+            $stream = new NoSeekStream($file);
+
+            $beforeUploadContent = $file->getContents();
+            $file->rewind();
+
+            $this->blobClient->upload($stream, new UploadBlobOptions("text/plain", initialTransferSize: 500, maximumTransferSize: 100));
 
             $properties = $this->blobClient->getProperties();
 
