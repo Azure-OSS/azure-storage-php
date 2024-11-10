@@ -139,7 +139,7 @@ final class BlobClient
         $content = StreamUtils::streamFor($content);
         $contentLength = $content->getSize();
 
-        if ($contentLength !== null && $contentLength <= $options->initialTransferSize) {
+        if (!$content->isSeekable() || $contentLength !== null && $contentLength <= $options->initialTransferSize) {
             $this->uploadSingle($content, $options);
         } else {
             $this->uploadInBlocks($content, $options);
