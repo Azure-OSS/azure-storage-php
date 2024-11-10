@@ -10,7 +10,12 @@ namespace AzureOss\Storage\Blob\Requests;
 final class Block
 {
     public function __construct(
-        public string $id,
+        public int $number,
         public BlockType $type,
     ) {}
+
+    public function getId(): string
+    {
+        return base64_encode(str_pad((string) $this->number, 6, '0', STR_PAD_LEFT));
+    }
 }

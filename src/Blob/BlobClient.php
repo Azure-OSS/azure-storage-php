@@ -176,9 +176,9 @@ final class BlobClient
                 break;
             }
 
-            $blockId = str_pad((string) count($blocks), 6, '0', STR_PAD_LEFT);
-            $block = new Block($blockId, BlockType::UNCOMMITTED);
+            $block = new Block(count($blocks), BlockType::UNCOMMITTED);
             $blocks[] = $block;
+
             hash_update($contextMD5, $blockContent);
 
             $this->putBlockAsync($block, $blockContent)->wait();
@@ -206,8 +206,7 @@ final class BlobClient
                     break;
                 }
 
-                $blockId = str_pad((string) count($blocks), 6, '0', STR_PAD_LEFT);
-                $block = new Block($blockId, BlockType::UNCOMMITTED);
+                $block = new Block(count($blocks), BlockType::UNCOMMITTED);
                 $blocks[] = $block;
 
                 yield fn() => $this->putBlockAsync($block, $blockContent);
@@ -236,7 +235,7 @@ final class BlobClient
             ->putAsync($this->uri, [
                 'query' => [
                     'comp' => 'block',
-                    'blockid' => base64_encode($block->id),
+                    'blockid' => $block->getId(),
                 ],
                 'headers' => [
                     'Content-Length' => is_string($content) ? strlen($content) : $content->getSize(),
