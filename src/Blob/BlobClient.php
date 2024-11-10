@@ -239,7 +239,7 @@ final class BlobClient
                     'blockid' => base64_encode($block->id),
                 ],
                 'headers' => [
-                    'Content-Length' => is_string($content) ? mb_strlen($content) : $content->getSize(),
+                    'Content-Length' => is_string($content) ? strlen($content) : $content->getSize(),
                 ],
                 'body' => $content,
             ]);
