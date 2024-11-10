@@ -137,12 +137,13 @@ final class BlobClient
         }
 
         $content = StreamUtils::streamFor($content);
-        $contentLength = $content->getSize();
 
-        if (!$content->isSeekable() || $contentLength !== null && $contentLength <= $options->initialTransferSize) {
-            $this->uploadSingle($content, $options);
+        if ($content->getSize() === null || ! $content->isSeekable()) {
+            $this->uploadInSequentialBlocks($content, $options);
+        } elseif ($content->getSize() > $options->initialTransferSize) {
+            $this->uploadInParallelBlocks($content, $options);
         } else {
-            $this->uploadInBlocks($content, $options);
+            $this->uploadSingle($content, $options);
         }
     }
 
@@ -162,7 +163,38 @@ final class BlobClient
         }
     }
 
-    private function uploadInBlocks(StreamInterface $content, UploadBlobOptions $options): void
+    private function uploadInSequentialBlocks(StreamInterface $content, UploadBlobOptions $options): void
+    {
+        $blocks = [];
+
+        $contextMD5 = hash_init('md5');
+
+        while (true) {
+            $blockContent = StreamUtils::streamFor();
+            StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);
+
+            if ($blockContent->getSize() === 0) {
+                break;
+            }
+
+            $blockId = str_pad((string) count($blocks), 6, '0', STR_PAD_LEFT);
+            $block = new Block($blockId, BlockType::UNCOMMITTED);
+            $blocks[] = $block;
+            hash_update($contextMD5, (string) $blockContent);
+
+            $this->putBlockAsync($block, $blockContent)->wait();
+        }
+
+        $contentMD5 = hash_final($contextMD5, true);
+
+        $this->putBlockList(
+            $blocks,
+            $options->contentType,
+            $contentMD5,
+        );
+    }
+
+    private function uploadInParallelBlocks(StreamInterface $content, UploadBlobOptions $options): void
     {
         $blocks = [];
 
