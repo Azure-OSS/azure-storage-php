@@ -139,7 +139,7 @@ final class BlobClient
         $content = StreamUtils::streamFor($content);
         $contentLength = $content->getSize();
 
-        if ($contentLength !== null && $contentLength <= $options->initialTransferSize) {
+        if (!$content->isSeekable() || $contentLength !== null && $contentLength <= $options->initialTransferSize) {
             $this->uploadSingle($content, $options);
         } else {
             $this->uploadInBlocks($content, $options);
@@ -166,9 +166,7 @@ final class BlobClient
     {
         $blocks = [];
 
-        $contextMD5 = hash_init('md5');
-
-        $putBlockRequestGenerator = function () use ($content, $options, &$blocks, $contextMD5): \Generator {
+        $putBlockRequestGenerator = function () use ($content, $options, &$blocks): \Generator {
             while (true) {
                 $blockContent = StreamUtils::streamFor();
                 StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);
@@ -180,7 +178,6 @@ final class BlobClient
                 $blockId = str_pad((string) count($blocks), 6, '0', STR_PAD_LEFT);
                 $block = new Block($blockId, BlockType::UNCOMMITTED);
                 $blocks[] = $block;
-                hash_update($contextMD5, (string) $blockContent);
 
                 yield fn() => $this->putBlockAsync($block, $blockContent);
             }
@@ -194,12 +191,11 @@ final class BlobClient
         ]);
 
         $pool->promise()->wait();
-        $contentMD5 = hash_final($contextMD5, true);
 
         $this->putBlockList(
             $blocks,
             $options->contentType,
-            $contentMD5,
+            StreamUtils::hash($content, 'md5', true),
         );
     }
 
