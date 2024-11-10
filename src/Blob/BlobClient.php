@@ -170,17 +170,16 @@ final class BlobClient
         $contextMD5 = hash_init('md5');
 
         while (true) {
-            $blockContent = StreamUtils::streamFor();
-            StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);
+            $blockContent = $content->read($options->maximumTransferSize);
 
-            if ($blockContent->getSize() === 0) {
+            if ($blockContent === "") {
                 break;
             }
 
             $blockId = str_pad((string) count($blocks), 6, '0', STR_PAD_LEFT);
             $block = new Block($blockId, BlockType::UNCOMMITTED);
             $blocks[] = $block;
-            hash_update($contextMD5, (string) $blockContent);
+            hash_update($contextMD5, $blockContent);
 
             $this->putBlockAsync($block, $blockContent)->wait();
         }
@@ -231,7 +230,7 @@ final class BlobClient
         );
     }
 
-    private function putBlockAsync(Block $block, StreamInterface $content): PromiseInterface
+    private function putBlockAsync(Block $block, StreamInterface|string $content): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
@@ -240,7 +239,7 @@ final class BlobClient
                     'blockid' => base64_encode($block->id),
                 ],
                 'headers' => [
-                    'Content-Length' => $content->getSize(),
+                    'Content-Length' => is_string($content) ? mb_strlen($content) : $content->getSize(),
                 ],
                 'body' => $content,
             ]);
