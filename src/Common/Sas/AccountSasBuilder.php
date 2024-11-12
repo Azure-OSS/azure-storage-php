@@ -133,6 +133,6 @@ final class AccountSasBuilder
             "spr" => $signedProtocol,
             "ses" => $this->encryptionScope,
             "sig" => $signature,
-        ]), false);
+        ], fn(?string $value) => $value === null), false);
     }
 }

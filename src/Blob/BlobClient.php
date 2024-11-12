@@ -81,7 +81,7 @@ final class BlobClient
     }
 
     /**
-     * @param array<string, string> $metadata
+     * @param array<string> $metadata
      * @return void
      */
     public function setMetadata(array $metadata): void
@@ -297,7 +297,7 @@ final class BlobClient
     }
 
     /**
-     * @param array<string, string> $tags
+     * @param array<string> $tags
      * @return void
      */
     public function setTags(array $tags): void
@@ -315,7 +315,7 @@ final class BlobClient
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string>
      */
     public function getTags(): array
     {

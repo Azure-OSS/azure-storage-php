@@ -54,6 +54,11 @@ final class BlobUriParserHelper
      */
     private static function getPathSegments(UriInterface $uri): array
     {
-        return array_values(array_filter(explode("/", $uri->getPath())));
+        return array_values(
+            array_filter(
+                explode("/", $uri->getPath()),
+                fn(string $value) => $value === "",
+            ),
+        );
     }
 }
