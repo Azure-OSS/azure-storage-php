@@ -203,7 +203,7 @@ final class BlobSasBuilder
             "rscl" => $this->contentLanguage,
             "rsct" => $this->contentType,
             "ses" => $this->encryptionScope,
-        ]), false);
+        ], fn(?string $value) => $value !== null), false);
     }
 
     private function getCanonicalizedResource(string $accountName): string

@@ -64,7 +64,7 @@ final class ConnectionStringHelper
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string>
      */
     private static function getSegments(string $connectionString): array
     {

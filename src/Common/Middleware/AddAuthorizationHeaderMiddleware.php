@@ -51,6 +51,7 @@ final class AddAuthorizationHeaderMiddleware
             $headers['Content-Length'] = "";
         }
 
+        /** @var array<string> $query */
         $query = Query::parse($request->getUri()->getQuery());
         $url = (string) $request->getUri();
 
@@ -67,7 +68,7 @@ final class AddAuthorizationHeaderMiddleware
     }
 
     /**
-     * @param array<string, string> $headers
+     * @param array<string> $headers
      */
     private function computeCanonicalizedHeaders(array $headers): string
     {
@@ -107,7 +108,7 @@ final class AddAuthorizationHeaderMiddleware
 
     /**
      * @param string $url
-     * @param array<string, string> $queryParams
+     * @param array<string> $queryParams
      * @return string
      */
     private function computeCanonicalizedResource(string $url, array $queryParams): string

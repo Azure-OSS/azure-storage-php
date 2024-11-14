@@ -10,8 +10,8 @@ namespace AzureOss\Storage\Blob\Helpers;
 final class MetadataHelper
 {
     /**
-     * @param array<string, string> $metadata
-     * @return array<string, string>
+     * @param array<string> $metadata
+     * @return array<string>
      */
     public static function metadataToHeaders(array $metadata): array
     {
@@ -26,7 +26,7 @@ final class MetadataHelper
 
     /**
      * @param string[][] $headers
-     * @return array<string, string>
+     * @return array<string>
      */
     public static function headersToMetadata(array $headers): array
     {

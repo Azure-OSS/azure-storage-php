@@ -1,11 +1,9 @@
 parameters:
-    level: 9
+    level: 10
     paths:
         - src
         - tests
-    ignoreErrors:
-        -
-            message: '#Variable property access on SimpleXMLElement#'
+
 includes:
     - vendor/phpstan/phpstan-strict-rules/rules.neon
     - vendor/phpstan/phpstan-deprecation-rules/rules.neon

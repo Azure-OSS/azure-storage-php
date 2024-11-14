@@ -11,7 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 final class BlobContainerProperties
 {
     /**
-     * @param array<string, string> $metadata
+     * @param array<string> $metadata
      */
     public function __construct(
         public readonly \DateTimeInterface $lastModified,
@@ -30,6 +30,7 @@ final class BlobContainerProperties
 
     public static function fromXml(\SimpleXMLElement $xml): self
     {
+        /** @phpstan-ignore-next-line */
         $lastModified = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC1123, (string) $xml->{'Last-Modified'});
         if ($lastModified === false) {
             throw new DeserializationException("Azure returned a malformed date.");

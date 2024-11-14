@@ -11,7 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 final class BlobProperties
 {
     /**
-     * @param array<string, string> $metadata
+     * @param array<string> $metadata
      */
     public function __construct(
         public readonly \DateTimeInterface $lastModified,
@@ -35,9 +35,13 @@ final class BlobProperties
     public static function fromXml(\SimpleXMLElement $xml): self
     {
         return new self(
+            /** @phpstan-ignore-next-line */
             DateHelper::deserializeDateRfc1123Date((string) $xml->{'Last-Modified'}),
+            /** @phpstan-ignore-next-line */
             (int) $xml->{'Content-Length'},
+            /** @phpstan-ignore-next-line */
             (string) $xml->{'Content-Type'},
+            /** @phpstan-ignore-next-line */
             self::deserializeContentMD5((string) $xml->{'Content-MD5'}),
             [],
         );

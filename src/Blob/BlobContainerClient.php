@@ -136,7 +136,7 @@ final class BlobContainerClient
     }
 
     /**
-     * @param array<string, string> $metadata
+     * @param array<string> $metadata
      */
     public function setMetadata(array $metadata): void
     {

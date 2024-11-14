@@ -7,7 +7,7 @@ namespace AzureOss\Storage\Blob\Models;
 final class TaggedBlob
 {
     /**
-     * @param array<string, string> $tags
+     * @param array<string> $tags
      */
     public function __construct(
         public readonly string $name,
