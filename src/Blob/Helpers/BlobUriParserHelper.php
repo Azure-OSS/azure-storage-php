@@ -57,7 +57,7 @@ final class BlobUriParserHelper
         return array_values(
             array_filter(
                 explode("/", $uri->getPath()),
-                fn(string $value) => $value === "",
+                fn(string $value) => $value !== "",
             ),
         );
     }

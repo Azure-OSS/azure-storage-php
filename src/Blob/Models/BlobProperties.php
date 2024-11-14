@@ -36,7 +36,7 @@ final class BlobProperties
     {
         return new self(
             /** @phpstan-ignore-next-line */
-            DateHelper::deserializeDateRfc1123Date($xml->{'Last-Modified'}),
+            DateHelper::deserializeDateRfc1123Date((string) $xml->{'Last-Modified'}),
             /** @phpstan-ignore-next-line */
             (int) $xml->{'Content-Length'},
             /** @phpstan-ignore-next-line */
