@@ -6,10 +6,14 @@ namespace AzureOss\Storage\Tests\Blob\Feature;
 
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Exceptions\InvalidConnectionStringException;
+use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
+use AzureOss\Storage\Common\ApiVersion;
 use AzureOss\Storage\Common\Sas\AccountSasBuilder;
 use AzureOss\Storage\Common\Sas\AccountSasPermissions;
 use AzureOss\Storage\Common\Sas\AccountSasResourceTypes;
+use AzureOss\Storage\Common\Sas\SasIpRange;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
+use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\Attributes\Test;
 
 final class BlobServiceClientTest extends BlobFeatureTestCase
@@ -165,11 +169,26 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
             AccountSasBuilder::new()
                 ->setPermissions(new AccountSasPermissions(list: true))
                 ->setResourceTypes(new AccountSasResourceTypes(service: true))
+                ->setIpRange(new SasIpRange("0.0.0.0", "255.255.255.255"))
+                ->setVersion(ApiVersion::LATEST->value)
+                ->setStartsOn((new \DateTime()))
                 ->setExpiresOn((new \DateTime())->modify("+ 1min")),
         );
 
         $sasServiceClient = new BlobServiceClient($sas);
 
         iterator_to_array($sasServiceClient->getBlobContainers());
+    }
+
+    #[Test]
+    public function generate_account_sas_throws_when_there_are_no_shared_key_credentials(): void
+    {
+        $this->expectException(UnableToGenerateSasException::class);
+
+        $serviceClientWithoutCredentials = new BlobServiceClient(new Uri("example.com"));
+
+        $serviceClientWithoutCredentials->generateAccountSasUri(
+            AccountSasBuilder::new(),
+        );
     }
 }

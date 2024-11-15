@@ -8,12 +8,15 @@ use AzureOss\Storage\Blob\BlobContainerClient;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
+use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
 use AzureOss\Storage\Blob\Sas\BlobContainerSasPermissions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
+use AzureOss\Storage\Common\ApiVersion;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
+use AzureOss\Storage\Common\Sas\SasIpRange;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\Attributes\Test;
@@ -302,12 +305,27 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $sas = $this->containerClient->generateSasUri(
             BlobSasBuilder::new()
                 ->setPermissions(new BlobContainerSasPermissions(list: true))
+                ->setVersion(ApiVersion::LATEST->value)
+                ->setIPRange(new SasIpRange("0.0.0.0", "255.255.255.255"))
+                ->setStartsOn(new \DateTime())
                 ->setExpiresOn((new \DateTime())->modify("+ 1min")),
         );
 
         $sasServiceClient = new BlobContainerClient($sas);
 
         iterator_to_array($sasServiceClient->getBlobs());
+    }
+
+    #[Test]
+    public function generate_sas_uri_throws_when_there_are_no_shared_key_credentials(): void
+    {
+        $this->expectException(UnableToGenerateSasException::class);
+
+        $containerClientWithoutCredentials = new BlobContainerClient(new Uri("example.com"));
+
+        $containerClientWithoutCredentials->generateSasUri(
+            BlobSasBuilder::new(),
+        );
     }
 
     #[Test]
