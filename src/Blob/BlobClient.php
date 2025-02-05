@@ -141,7 +141,7 @@ final class BlobClient
         }
 
         if (is_resource($content)) {
-            stream_set_chunk_size($content, $options->initialTransferSize);
+            stream_set_chunk_size($content, $options->maximumTransferSize);
         }
 
         $content = StreamUtils::streamFor($content);
