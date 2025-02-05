@@ -33,11 +33,6 @@ final class BlobClientTest extends BlobFeatureTestCase
         $this->cleanContainer($this->containerClient->containerName);
     }
 
-    protected function tearDown(): void
-    {
-        Server::stop();
-    }
-
     #[Test]
     public function download_stream_works(): void
     {
