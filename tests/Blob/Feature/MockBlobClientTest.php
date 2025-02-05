@@ -61,6 +61,18 @@ class MockBlobClientTest extends TestCase
     }
 
     #[Test]
+    public function upload_parallel_blocks_sends_correct_amount_of_requests_for_small_files(): void
+    {
+        Server::enqueue(array_fill(0, 1000, new Response(200)));
+
+        FileFactory::withStream(50_000, function (StreamInterface $file) {
+            $this->mockBlobClient->upload($file, new UploadBlobOptions("text/plain", initialTransferSize: 0, maximumTransferSize: 8_000_000));
+        });
+
+        self::assertCount(2, Server::received()); // 50kb in 8MB chunks => 1 request + final request = 2
+    }
+
+    #[Test]
     public function upload_sequential_blocks_sends_correct_amount_of_requests(): void
     {
         Server::enqueue(array_fill(0, 1000, new Response(200)));
