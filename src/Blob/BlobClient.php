@@ -136,6 +136,14 @@ final class BlobClient
             $options = new UploadBlobOptions();
         }
 
+        if ($content instanceof StreamInterface) {
+            $content = $content->detach();
+        }
+
+        if (is_resource($content)) {
+            stream_set_chunk_size($content, $options->initialTransferSize);
+        }
+
         $content = StreamUtils::streamFor($content);
 
         if ($content->getSize() === null || ! $content->isSeekable()) {
