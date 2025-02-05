@@ -6,7 +6,6 @@ namespace AzureOss\Storage\Tests\Blob;
 
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
-use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 
 abstract class BlobFeatureTestCase extends TestCase
@@ -38,26 +37,6 @@ abstract class BlobFeatureTestCase extends TestCase
         foreach ($containerClient->getBlobs() as $blob) {
             $containerClient->getBlobClient($blob->name)->delete();
         }
-    }
-
-    protected function withFile(int $size, callable $callable): void
-    {
-        $path = sys_get_temp_dir() . '/azure-oss-test-file';
-
-        unlink($path);
-        $resource = Utils::streamFor(Utils::tryFopen($path, 'w'));
-
-        $chunk = 1000;
-        while ($size > 0) {
-            $chunkContent = str_pad('', min($chunk, $size));
-            $resource->write($chunkContent);
-            $size -= $chunk;
-        }
-        $resource->close();
-
-        $callable(Utils::streamFor(Utils::tryFopen($path, 'r')));
-
-        unlink($path);
     }
 
     protected function markTestSkippedWhenUsingSimulator(): void
