@@ -16,7 +16,6 @@ use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use AzureOss\Storage\Tests\Utils\FileFactory;
 use GuzzleHttp\Psr7\NoSeekStream;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
-use GuzzleHttp\Server\Server;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\StreamInterface;
 
