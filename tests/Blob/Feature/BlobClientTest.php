@@ -13,6 +13,7 @@ use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Blob\Sas\BlobSasPermissions;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
+use AzureOss\Storage\Tests\Utils\FileFactory;
 use GuzzleHttp\Psr7\NoSeekStream;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
 use PHPUnit\Framework\Attributes\Test;
@@ -165,7 +166,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function upload_works_with_single_upload(): void
     {
-        $this->withFile(1000, function (StreamInterface $file) {
+        FileFactory::withStream(1000, function (StreamInterface $file) {
             $beforeUploadContent = $file->getContents();
             $file->rewind();
 
@@ -185,7 +186,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function upload_works_with_parallel_upload(): void
     {
-        $this->withFile(1000, function (StreamInterface $file) {
+        FileFactory::withStream(1000, function (StreamInterface $file) {
             $beforeUploadContent = $file->getContents();
             $file->rewind();
 
@@ -206,7 +207,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function upload_works_with_unknown_sized_stream(): void
     {
-        $this->withFile(1000, function (StreamInterface $file) {
+        FileFactory::withStream(1000, function (StreamInterface $file) {
             $stream = new class ($file) implements StreamInterface {
                 use StreamDecoratorTrait;
 
@@ -236,7 +237,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function upload_works_with_non_seekable_stream(): void
     {
-        $this->withFile(1000, function (StreamInterface $file) {
+        FileFactory::withStream(1000, function (StreamInterface $file) {
             $stream = new NoSeekStream($file);
 
             $beforeUploadContent = $file->getContents();
