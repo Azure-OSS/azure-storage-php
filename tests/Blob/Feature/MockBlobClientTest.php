@@ -116,7 +116,12 @@ class MockBlobClientTest extends TestCase
             new Response(501), // fail if more requests
         ]);
 
+        /** @phpstan-ignore-next-line */
         $stream = fopen(Server::$url, 'r');
+
+        if ($stream === false) {
+            self::fail();
+        }
 
         $this->mockBlobClient->upload($stream, new UploadBlobOptions("text/plain", initialTransferSize: 0, maximumTransferSize: 5_000_000));
     }
