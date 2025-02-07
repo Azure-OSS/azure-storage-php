@@ -136,15 +136,7 @@ final class BlobClient
             $options = new UploadBlobOptions();
         }
 
-        if ($content instanceof StreamInterface) {
-            $content = $content->detach();
-        }
-
-        if (is_resource($content)) {
-            stream_set_chunk_size($content, $options->maximumTransferSize);
-        }
-
-        $content = StreamUtils::streamFor($content);
+        $content = $this->createUploadStream($content, $options);
 
         if ($content->getSize() === null || ! $content->isSeekable()) {
             $this->uploadInSequentialBlocks($content, $options);
@@ -153,6 +145,23 @@ final class BlobClient
         } else {
             $this->uploadSingle($content, $options);
         }
+    }
+
+    /**
+     * @param string|resource|StreamInterface $content
+     */
+    private function createUploadStream($content, UploadBlobOptions $options): StreamInterface
+    {
+        if ($content instanceof StreamInterface) {
+            $content = $content->detach();
+        }
+
+        // fix network streams only reading 8KB chunks
+        if (is_resource($content)) {
+            stream_set_chunk_size($content, $options->maximumTransferSize);
+        }
+
+        return StreamUtils::streamFor($content);
     }
 
     private function uploadSingle(StreamInterface $content, UploadBlobOptions $options): void
