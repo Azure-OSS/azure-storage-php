@@ -32,6 +32,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup node for the mock server
+        uses: actions/setup-node@v4
+
       - name: Install PHP with extensions
         uses: shivammathur/setup-php@v2
         with:
