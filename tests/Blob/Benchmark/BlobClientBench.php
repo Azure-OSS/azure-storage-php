@@ -5,21 +5,26 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Tests\Blob\Benchmark;
 
 use AzureOss\Storage\Blob\BlobServiceClient;
+use AzureOss\Storage\Tests\Utils\FileFactory;
 use GuzzleHttp\Psr7\Utils;
-use PhpBench\Attributes\AfterMethods;
-use PhpBench\Attributes\BeforeMethods;
-use PhpBench\Attributes\OutputTimeUnit;
+use PhpBench\Attributes\AfterClassMethods;
+use PhpBench\Attributes\Assert;
+use PhpBench\Attributes\ParamProviders;
 
-class BlobClientBench
+#[AfterClassMethods('cleanTestFiles')]
+final class BlobClientBench
 {
-    private const TEST_FILE_SIZE = 1_000_000_000;
+    public static function cleanTestFiles(): void
+    {
+        FileFactory::clean();
+    }
 
-    private string $testFilePath;
-
-    #[BeforeMethods("createTestFile")]
-    #[AfterMethods("deleteTestFile")]
-    #[OutputTimeUnit("seconds")]
-    public function benchUpload(): void
+    /**
+     * @param array{ path: string } $params
+     */
+    #[ParamProviders('provideFiles')]
+    #[Assert("mode(variant.mem.peak) < 15 megabytes")]
+    public function benchUpload(array $params): void
     {
         $serviceClient = BlobServiceClient::fromConnectionString("UseDevelopmentStorage=true");
         $containerClient = $serviceClient->getContainerClient("benchmark");
@@ -27,31 +32,17 @@ class BlobClientBench
 
         $blobClient = $containerClient->getBlobClient("benchmark");
 
-        $file = Utils::tryFopen($this->testFilePath, 'r');
+        $file = Utils::tryFopen($params['path'], 'r');
 
         $blobClient->upload($file);
     }
 
-    public function createTestFile(): void
+    public function provideFiles(): \Generator
     {
-        $size = self::TEST_FILE_SIZE;
-        $path = sys_get_temp_dir() . '/azure-oss-bench-test-file';
-
-        $resource = Utils::streamFor(Utils::tryFopen($path, 'w'));
-
-        $chunk = 10000;
-        while ($size > 0) {
-            $chunkContent = str_pad('', min($chunk, $size));
-            $resource->write($chunkContent);
-            $size -= $chunk;
-        }
-        $resource->close();
-
-        $this->testFilePath = $path;
-    }
-
-    public function deleteTestFile(): void
-    {
-        unlink($this->testFilePath);
+        yield '100MB' => ['path' => FileFactory::create(100_000_000)];
+        yield '200MB' => ['path' => FileFactory::create(200_000_000)];
+        yield '400MB' => ['path' => FileFactory::create(400_000_000)];
+        yield '800MB' => ['path' => FileFactory::create(800_000_000)];
+        yield '1.6GB' => ['path' => FileFactory::create(1_600_000_000)];
     }
 }
