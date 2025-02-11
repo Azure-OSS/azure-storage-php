@@ -32,7 +32,6 @@ final class BlobClientBench
 
         $blobClient = $containerClient->getBlobClient("benchmark");
 
-
         for ($i = 0; $i < $params['count']; $i++) {
             $file = Utils::tryFopen($params['path'], 'r');
 
