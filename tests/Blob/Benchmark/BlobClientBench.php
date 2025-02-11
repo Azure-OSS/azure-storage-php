@@ -20,7 +20,7 @@ final class BlobClientBench
     }
 
     /**
-     * @param array{ path: string } $params
+     * @param array{ path: string, count: int } $params
      */
     #[ParamProviders('provideFiles')]
     #[Assert("mode(variant.mem.peak) < 15 megabytes")]
@@ -32,17 +32,20 @@ final class BlobClientBench
 
         $blobClient = $containerClient->getBlobClient("benchmark");
 
-        $file = Utils::tryFopen($params['path'], 'r');
 
-        $blobClient->upload($file);
+        for ($i = 0; $i < $params['count']; $i++) {
+            $file = Utils::tryFopen($params['path'], 'r');
+
+            $blobClient->upload($file);
+        }
     }
 
     public function provideFiles(): \Generator
     {
-        yield '100MB' => ['path' => FileFactory::create(100_000_000)];
-        yield '200MB' => ['path' => FileFactory::create(200_000_000)];
-        yield '400MB' => ['path' => FileFactory::create(400_000_000)];
-        yield '800MB' => ['path' => FileFactory::create(800_000_000)];
-        yield '1.6GB' => ['path' => FileFactory::create(1_600_000_000)];
+        yield '20x10KB' => ['path' => FileFactory::create(10_000), 'count' => 100];
+        yield '10x10MB' => ['path' => FileFactory::create(10_000_000), 'count' => 10];
+        yield '5x100MB' => ['path' => FileFactory::create(100_000_000), 'count' => 1];
+        yield '2x800MB' => ['path' => FileFactory::create(800_000_000), 'count' => 1];
+        yield '1x1.6GB' => ['path' => FileFactory::create(1_600_000_000), 'count' => 1];
     }
 }
