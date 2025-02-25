@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob\Models;
 
 use AzureOss\Storage\Blob\Helpers\DateHelper;
+use AzureOss\Storage\Blob\Helpers\HashHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use Psr\Http\Message\ResponseInterface;
 
 final class BlobProperties
 {
     /**
+     * @deprecated will be private in version 2
      * @param array<string> $metadata
-     */
+    */
     public function __construct(
         public readonly \DateTimeInterface $lastModified,
         public readonly int $contentLength,
@@ -27,7 +29,7 @@ final class BlobProperties
             DateHelper::deserializeDateRfc1123Date($response->getHeaderLine('Last-Modified')),
             (int) $response->getHeaderLine('Content-Length'),
             $response->getHeaderLine('Content-Type'),
-            self::deserializeContentMD5($response->getHeaderLine('Content-MD5')),
+            HashHelper::deserializeMd5($response->getHeaderLine('Content-MD5')),
             MetadataHelper::headersToMetadata($response->getHeaders()),
         );
     }
@@ -42,18 +44,8 @@ final class BlobProperties
             /** @phpstan-ignore-next-line */
             (string) $xml->{'Content-Type'},
             /** @phpstan-ignore-next-line */
-            self::deserializeContentMD5((string) $xml->{'Content-MD5'}),
+            HashHelper::deserializeMd5((string) $xml->{'Content-MD5'}),
             [],
         );
-    }
-
-    public static function deserializeContentMD5(string $contentMD5): ?string
-    {
-        $result = base64_decode($contentMD5, true);
-        if ($result === false) {
-            return null;
-        }
-
-        return bin2hex($result);
     }
 }

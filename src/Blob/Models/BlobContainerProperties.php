@@ -11,8 +11,9 @@ use Psr\Http\Message\ResponseInterface;
 final class BlobContainerProperties
 {
     /**
+     * @deprecated will be private in version 2
      * @param array<string> $metadata
-     */
+    */
     public function __construct(
         public readonly \DateTimeInterface $lastModified,
         public readonly array $metadata,

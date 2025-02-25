@@ -9,6 +9,9 @@ namespace AzureOss\Storage\Blob\Models;
  */
 final class BlobPrefix
 {
+    /**
+     * @deprecated will be private in version 2
+     */
     public function __construct(
         public readonly string $name,
     ) {}

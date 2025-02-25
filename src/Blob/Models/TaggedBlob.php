@@ -7,6 +7,7 @@ namespace AzureOss\Storage\Blob\Models;
 final class TaggedBlob
 {
     /**
+     * @deprecated will be private in version 2
      * @param array<string> $tags
      */
     public function __construct(
