@@ -22,9 +22,7 @@ use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\SasProtocol;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Pool;
-use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\Utils as StreamUtils;
@@ -332,7 +330,7 @@ final class BlobClient
                     'x-ms-blob-content-md5' => base64_encode($contentMD5),
                 ],
                 'body' => (new PutBlockRequestBody($blocks))->toXml()->asXML(),
-        ]);
+            ]);
     }
 
     public function copyFromUri(UriInterface $source): void
