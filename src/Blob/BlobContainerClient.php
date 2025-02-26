@@ -117,7 +117,7 @@ final class BlobContainerClient
     public function exists(): bool
     {
         /** @phpstan-ignore-next-line */
-       return $this->existsAsync()->wait();
+        return $this->existsAsync()->wait();
     }
 
     public function existsAsync(): PromiseInterface
