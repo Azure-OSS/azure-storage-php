@@ -64,7 +64,6 @@ final class BlobClient
                 'stream' => true,
             ])
             ->then(BlobDownloadStreamingResult::fromResponse(...));
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     public function getProperties(): BlobProperties
@@ -78,7 +77,6 @@ final class BlobClient
         return $this->client
             ->headAsync($this->uri)
             ->then(BlobProperties::fromResponseHeaders(...));
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     /**
@@ -101,7 +99,6 @@ final class BlobClient
                 ],
                 'headers' => MetadataHelper::metadataToHeaders($metadata),
             ]);
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     public function delete(): void
@@ -112,7 +109,6 @@ final class BlobClient
     public function deleteAsync(): PromiseInterface
     {
         return $this->client->deleteAsync($this->uri);
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     public function deleteIfExists(): void
@@ -193,7 +189,6 @@ final class BlobClient
                 ],
                 'body' => $content,
             ]);
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     private function uploadInSequentialBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
@@ -232,7 +227,6 @@ final class BlobClient
                     );
                 },
             );
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     private function uploadInParallelBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
@@ -271,7 +265,6 @@ final class BlobClient
                     );
                 },
             );
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     private function putBlockAsync(Block $block, StreamInterface|string $content): PromiseInterface
@@ -320,7 +313,6 @@ final class BlobClient
                     'x-ms-copy-source' => (string) $source,
                 ],
             ]);
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     public function generateSasUri(BlobSasBuilder $blobSasBuilder): UriInterface
@@ -361,7 +353,6 @@ final class BlobClient
                 ],
                 'body' => (new BlobTagsBody($tags))->toXml()->asXML(),
             ]);
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     /**
@@ -384,6 +375,5 @@ final class BlobClient
             ->then(
                 fn(ResponseInterface $response) => BlobTagsBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()))->tags,
             );
-        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 }
