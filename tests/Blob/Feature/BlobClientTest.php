@@ -211,6 +211,11 @@ final class BlobClientTest extends BlobFeatureTestCase
             $stream = new class ($file) implements StreamInterface {
                 use StreamDecoratorTrait;
 
+                public function detach()
+                {
+                    return null;
+                }
+
                 public function getSize(): ?int
                 {
                     return null;
@@ -238,7 +243,14 @@ final class BlobClientTest extends BlobFeatureTestCase
     public function upload_works_with_non_seekable_stream(): void
     {
         FileFactory::withStream(1000, function (StreamInterface $file) {
-            $stream = new NoSeekStream($file);
+            $stream = new class (new NoSeekStream($file)) implements StreamInterface {
+                use StreamDecoratorTrait;
+
+                public function detach()
+                {
+                    return null;
+                }
+            };
 
             $beforeUploadContent = $file->getContents();
             $file->rewind();

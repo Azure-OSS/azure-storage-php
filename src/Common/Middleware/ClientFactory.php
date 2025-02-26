@@ -6,6 +6,7 @@ namespace AzureOss\Storage\Common\Middleware;
 
 use AzureOss\Storage\Common\ApiVersion;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
+use AzureOss\Storage\Common\Exceptions\RequestExceptionDeserializer;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleRetry\GuzzleRetryMiddleware;
@@ -16,10 +17,11 @@ use Psr\Http\Message\UriInterface;
  */
 final class ClientFactory
 {
-    public function create(UriInterface $uri, ?StorageSharedKeyCredential $sharedKeyCredential): Client
+    public function create(UriInterface $uri, ?StorageSharedKeyCredential $sharedKeyCredential, RequestExceptionDeserializer $exceptionDeserializer): Client
     {
         $handlerStack = HandlerStack::create();
 
+        $handlerStack->before('http_errors', new DeserializeExceptionMiddleware($exceptionDeserializer));
         $handlerStack->push(new AddXMsClientRequestIdMiddleware());
         $handlerStack->push(new AddXMsDateHeaderMiddleware());
         $handlerStack->push(new AddXMsVersionMiddleware(ApiVersion::LATEST));

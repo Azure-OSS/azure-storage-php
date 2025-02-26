@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob;
 
-use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionFactory;
+use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionDeserializer;
 use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
@@ -23,15 +23,13 @@ use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\SasProtocol;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
 
 final class BlobContainerClient
 {
     private readonly Client $client;
-
-    private readonly BlobStorageExceptionFactory $exceptionFactory;
 
     public readonly string $containerName;
 
@@ -43,8 +41,7 @@ final class BlobContainerClient
         public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
-        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
-        $this->exceptionFactory = new BlobStorageExceptionFactory();
+        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
     }
 
     public function getBlobClient(string $blobName): BlobClient
@@ -57,82 +54,105 @@ final class BlobContainerClient
 
     public function create(): void
     {
-        try {
-            $this->client->put($this->uri, [
-                'query' => [
-                    'restype' => 'container',
-                ],
-            ]);
-        } catch (RequestException $e) {
-            throw $this->exceptionFactory->create($e);
-        }
+        $this->createAsync()->wait();
+    }
+
+    public function createAsync(): PromiseInterface
+    {
+        return $this->client->putAsync($this->uri, [
+            'query' => [
+                'restype' => 'container',
+            ],
+        ]);
     }
 
     public function createIfNotExists(): void
     {
-        try {
-            $this->create();
-        } catch (ContainerAlreadyExistsException) {
-            // do nothing
-        }
+        $this->createIfNotExistsAsync()->wait();
+    }
+
+    public function createIfNotExistsAsync(): PromiseInterface
+    {
+        return $this->createAsync()
+            ->otherwise(function (\Throwable $e) {
+                if ($e instanceof ContainerAlreadyExistsException) {
+                    return;
+                }
+
+                throw $e;
+            });
     }
 
     public function delete(): void
     {
-        try {
-            $this->client->delete($this->uri, [
-                'query' => [
-                    'restype' => 'container',
-                ],
-            ]);
-        } catch (RequestException $e) {
-            throw $this->exceptionFactory->create($e);
-        }
+        $this->deleteAsync()->wait();
+    }
+
+    public function deleteAsync(): PromiseInterface
+    {
+        return $this->client->deleteAsync($this->uri, [
+            'query' => [
+                'restype' => 'container',
+            ],
+        ]);
     }
 
     public function deleteIfExists(): void
     {
-        try {
-            $this->delete();
-        } catch (ContainerNotFoundException $e) {
-            // do nothing
-        }
+        $this->deleteIfExistsAsync()->wait();
+    }
+
+    public function deleteIfExistsAsync(): PromiseInterface
+    {
+        return $this->deleteAsync()
+            ->otherwise(function (\Throwable $e) {
+                if ($e instanceof ContainerNotFoundException) {
+                    return;
+                }
+
+                throw $e;
+            });
     }
 
     public function exists(): bool
     {
-        try {
-            $this->client->head($this->uri, [
+        /** @phpstan-ignore-next-line */
+       return $this->existsAsync()->wait();
+    }
+
+    public function existsAsync(): PromiseInterface
+    {
+        return $this->client
+            ->headAsync($this->uri, [
                 'query' => [
                     'restype' => 'container',
                 ],
-            ]);
+            ])
+            ->then(fn() => true)
+            ->otherwise(function (\Throwable $e) {
+                if ($e instanceof ContainerNotFoundException) {
+                    return false;
+                }
 
-            return true;
-        } catch (RequestException $e) {
-            $e = $this->exceptionFactory->create($e);
-
-            if ($e instanceof ContainerNotFoundException) {
-                return false;
-            }
-
-            throw $e;
-        }
+                throw $e;
+            });
     }
 
     public function getProperties(): BlobContainerProperties
     {
-        try {
-            $response = $this->client->get($this->uri, [
+        /** @phpstan-ignore-next-line */
+        return $this->getPropertiesAsync()->wait();
+    }
+
+    public function getPropertiesAsync(): PromiseInterface
+    {
+        return $this->client
+            ->getAsync($this->uri, [
                 'query' => [
                     'restype' => 'container',
                 ],
-            ]);
-
-            return BlobContainerProperties::fromResponseHeaders($response);
-        } catch (RequestException $e) {
-            throw $this->exceptionFactory->create($e);
-        }
+            ])
+            ->then(BlobContainerProperties::fromResponseHeaders(...));
     }
 
     /**
@@ -140,17 +160,21 @@ final class BlobContainerClient
      */
     public function setMetadata(array $metadata): void
     {
-        try {
-            $this->client->put($this->uri, [
-                'query' => [
-                    'restype' => 'container',
-                    'comp' => 'metadata',
-                ],
-                'headers' => MetadataHelper::metadataToHeaders($metadata),
-            ]);
-        } catch (RequestException $e) {
-            throw $this->exceptionFactory->create($e);
-        }
+        $this->setMetadataAsync($metadata)->wait();
+    }
+
+    /**
+     * @param array<string> $metadata
+     */
+    public function setMetadataAsync(array $metadata): PromiseInterface
+    {
+        return $this->client->putAsync($this->uri, [
+            'query' => [
+                'restype' => 'container',
+                'comp' => 'metadata',
+            ],
+            'headers' => MetadataHelper::metadataToHeaders($metadata),
+        ]);
     }
 
     /**
@@ -202,22 +226,18 @@ final class BlobContainerClient
 
     private function listBlobs(?string $prefix, ?string $delimiter, string $marker, ?int $maxResults): ListBlobsResponseBody
     {
-        try {
-            $response = $this->client->get($this->uri, [
-                'query' => [
-                    'restype' => 'container',
-                    'comp' => 'list',
-                    'prefix' => $prefix,
-                    'marker' => $marker !== "" ? $marker : null,
-                    'delimiter' => $delimiter,
-                    'maxresults' => $maxResults,
-                ],
-            ]);
+        $response = $this->client->get($this->uri, [
+            'query' => [
+                'restype' => 'container',
+                'comp' => 'list',
+                'prefix' => $prefix,
+                'marker' => $marker !== "" ? $marker : null,
+                'delimiter' => $delimiter,
+                'maxresults' => $maxResults,
+            ],
+        ]);
 
-            return ListBlobsResponseBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
-        } catch (RequestException $e) {
-            throw $this->exceptionFactory->create($e);
-        }
+        return ListBlobsResponseBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
     }
 
     public function canGenerateSasUri(): bool
@@ -248,32 +268,28 @@ final class BlobContainerClient
      */
     public function findBlobsByTag(string $tagFilterSqlExpression): \Generator
     {
-        try {
-            $nextMarker = "";
+        $nextMarker = "";
 
-            while (true) {
-                $response = $this->client->get($this->uri, [
-                    'query' => [
-                        'restype' => 'container',
-                        'comp' => 'blobs',
-                        'where' => $tagFilterSqlExpression,
-                        'marker' => $nextMarker !== "" ? $nextMarker : null,
-                    ],
-                ]);
+        while (true) {
+            $response = $this->client->get($this->uri, [
+                'query' => [
+                    'restype' => 'container',
+                    'comp' => 'blobs',
+                    'where' => $tagFilterSqlExpression,
+                    'marker' => $nextMarker !== "" ? $nextMarker : null,
+                ],
+            ]);
 
-                $body = FindBlobsByTagBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
-                $nextMarker = $body->nextMarker;
+            $body = FindBlobsByTagBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
+            $nextMarker = $body->nextMarker;
 
-                foreach ($body->blobs as $blob) {
-                    yield $blob;
-                }
-
-                if ($nextMarker === "") {
-                    break;
-                }
+            foreach ($body->blobs as $blob) {
+                yield $blob;
             }
-        } catch (RequestException $e) {
-            throw $this->exceptionFactory->create($e);
+
+            if ($nextMarker === "") {
+                break;
+            }
         }
     }
 }

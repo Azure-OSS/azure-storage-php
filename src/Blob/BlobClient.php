@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob;
 
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
-use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionFactory;
+use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionDeserializer;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
+use AzureOss\Storage\Blob\Helpers\StreamHelper;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
 use AzureOss\Storage\Blob\Models\BlobProperties;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
@@ -34,8 +35,6 @@ final class BlobClient
 {
     private readonly Client $client;
 
-    private readonly BlobStorageExceptionFactory $exceptionFactory;
-
     public readonly string $containerName;
 
     public readonly string $blobName;
@@ -49,8 +48,7 @@ final class BlobClient
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
-        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials);
-        $this->exceptionFactory = new BlobStorageExceptionFactory();
+        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
     }
 
     public function downloadStreaming(): BlobDownloadStreamingResult
@@ -65,10 +63,8 @@ final class BlobClient
             ->getAsync($this->uri, [
                 'stream' => true,
             ])
-            ->then(
-                BlobDownloadStreamingResult::fromResponse(...),
-                fn(\Throwable $e) => throw $this->exceptionFactory->create($e),
-            );
+            ->then(BlobDownloadStreamingResult::fromResponse(...));
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     public function getProperties(): BlobProperties
@@ -81,10 +77,8 @@ final class BlobClient
     {
         return $this->client
             ->headAsync($this->uri)
-            ->then(
-                BlobProperties::fromResponseHeaders(...),
-                fn(\Throwable $e) => throw $this->exceptionFactory->create($e),
-            );
+            ->then(BlobProperties::fromResponseHeaders(...));
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     /**
@@ -106,11 +100,8 @@ final class BlobClient
                     'comp' => 'metadata',
                 ],
                 'headers' => MetadataHelper::metadataToHeaders($metadata),
-            ])
-            ->then(
-                null,
-                fn(\Throwable $e) => throw $this->exceptionFactory->create($e),
-            );
+            ]);
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     public function delete(): void
@@ -120,12 +111,8 @@ final class BlobClient
 
     public function deleteAsync(): PromiseInterface
     {
-        return $this->client
-            ->deleteAsync($this->uri)
-            ->then(
-                null,
-                fn(\Throwable $e) => throw $this->exceptionFactory->create($e),
-            );
+        return $this->client->deleteAsync($this->uri);
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     public function deleteIfExists(): void
@@ -135,8 +122,7 @@ final class BlobClient
 
     public function deleteIfExistsAsync(): PromiseInterface
     {
-        return $this->deleteAsync()->then(
-            null,
+        return $this->deleteAsync()->otherwise(
             function (\Throwable $e) {
                 if ($e instanceof BlobNotFoundException) {
                     return null;
@@ -156,8 +142,8 @@ final class BlobClient
     public function existsAsync(): PromiseInterface
     {
         return $this->getPropertiesAsync()
-            ->then(
-                fn() => true,
+            ->then(fn() => true)
+            ->otherwise(
                 function (\Throwable $e) {
                     if ($e instanceof BlobNotFoundException) {
                         return false;
@@ -185,7 +171,7 @@ final class BlobClient
             $options = new UploadBlobOptions();
         }
 
-        $content = $this->createUploadStream($content, $options);
+        $content = StreamHelper::createUploadStream($content, $options->maximumTransferSize);
 
         if ($content->getSize() === null || ! $content->isSeekable()) {
             return $this->uploadInSequentialBlocksAsync($content, $options);
@@ -194,24 +180,6 @@ final class BlobClient
         } else {
             return $this->uploadSingleAsync($content, $options);
         }
-    }
-
-
-    /**
-     * @param string|resource|StreamInterface $content
-     */
-    private function createUploadStream($content, UploadBlobOptions $options): StreamInterface
-    {
-        if ($content instanceof StreamInterface) {
-            $content = $content->detach();
-        }
-
-        // fix network streams only reading 8KB chunks
-        if (is_resource($content)) {
-            stream_set_chunk_size($content, $options->maximumTransferSize);
-        }
-
-        return StreamUtils::streamFor($content);
     }
 
     private function uploadSingleAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
@@ -224,52 +192,57 @@ final class BlobClient
                     'Content-Length' => $content->getSize(),
                 ],
                 'body' => $content,
-            ])
-            ->then(
-                null,
-                fn(\Throwable $e) => throw $this->exceptionFactory->create($e),
-            );
+            ]);
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     private function uploadInSequentialBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
     {
         $blocks = [];
-
         $contextMD5 = hash_init('md5');
 
-        while (true) {
-            $blockContent = $content->read($options->maximumTransferSize);
+        $putBlockRequestGenerator = function () use (&$content, &$options, &$blocks, &$contextMD5): \Generator {
+            while (true) {
+                $blockContent = $content->read($options->maximumTransferSize);
+                if ($blockContent === "") {
+                    break;
+                }
 
-            if ($blockContent === "") {
-                break;
+                $block = new Block(count($blocks), BlockType::UNCOMMITTED);
+                $blocks[] = $block;
+
+                hash_update($contextMD5, $blockContent);
+
+                yield fn() => $this->putBlockAsync($block, $blockContent);
             }
+        };
 
-            $block = new Block(count($blocks), BlockType::UNCOMMITTED);
-            $blocks[] = $block;
-
-            hash_update($contextMD5, $blockContent);
-
-            $this->putBlockAsync($block, $blockContent)->wait();
-        }
-
-        $contentMD5 = hash_final($contextMD5, true);
-
-        return $this->putBlockListAsync(
-            $blocks,
-            $options->contentType,
-            $contentMD5,
-        );
+        return (new Pool(
+            $this->client,
+            $putBlockRequestGenerator(),
+            ['concurrency' => 1],
+        ))
+            ->promise()
+            ->then(
+                function () use (&$blocks, &$options, &$contextMD5) {
+                    return $this->putBlockListAsync(
+                        $blocks,
+                        $options->contentType,
+                        hash_final($contextMD5, true),
+                    );
+                },
+            );
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     private function uploadInParallelBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
     {
         $blocks = [];
 
-        $putBlockRequestGenerator = function () use ($content, $options, &$blocks): \Generator {
+        $putBlockRequestGenerator = function () use (&$content, &$options, &$blocks): \Generator {
             while (true) {
                 $blockContent = StreamUtils::streamFor();
                 StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);
-
                 if ($blockContent->getSize() === 0) {
                     break;
                 }
@@ -281,23 +254,24 @@ final class BlobClient
             }
         };
 
-        $pool = new Pool($this->client, $putBlockRequestGenerator(), [
-            'concurrency' => $options->maximumConcurrency,
-            'rejected' => function (\Exception $e) {
-                throw $this->exceptionFactory->create($e);
-            },
-        ]);
+        $pool = new Pool(
+            $this->client,
+            $putBlockRequestGenerator(),
+            ['concurrency' => $options->maximumConcurrency],
+        );
 
         return $pool
             ->promise()
             ->then(
-                fn() => $this->putBlockListAsync(
-                    $blocks,
-                    $options->contentType,
-                    StreamUtils::hash($content, 'md5', true),
-                ),
-                fn(\Throwable $e) => throw $this->exceptionFactory->create($e),
+                function () use (&$content, &$blocks, &$options) {
+                    return $this->putBlockListAsync(
+                        $blocks,
+                        $options->contentType,
+                        StreamUtils::hash($content, 'md5', true),
+                    );
+                },
             );
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     private function putBlockAsync(Block $block, StreamInterface|string $content): PromiseInterface
@@ -345,11 +319,8 @@ final class BlobClient
                 'headers' => [
                     'x-ms-copy-source' => (string) $source,
                 ],
-            ])
-            ->then(
-                null,
-                fn(\Throwable $e) => throw $this->exceptionFactory->create($e),
-            );
+            ]);
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     public function generateSasUri(BlobSasBuilder $blobSasBuilder): UriInterface
@@ -389,11 +360,8 @@ final class BlobClient
                     'comp' => 'tags',
                 ],
                 'body' => (new BlobTagsBody($tags))->toXml()->asXML(),
-            ])
-            ->then(
-                null,
-                fn(\Throwable $e) => throw $this->exceptionFactory->create($e),
-            );
+            ]);
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 
     /**
@@ -415,7 +383,7 @@ final class BlobClient
             ])
             ->then(
                 fn(ResponseInterface $response) => BlobTagsBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()))->tags,
-                fn(\Throwable $e) => throw $this->exceptionFactory->create($e),
             );
+        //            ->otherwise(fn(\Throwable $e) => throw $this->exceptionFactory->create($e));
     }
 }
