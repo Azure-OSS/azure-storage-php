@@ -12,9 +12,18 @@ use PHPUnit\Framework\TestCase;
 class DeprecationHelperTest extends TestCase
 {
     #[IgnoreDeprecations]
+    #[WithoutErrorHandler]
     public function test_constructor_will_be_private_triggers_deprecation_if_called_from_outside_of_the_class(): void
     {
-        $this->expectUserDeprecationMessage('The constructor of AzureOss\Storage\Tests\Common\Unit\ClassWithDeprecatedPublicConstructor will be private in version 2.0.');
+        set_error_handler(
+            function (int $errNo, string $errstr) {
+                self::assertEquals('The constructor of AzureOss\Storage\Tests\Common\Unit\ClassWithDeprecatedPublicConstructor will be private in version 2.0.', $errstr);
+
+                return false;
+            },
+            E_USER_DEPRECATED,
+        );
+
 
         new ClassWithDeprecatedPublicConstructor();
     }
@@ -24,7 +33,12 @@ class DeprecationHelperTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        set_error_handler(fn() => self::fail('Deprecation triggered'), E_USER_DEPRECATED);
+        set_error_handler(
+            function () {
+                self::fail('Deprecation triggered');
+            },
+            E_USER_DEPRECATED,
+        );
 
         ClassWithDeprecatedPublicConstructor::new();
 
