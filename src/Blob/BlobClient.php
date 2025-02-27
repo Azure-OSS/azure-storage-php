@@ -13,12 +13,11 @@ use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use AzureOss\Storage\Blob\Helpers\StreamHelper;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
 use AzureOss\Storage\Blob\Models\BlobProperties;
+use AzureOss\Storage\Blob\Models\BlockBlobCommitBlockListOptions;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Requests\BlobTagsBody;
-use AzureOss\Storage\Blob\Requests\Block;
-use AzureOss\Storage\Blob\Requests\BlockType;
-use AzureOss\Storage\Blob\Requests\PutBlockRequestBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
+use AzureOss\Storage\Blob\Specialized\BlockBlobClient;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\SasProtocol;
@@ -35,6 +34,8 @@ final class BlobClient
 {
     private readonly Client $client;
 
+    private readonly BlockBlobClient $blockBlobClient;
+
     public readonly string $containerName;
 
     public readonly string $blobName;
@@ -49,6 +50,7 @@ final class BlobClient
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
         $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
+        $this->blockBlobClient = new BlockBlobClient($uri, $sharedKeyCredentials);
     }
 
     public function downloadStreaming(): BlobDownloadStreamingResult
@@ -193,22 +195,22 @@ final class BlobClient
 
     private function uploadInSequentialBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
     {
-        $blocks = [];
+        $blockIds = [];
         $contextMD5 = hash_init('md5');
 
-        $putBlockRequestGenerator = function () use (&$content, &$options, &$blocks, &$contextMD5): \Generator {
+        $putBlockRequestGenerator = function () use (&$content, &$options, &$blockIds, &$contextMD5): \Generator {
             while (true) {
                 $blockContent = $content->read($options->maximumTransferSize);
                 if ($blockContent === "") {
                     break;
                 }
 
-                $block = new Block(count($blocks), BlockType::UNCOMMITTED);
-                $blocks[] = $block;
+                $blockId = $this->getNextBlockId($blockIds);
+                $blockIds[] = $blockId;
 
                 hash_update($contextMD5, $blockContent);
 
-                yield fn() => $this->putBlockAsync($block, $blockContent);
+                yield fn() => $this->blockBlobClient->stageBlockAsync($blockId, $blockContent);
             }
         };
 
@@ -219,11 +221,13 @@ final class BlobClient
         ))
             ->promise()
             ->then(
-                function () use (&$blocks, &$options, &$contextMD5) {
-                    return $this->putBlockListAsync(
-                        $blocks,
-                        $options->contentType,
-                        hash_final($contextMD5, true),
+                function () use (&$blockIds, &$options, &$contextMD5) {
+                    return $this->blockBlobClient->commitBlockListAsync(
+                        $blockIds,
+                        new BlockBlobCommitBlockListOptions(
+                            contentType: $options->contentType,
+                            contentMD5: hash_final($contextMD5, true),
+                        ),
                     );
                 },
             );
@@ -231,9 +235,9 @@ final class BlobClient
 
     private function uploadInParallelBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
     {
-        $blocks = [];
+        $blockIds = [];
 
-        $putBlockRequestGenerator = function () use (&$content, &$options, &$blocks): \Generator {
+        $putBlockRequestGenerator = function () use (&$content, &$options, &$blockIds): \Generator {
             while (true) {
                 $blockContent = StreamUtils::streamFor();
                 StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);
@@ -241,10 +245,10 @@ final class BlobClient
                     break;
                 }
 
-                $block = new Block(count($blocks), BlockType::UNCOMMITTED);
-                $blocks[] = $block;
+                $blockId = $this->getNextBlockId($blockIds);
+                $blockIds[] = $blockId;
 
-                yield fn() => $this->putBlockAsync($block, $blockContent);
+                yield fn() => $this->blockBlobClient->stageBlock($blockId, $blockContent);
             }
         };
 
@@ -257,47 +261,24 @@ final class BlobClient
         return $pool
             ->promise()
             ->then(
-                function () use (&$content, &$blocks, &$options) {
-                    return $this->putBlockListAsync(
-                        $blocks,
-                        $options->contentType,
-                        StreamUtils::hash($content, 'md5', true),
+                function () use (&$content, &$blockIds, &$options) {
+                    return $this->blockBlobClient->commitBlockListAsync(
+                        $blockIds,
+                        new BlockBlobCommitBlockListOptions(
+                            contentType: $options->contentType,
+                            contentMD5: StreamUtils::hash($content, 'md5', true),
+                        ),
                     );
                 },
             );
     }
 
-    private function putBlockAsync(Block $block, StreamInterface|string $content): PromiseInterface
-    {
-        return $this->client
-            ->putAsync($this->uri, [
-                'query' => [
-                    'comp' => 'block',
-                    'blockid' => $block->getId(),
-                ],
-                'headers' => [
-                    'Content-Length' => is_string($content) ? strlen($content) : $content->getSize(),
-                ],
-                'body' => $content,
-            ]);
-    }
-
     /**
-     * @param Block[] $blocks
+     * @param string[] $blockIds
      */
-    private function putBlockListAsync(array $blocks, ?string $contentType, string $contentMD5): PromiseInterface
+    private function getNextBlockId(array $blockIds): string
     {
-        return $this->client
-            ->putAsync($this->uri, [
-                'query' => [
-                    'comp' => 'blocklist',
-                ],
-                'headers' => [
-                    'x-ms-blob-content-type' => $contentType,
-                    'x-ms-blob-content-md5' => base64_encode($contentMD5),
-                ],
-                'body' => (new PutBlockRequestBody($blocks))->toXml()->asXML(),
-            ]);
+        return base64_encode(str_pad((string) count($blockIds), 6, '0', STR_PAD_LEFT));
     }
 
     public function copyFromUri(UriInterface $source): void

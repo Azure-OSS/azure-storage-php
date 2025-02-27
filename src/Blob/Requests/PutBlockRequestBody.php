@@ -10,18 +10,18 @@ namespace AzureOss\Storage\Blob\Requests;
 final class PutBlockRequestBody
 {
     /**
-     * @param Block[] $blocks
+     * @param string[] $base64BlockIds
      */
     public function __construct(
-        public array $blocks,
+        public array $base64BlockIds,
     ) {}
 
     public function toXml(): \SimpleXMLElement
     {
         $xml = new \SimpleXMLElement("<BlockList></BlockList>");
 
-        foreach ($this->blocks as $block) {
-            $xml->addChild($block->type->value, $block->getId());
+        foreach ($this->base64BlockIds as $base64BlockId) {
+            $xml->addChild("Uncommitted", $base64BlockId);
         }
 
         return $xml;
