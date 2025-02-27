@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob\Models;
 
 use AzureOss\Storage\Blob\Exceptions\DeserializationException;
+use AzureOss\Storage\Blob\Helpers\DeprecationHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use Psr\Http\Message\ResponseInterface;
 
@@ -13,11 +14,13 @@ final class BlobContainerProperties
     /**
      * @deprecated will be private in version 2
      * @param array<string> $metadata
-    */
+     */
     public function __construct(
         public readonly \DateTimeInterface $lastModified,
         public readonly array $metadata,
-    ) {}
+    ) {
+        DeprecationHelper::constructorWillBePrivate(self::class, '2.0');
+    }
 
     public static function fromResponseHeaders(ResponseInterface $response): self
     {

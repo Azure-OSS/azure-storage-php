@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob\Models;
 
 use AzureOss\Storage\Blob\Helpers\DateHelper;
+use AzureOss\Storage\Blob\Helpers\DeprecationHelper;
 use AzureOss\Storage\Blob\Helpers\HashHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use Psr\Http\Message\ResponseInterface;
@@ -21,7 +22,9 @@ final class BlobProperties
         public readonly string $contentType,
         public readonly ?string $contentMD5,
         public readonly array $metadata,
-    ) {}
+    ) {
+        DeprecationHelper::constructorWillBePrivate(self::class, '2.0');
+    }
 
     public static function fromResponseHeaders(ResponseInterface $response): self
     {

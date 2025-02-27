@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob\Models;
 
+use AzureOss\Storage\Blob\Helpers\DeprecationHelper;
+
 /**
  * @internal
  */
@@ -14,7 +16,9 @@ final class BlobPrefix
      */
     public function __construct(
         public readonly string $name,
-    ) {}
+    ) {
+        DeprecationHelper::constructorWillBePrivate(self::class, '2.0');
+    }
 
     public static function fromXml(\SimpleXMLElement $xml): self
     {
