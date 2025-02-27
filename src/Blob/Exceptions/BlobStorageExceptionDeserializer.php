@@ -5,20 +5,16 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Blob\Exceptions;
 
 use AzureOss\Storage\Blob\Responses\ErrorResponse;
+use AzureOss\Storage\Common\Exceptions\RequestExceptionDeserializer;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 
 /**
  * @internal
  */
-final class BlobStorageExceptionFactory
+final class BlobStorageExceptionDeserializer implements RequestExceptionDeserializer
 {
-    public function create(\Throwable $e): \Throwable
-    {
-        return $e instanceof RequestException ? $this->createFromRequestException($e) : $e;
-    }
-
-    private function createFromRequestException(RequestException $e): \Exception
+    public function deserialize(RequestException $e): \Exception
     {
         $response = $e->getResponse();
         if ($response === null) {
