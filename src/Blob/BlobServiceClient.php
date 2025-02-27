@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Blob;
 
-use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionFactory;
+use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionDeserializer;
 use AzureOss\Storage\Blob\Exceptions\InvalidConnectionStringException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
@@ -19,7 +19,6 @@ use AzureOss\Storage\Common\Sas\AccountSasBuilder;
 use AzureOss\Storage\Common\Sas\AccountSasServices;
 use AzureOss\Storage\Common\Sas\SasProtocol;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
 
@@ -27,16 +26,13 @@ final class BlobServiceClient
 {
     private readonly Client $client;
 
-    private readonly BlobStorageExceptionFactory $exceptionFactory;
-
     public function __construct(
         public UriInterface $uri,
         public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
     ) {
         // must always include the forward slash (/) to separate the host name from the path and query portions of the URI.
         $this->uri = $uri->withPath(rtrim($uri->getPath(), '/') . "/");
-        $this->client = (new ClientFactory())->create($this->uri, $sharedKeyCredentials);
-        $this->exceptionFactory = new BlobStorageExceptionFactory();
+        $this->client = (new ClientFactory())->create($this->uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
     }
 
     public static function fromConnectionString(string $connectionString): self
@@ -73,30 +69,26 @@ final class BlobServiceClient
      */
     public function getBlobContainers(?string $prefix = null): \Generator
     {
-        try {
-            $nextMarker = "";
+        $nextMarker = "";
 
-            while (true) {
-                $response = $this->client->get($this->uri, [
-                    'query' => [
-                        'comp' => 'list',
-                        'marker' => $nextMarker !== "" ? $nextMarker : null,
-                        'prefix' => $prefix,
-                    ],
-                ]);
-                $body = ListContainersResponseBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
-                $nextMarker = $body->nextMarker;
+        while (true) {
+            $response = $this->client->get($this->uri, [
+                'query' => [
+                    'comp' => 'list',
+                    'marker' => $nextMarker !== "" ? $nextMarker : null,
+                    'prefix' => $prefix,
+                ],
+            ]);
+            $body = ListContainersResponseBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
+            $nextMarker = $body->nextMarker;
 
-                foreach ($body->containers as $container) {
-                    yield $container;
-                }
-
-                if ($nextMarker === "") {
-                    break;
-                }
+            foreach ($body->containers as $container) {
+                yield $container;
             }
-        } catch (RequestException $e) {
-            throw $this->exceptionFactory->create($e);
+
+            if ($nextMarker === "") {
+                break;
+            }
         }
     }
 
@@ -107,31 +99,27 @@ final class BlobServiceClient
      */
     public function findBlobsByTag(string $tagFilterSqlExpression): \Generator
     {
-        try {
-            $nextMarker = "";
+        $nextMarker = "";
 
-            while (true) {
-                $response = $this->client->get($this->uri, [
-                    'query' => [
-                        'comp' => 'blobs',
-                        'where' => $tagFilterSqlExpression,
-                        'marker' => $nextMarker !== "" ? $nextMarker : null,
-                    ],
-                ]);
+        while (true) {
+            $response = $this->client->get($this->uri, [
+                'query' => [
+                    'comp' => 'blobs',
+                    'where' => $tagFilterSqlExpression,
+                    'marker' => $nextMarker !== "" ? $nextMarker : null,
+                ],
+            ]);
 
-                $body = FindBlobsByTagBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
-                $nextMarker = $body->nextMarker;
+            $body = FindBlobsByTagBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()));
+            $nextMarker = $body->nextMarker;
 
-                foreach ($body->blobs as $blob) {
-                    yield $blob;
-                }
-
-                if ($nextMarker === "") {
-                    break;
-                }
+            foreach ($body->blobs as $blob) {
+                yield $blob;
             }
-        } catch (RequestException $e) {
-            throw $this->exceptionFactory->create($e);
+
+            if ($nextMarker === "") {
+                break;
+            }
         }
     }
 

@@ -43,8 +43,8 @@ final class BlobClientBench
     {
         yield '20x10KB' => ['path' => FileFactory::create(10_000), 'count' => 100];
         yield '10x10MB' => ['path' => FileFactory::create(10_000_000), 'count' => 10];
-        yield '5x100MB' => ['path' => FileFactory::create(100_000_000), 'count' => 1];
-        yield '2x800MB' => ['path' => FileFactory::create(800_000_000), 'count' => 1];
-        yield '1x1.6GB' => ['path' => FileFactory::create(1_600_000_000), 'count' => 1];
+        yield '5x100MB' => ['path' => FileFactory::create(100_000_000), 'count' => 5];
+        yield '2x1GB' => ['path' => FileFactory::create(1_000_000_000), 'count' => 2];
+        yield '1x4GB' => ['path' => FileFactory::create(4_000_000_000), 'count' => 1];
     }
 }
