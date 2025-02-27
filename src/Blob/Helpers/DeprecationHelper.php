@@ -8,7 +8,7 @@ class DeprecationHelper
 {
     public static function constructorWillBePrivate(string $className, string $version): void
     {
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
         $wasCalledFromOutside = isset($backtrace[2]['class']) && $backtrace[2]['class'] !== $className;
 
         if ($wasCalledFromOutside) {
