@@ -8,7 +8,10 @@ class DeprecationHelper
 {
     public static function constructorWillBePrivate(string $className, string $version): void
     {
-        if (isset(debug_backtrace()[2]['class']) && debug_backtrace()[2]['class'] !== $className) {
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+        $wasCalledFromOutside = isset($backtrace[2]['class']) && $backtrace[2]['class'] !== $className;
+
+        if ($wasCalledFromOutside) {
             @trigger_error(sprintf('The constructor of %s will be private in version %s.', $className, $version), E_USER_DEPRECATED);
         }
     }
