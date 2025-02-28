@@ -19,6 +19,7 @@ use AzureOss\Storage\Blob\Models\TaggedBlob;
 use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListBlobsResponseBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
+use AzureOss\Storage\Blob\Specialized\BlockBlobClient;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\SasProtocol;
@@ -47,9 +48,22 @@ final class BlobContainerClient
     public function getBlobClient(string $blobName): BlobClient
     {
         return new BlobClient(
-            $this->uri->withPath($this->uri->getPath() . "/" . ltrim($blobName, "/")),
+            $this->getBlobUri($blobName),
             $this->sharedKeyCredentials,
         );
+    }
+
+    public function getBlockBlobClient(string $blobName): BlockBlobClient
+    {
+        return new BlockBlobClient(
+            $this->getBlobUri($blobName),
+            $this->sharedKeyCredentials,
+        );
+    }
+
+    private function getBlobUri(string $blobName): UriInterface
+    {
+        return $this->uri->withPath($this->uri->getPath() . "/" . ltrim($blobName, "/"));
     }
 
     public function create(): void

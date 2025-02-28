@@ -21,7 +21,7 @@ final class PutBlockRequestBody
         $xml = new \SimpleXMLElement("<BlockList></BlockList>");
 
         foreach ($this->base64BlockIds as $base64BlockId) {
-            $xml->addChild("Uncommitted", $base64BlockId);
+            $xml->addChild("Latest", $base64BlockId);
         }
 
         return $xml;
