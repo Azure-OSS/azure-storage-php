@@ -263,7 +263,6 @@ final class BlobContainerClient
     }
 
     /**
-     * @codeCoverageIgnore
      * @return \Generator<TaggedBlob>
      */
     public function findBlobsByTag(string $tagFilterSqlExpression): \Generator
