@@ -144,8 +144,6 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
     #[Test]
     public function find_blobs_by_tag_works(): void
     {
-        $this->markTestSkippedWhenUsingSimulator();
-
         $containerClient = $this->serviceClient->getContainerClient("tagging");
         $containerClient->createIfNotExists();
 

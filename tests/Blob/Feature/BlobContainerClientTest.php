@@ -369,8 +369,6 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function find_blobs_by_tag_works(): void
     {
-        $this->markTestSkippedWhenUsingSimulator();
-
         $blobClient = $this->containerClient->getBlobClient('tagged');
 
         $blobClient->deleteIfExists();
@@ -386,8 +384,6 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function find_blobs_by_tag_works_throws_when_container_doesnt_exist(): void
     {
-        $this->markTestSkippedWhenUsingSimulator();
-
         $this->expectException(ContainerNotFoundException::class);
 
         iterator_to_array($this->serviceClient->getContainerClient("noop")->findBlobsByTag("foo = 'bar'"));
