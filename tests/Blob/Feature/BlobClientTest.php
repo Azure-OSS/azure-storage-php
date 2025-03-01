@@ -12,10 +12,12 @@ use AzureOss\Storage\Blob\Exceptions\TagsTooLargeException;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Blob\Sas\BlobSasPermissions;
+use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Tests\Blob\BlobFeatureTestCase;
 use AzureOss\Storage\Tests\Utils\FileFactory;
 use GuzzleHttp\Psr7\NoSeekStream;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\StreamInterface;
 
@@ -334,6 +336,22 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $this->blobClient->copyFromUri($sourceBlobClient->uri);
     }
+
+    #[Test]
+    public function can_generate_sas_uri_works(): void
+    {
+        $containerClient = new BlobClient(new Uri("https://testing.blob.core.windows.net/testing/some-blob"));
+
+        self::assertFalse($containerClient->canGenerateSasUri());
+
+        $containerClient = new BlobClient(
+            new Uri("https://testing.blob.core.windows.net/testing/some-blob"),
+            new StorageSharedKeyCredential("noop", "noop"),
+        );
+
+        self::assertTrue($containerClient->canGenerateSasUri());
+    }
+
 
     #[Test]
     public function generate_sas_uri_works(): void
