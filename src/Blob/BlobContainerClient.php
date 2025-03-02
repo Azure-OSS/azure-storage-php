@@ -29,6 +29,12 @@ use Psr\Http\Message\UriInterface;
 
 final class BlobContainerClient
 {
+    public static string $rootBlobContainerName = '$root';
+
+    public static string $logsBlobContainerName = '$logs';
+
+    public static string $webBlobContainerName = '$web';
+
     private readonly Client $client;
 
     public readonly string $containerName;
