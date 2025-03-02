@@ -78,15 +78,34 @@ $targetBlobClient = $containerClient->getBlobClient("target.txt");
 $targetBlobClient->copyFromUri($sourceBlobClient->uri);
 ```
 
-Generate and use a [Service SAS](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview#service-sas)
+Generate a container [Service SAS](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview#service-sas)
+```php
+$sas = $containerClient->generateSasUri(
+    BlobSasBuilder::new()
+        ->setPermissions(new BlobSasPermissions(read: true))
+        ->setExpiresOn((new \DateTime())->modify("+ 15min")),
+);
+```
+
+Use a container [Service SAS](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview#service-sas)
+```php
+$sas = new Uri("https://azure-oss.blob.core.windows.net/quickstart?sp=...&st=...&se=...&spr=...&sv=...sr=...&sig=...")
+$containerClient = new BlobContainerClient($sas);
+```
+
+Generate a blob [Service SAS](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview#service-sas)
 ```php
 $sas = $blobClient->generateSasUri(
     BlobSasBuilder::new()
         ->setPermissions(new BlobSasPermissions(read: true))
         ->setExpiresOn((new \DateTime())->modify("+ 15min")),
 );
+```
 
-$sasBlobClient = new BlobClient($sas);
+Use a blob [Service SAS](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview#service-sas)
+```php
+$sas = new Uri("https://azure-oss.blob.core.windows.net/quickstart/file.txt?sp=...&st=...&se=...&spr=...&sv=...sr=...&sig=...")
+$blobClient = new BlobClient($sas);
 ```
 
 Generate and use an [Account SAS](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview#account-sas)
@@ -99,6 +118,22 @@ $sas = $blobServiceClient->generateAccountSasUri(
 );
 
 $sasServiceClient = new BlobServiceClient($sas);
+```
+
+Create a public container
+```php
+$containerClient = $blobServiceClient->getContainerClient('quickstart-public');
+
+$containerClient->create(
+    new CreateContainerOptions(publicAccessType: PublicAccessType::BLOB)
+);
+```
+
+Use a public container
+```php
+$publicUri = new Uri("https://azure-oss.blob.core.windows.net/quickstart-public/file.txt");
+
+$blobClient = new BlobClient($publicUri);
 ```
 
 Delete a container
