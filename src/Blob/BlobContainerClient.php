@@ -77,7 +77,7 @@ final class BlobContainerClient
     /**
      * @see https://learn.microsoft.com/en-us/rest/api/storageservices/create-container
      */
-    public function create(): void
+    public function create(?CreateContainerOptions $options = null): void
     {
         $this->createAsync($options)->wait();
     }
