@@ -34,6 +34,8 @@ final class BlobStorageExceptionDeserializer implements RequestExceptionDeserial
             'BlobNotFound' => new BlobNotFoundException($error->message, previous: $e),
             'InvalidBlockList' => new InvalidBlockListException($error->message, previous: $e),
             'TagsTooLarge' => new TagsTooLargeException($error->message, previous: $e),
+            'CannotVerifyCopySource' => new CannotVerifyCopySourceException($error->message, previous: $e),
+            'NoPendingCopyOperation' => new NoPendingCopyOperationException($error->message, previous: $e),
             default => new BlobStorageException($error->message, previous: $e),
         };
     }
