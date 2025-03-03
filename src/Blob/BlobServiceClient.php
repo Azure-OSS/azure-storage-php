@@ -94,7 +94,6 @@ final class BlobServiceClient
 
 
     /**
-     * @codeCoverageIgnore
      * @return \Generator<TaggedBlob>
      */
     public function findBlobsByTag(string $tagFilterSqlExpression): \Generator
@@ -121,6 +120,11 @@ final class BlobServiceClient
                 break;
             }
         }
+    }
+
+    public function canGenerateAccountSasUri(): bool
+    {
+        return $this->sharedKeyCredentials !== null;
     }
 
     public function generateAccountSasUri(AccountSasBuilder $accountSasBuilder): UriInterface

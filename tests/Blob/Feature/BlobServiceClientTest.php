@@ -8,6 +8,7 @@ use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Exceptions\InvalidConnectionStringException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Common\ApiVersion;
+use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Sas\AccountSasBuilder;
 use AzureOss\Storage\Common\Sas\AccountSasPermissions;
 use AzureOss\Storage\Common\Sas\AccountSasResourceTypes;
@@ -144,8 +145,6 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
     #[Test]
     public function find_blobs_by_tag_works(): void
     {
-        $this->markTestSkippedWhenUsingSimulator();
-
         $containerClient = $this->serviceClient->getContainerClient("tagging");
         $containerClient->createIfNotExists();
 
@@ -158,6 +157,21 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
 
         self::assertCount(0, iterator_to_array($this->serviceClient->findBlobsByTag("foo = 'noop'")));
         self::assertCount(1, iterator_to_array($this->serviceClient->findBlobsByTag("foo = 'blobservice'")));
+    }
+
+    #[Test]
+    public function can_generate_account_sas_uri_works(): void
+    {
+        $containerClient = new BlobServiceClient(new Uri("https://testing.blob.core.windows.net"));
+
+        self::assertFalse($containerClient->canGenerateAccountSasUri());
+
+        $containerClient = new BlobServiceClient(
+            new Uri("https://testing.blob.core.windows.net"),
+            new StorageSharedKeyCredential("noop", "noop"),
+        );
+
+        self::assertTrue($containerClient->canGenerateAccountSasUri());
     }
 
     #[Test]

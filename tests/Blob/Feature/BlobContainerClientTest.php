@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzureOss\Storage\Tests\Blob\Feature;
 
+use AzureOss\Storage\Blob\BlobClient;
 use AzureOss\Storage\Blob\BlobContainerClient;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Exceptions\ContainerAlreadyExistsException;
@@ -11,7 +12,9 @@ use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
+use AzureOss\Storage\Blob\Models\CreateContainerOptions;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
+use AzureOss\Storage\Blob\Models\PublicAccessType;
 use AzureOss\Storage\Blob\Sas\BlobContainerSasPermissions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Common\ApiVersion;
@@ -81,6 +84,45 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $this->expectException(ContainerAlreadyExistsException::class);
 
         $this->containerClient->create();
+    }
+
+    #[Test]
+    public function create_works_for_public_access_type_blob(): void
+    {
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+        $containerClient->deleteIfExists();
+
+        self::assertFalse($containerClient->exists());
+
+        $containerClient->create(new CreateContainerOptions(publicAccessType: PublicAccessType::BLOB));
+
+        self::assertTrue($containerClient->exists());
+
+        // add a file that should be publicly accessible
+        $blobClient = $containerClient->getBlobClient("file.txt");
+        $blobClient->upload("test");
+
+        $blobClientWithoutAuth = new BlobClient($blobClient->uri);
+        $blobClientWithoutAuth->getProperties(); // should not throw
+
+        $containerClient->delete(); // cleanup
+    }
+
+    #[Test]
+    public function create_works_for_public_access_type_container(): void
+    {
+        $containerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+        $containerClient->deleteIfExists();
+
+        self::assertFalse($containerClient->exists());
+
+        $containerClient->create(new CreateContainerOptions(publicAccessType: PublicAccessType::CONTAINER));
+
+        self::assertTrue($containerClient->exists());
+
+        $containerClientWithoutAuth = new BlobContainerClient($containerClient->uri);
+
+        $containerClientWithoutAuth->getProperties(); // should not throw
     }
 
     #[Test]
@@ -369,8 +411,6 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function find_blobs_by_tag_works(): void
     {
-        $this->markTestSkippedWhenUsingSimulator();
-
         $blobClient = $this->containerClient->getBlobClient('tagged');
 
         $blobClient->deleteIfExists();
@@ -386,8 +426,6 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     #[Test]
     public function find_blobs_by_tag_works_throws_when_container_doesnt_exist(): void
     {
-        $this->markTestSkippedWhenUsingSimulator();
-
         $this->expectException(ContainerNotFoundException::class);
 
         iterator_to_array($this->serviceClient->getContainerClient("noop")->findBlobsByTag("foo = 'bar'"));
