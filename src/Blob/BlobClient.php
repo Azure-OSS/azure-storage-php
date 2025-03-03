@@ -300,9 +300,10 @@ final class BlobClient
     /**
      * @see https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob-from-url
      */
-    public function syncCopyFromUri(UriInterface $source): void
+    public function syncCopyFromUri(UriInterface $source): BlobCopyResult
     {
-        $this->syncCopyFromUriAsync($source)->wait();
+        /** @phpstan-ignore-next-line */
+        return $this->syncCopyFromUriAsync($source)->wait();
     }
 
     /**
@@ -316,7 +317,8 @@ final class BlobClient
                     'x-ms-copy-source' => (string) $source,
                     'x-ms-requires-sync' => 'true',
                 ],
-            ]);
+            ])
+            ->then(BlobCopyResult::fromResponse(...));
     }
 
     /**

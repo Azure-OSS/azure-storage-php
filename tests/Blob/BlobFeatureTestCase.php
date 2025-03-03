@@ -39,9 +39,14 @@ abstract class BlobFeatureTestCase extends TestCase
         }
     }
 
+    protected function isUsingSimulator(): bool
+    {
+        return BlobUriParserHelper::isDevelopmentUri($this->serviceClient->uri);
+    }
+
     protected function markTestSkippedWhenUsingSimulator(): void
     {
-        if (BlobUriParserHelper::isDevelopmentUri($this->serviceClient->uri)) {
+        if ($this->isUsingSimulator()) {
             self::markTestSkipped("API unsupported in Azurite.");
         }
     }
