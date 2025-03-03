@@ -14,11 +14,14 @@ use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\BlobContainerProperties;
 use AzureOss\Storage\Blob\Models\BlobPrefix;
+use AzureOss\Storage\Blob\Models\CreateContainerOptions;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
+use AzureOss\Storage\Blob\Models\PublicAccessType;
 use AzureOss\Storage\Blob\Models\TaggedBlob;
 use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListBlobsResponseBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
+use AzureOss\Storage\Blob\Specialized\BlockBlobClient;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\SasProtocol;
@@ -29,6 +32,12 @@ use Psr\Http\Message\UriInterface;
 
 final class BlobContainerClient
 {
+    public const ROOT_BLOB_CONTAINER_NAME = '$root';
+
+    public const LOGS_BLOB_CONTAINER_NAME = '$logs';
+
+    public const WEB_BLOB_CONTAINER_NAME = '$web';
+
     private readonly Client $client;
 
     public readonly string $containerName;
@@ -47,33 +56,68 @@ final class BlobContainerClient
     public function getBlobClient(string $blobName): BlobClient
     {
         return new BlobClient(
-            $this->uri->withPath($this->uri->getPath() . "/" . ltrim($blobName, "/")),
+            $this->getBlobUri($blobName),
             $this->sharedKeyCredentials,
         );
     }
 
-    public function create(): void
+    public function getBlockBlobClient(string $blobName): BlockBlobClient
     {
-        $this->createAsync()->wait();
+        return new BlockBlobClient(
+            $this->getBlobUri($blobName),
+            $this->sharedKeyCredentials,
+        );
     }
 
-    public function createAsync(): PromiseInterface
+    private function getBlobUri(string $blobName): UriInterface
     {
+        return $this->uri->withPath($this->uri->getPath() . "/" . ltrim($blobName, "/"));
+    }
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/create-container
+     */
+    public function create(?CreateContainerOptions $options = null): void
+    {
+        $this->createAsync($options)->wait();
+    }
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/create-container
+     */
+    public function createAsync(?CreateContainerOptions $options = null): PromiseInterface
+    {
+        if ($options === null) {
+            $options = new CreateContainerOptions();
+        }
+
+        $headers = [];
+        if ($options->publicAccessType !== PublicAccessType::NONE) {
+            $headers['x-ms-blob-public-access'] = $options->publicAccessType->value;
+        }
+
         return $this->client->putAsync($this->uri, [
             'query' => [
                 'restype' => 'container',
             ],
+            'headers' => $headers,
         ]);
     }
 
-    public function createIfNotExists(): void
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/create-container
+     */
+    public function createIfNotExists(?CreateContainerOptions $options = null): void
     {
-        $this->createIfNotExistsAsync()->wait();
+        $this->createIfNotExistsAsync($options)->wait();
     }
 
-    public function createIfNotExistsAsync(): PromiseInterface
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/create-container
+     */
+    public function createIfNotExistsAsync(?CreateContainerOptions $options = null): PromiseInterface
     {
-        return $this->createAsync()
+        return $this->createAsync($options)
             ->otherwise(function (\Throwable $e) {
                 if ($e instanceof ContainerAlreadyExistsException) {
                     return;

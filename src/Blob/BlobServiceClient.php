@@ -122,6 +122,11 @@ final class BlobServiceClient
         }
     }
 
+    public function canGenerateAccountSasUri(): bool
+    {
+        return $this->sharedKeyCredentials !== null;
+    }
+
     public function generateAccountSasUri(AccountSasBuilder $accountSasBuilder): UriInterface
     {
         if ($this->sharedKeyCredentials === null) {
