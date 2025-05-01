@@ -11,9 +11,13 @@ use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use AzureOss\Storage\Blob\Helpers\StreamHelper;
+use AzureOss\Storage\Blob\Models\AbortCopyFromUriOptions;
+use AzureOss\Storage\Blob\Models\BlobCopyResult;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
 use AzureOss\Storage\Blob\Models\BlobProperties;
+use AzureOss\Storage\Blob\Models\StartCopyFromUriOptions;
 use AzureOss\Storage\Blob\Models\BlockBlobCommitBlockListOptions;
+use AzureOss\Storage\Blob\Models\SyncCopyFromUriOptions;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Requests\BlobTagsBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
@@ -281,17 +285,87 @@ final class BlobClient
         return base64_encode(str_pad((string) count($blockIds), 6, '0', STR_PAD_LEFT));
     }
 
+    /**
+     * @deprecated use syncCopyFromUri or startCopyFromUri instead
+     */
     public function copyFromUri(UriInterface $source): void
     {
-        $this->copyFromUriAsync($source)->wait();
+        $this->client
+            ->putAsync($this->uri, [
+                'headers' => [
+                    'x-ms-copy-source' => (string) $source,
+                ],
+            ]);
     }
 
-    public function copyFromUriAsync(UriInterface $source): PromiseInterface
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob-from-url
+     */
+    public function syncCopyFromUri(UriInterface $source, ?SyncCopyFromUriOptions $options = null): BlobCopyResult
+    {
+        /** @phpstan-ignore-next-line */
+        return $this->syncCopyFromUriAsync($source, $options)->wait();
+    }
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob-from-url
+     */
+    public function syncCopyFromUriAsync(UriInterface $source, ?SyncCopyFromUriOptions $options = null): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
                 'headers' => [
                     'x-ms-copy-source' => (string) $source,
+                    'x-ms-requires-sync' => 'true',
+                ],
+            ])
+            ->then(BlobCopyResult::fromResponse(...));
+    }
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob-from-url
+     */
+    public function startCopyFromUri(UriInterface $source, ?StartCopyFromUriOptions $options = null): BlobCopyResult
+    {
+        /** @phpstan-ignore-next-line */
+        return $this->startCopyFromUriAsync($source, $options)->wait();
+    }
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob-from-url
+     */
+    public function startCopyFromUriAsync(UriInterface $source, ?StartCopyFromUriOptions $options = null): PromiseInterface
+    {
+        return $this->client
+            ->putAsync($this->uri, [
+                'headers' => [
+                    'x-ms-copy-source' => (string) $source,
+                ],
+            ])
+            ->then(BlobCopyResult::fromResponse(...));
+    }
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/abort-copy-blob
+     */
+    public function abortCopyFromUri(string $copyId, ?AbortCopyFromUriOptions $options = null): void
+    {
+        $this->abortCopyFromUriAsync($copyId, $options)->wait();
+    }
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/abort-copy-blob
+     */
+    public function abortCopyFromUriAsync(string $copyId, ?AbortCopyFromUriOptions $options = null): PromiseInterface
+    {
+        return $this->client
+            ->putAsync($this->uri, [
+                'query' => [
+                    'comp' => 'copy',
+                    'copyid' => $copyId,
+                ],
+                'headers' => [
+                    'x-ms-copy-action' => 'abort',
                 ],
             ]);
     }

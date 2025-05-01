@@ -7,8 +7,11 @@ namespace AzureOss\Storage\Tests\Blob\Feature;
 use AzureOss\Storage\Blob\BlobClient;
 use AzureOss\Storage\Blob\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
+use AzureOss\Storage\Blob\Exceptions\CannotVerifyCopySourceException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
+use AzureOss\Storage\Blob\Exceptions\NoPendingCopyOperationException;
 use AzureOss\Storage\Blob\Exceptions\TagsTooLargeException;
+use AzureOss\Storage\Blob\Models\CopyStatus;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Blob\Sas\BlobSasPermissions;
@@ -295,7 +298,7 @@ final class BlobClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
-    public function copy_from_url_works(): void
+    public function sync_copy_from_url_works(): void
     {
         $sourceContainerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
 
@@ -303,8 +306,15 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
         $sourceBlobClient->upload("This should be copied!");
+        $sourceSas = $sourceBlobClient->generateSasUri(
+            BlobSasBuilder::new()
+                ->setPermissions(new BlobSasPermissions(read: true))
+                ->setExpiresOn((new \DateTime())->modify("+ 1min")),
+        );
 
-        $this->blobClient->copyFromUri($sourceBlobClient->uri);
+        $result = $this->blobClient->syncCopyFromUri($sourceSas);
+
+        self::assertEquals(CopyStatus::SUCCESS, $result->copyStatus);
 
         $sourceContent = $sourceBlobClient->downloadStreaming()->content->getContents();
         $targetContent = $this->blobClient->downloadStreaming()->content->getContents();
@@ -313,28 +323,112 @@ final class BlobClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
-    public function copy_from_url_works_throws_if_source_container_doesnt_exist(): void
+    public function sync_copy_from_url_throws_if_source_container_doesnt_exist(): void
     {
-        $sourceContainerClient = $this->serviceClient->getContainerClient("blobclienttestscopy");
+        $sourceContainerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
         $sourceContainerClient->deleteIfExists(); // cleanup
 
         $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
-        $this->expectException(ContainerNotFoundException::class);
+        $sourceSas = $sourceBlobClient->generateSasUri(
+            BlobSasBuilder::new()
+                ->setPermissions(new BlobSasPermissions(read: true))
+                ->setExpiresOn((new \DateTime())->modify("+ 1min")),
+        );
 
-        $this->blobClient->copyFromUri($sourceBlobClient->uri);
+        // somehow azurite doesn't throw the expected exception
+        if ($this->isUsingSimulator()) {
+            $this->expectException(ContainerNotFoundException::class);
+        } else {
+            $this->expectException(CannotVerifyCopySourceException::class);
+        }
+
+        $this->blobClient->syncCopyFromUri($sourceSas);
     }
 
     #[Test]
-    public function copy_from_url_works_throws_if_source_blob_doesnt_exist(): void
+    public function sync_copy_from_url_works_throws_if_source_blob_doesnt_exist(): void
     {
-        $sourceContainerClient = $this->serviceClient->getContainerClient("copyfromurl");
+        $sourceContainerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
 
         $this->cleanContainer($sourceContainerClient->containerName);
 
         $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
+
+        // somehow azurite doesn't throw the expected exception
+        if ($this->isUsingSimulator()) {
+            $this->expectException(BlobNotFoundException::class);
+        } else {
+            $this->expectException(CannotVerifyCopySourceException::class);
+        }
+
+        $this->blobClient->syncCopyFromUri($sourceBlobClient->uri);
+    }
+
+    #[Test]
+    public function start_copy_from_url_works(): void
+    {
+        $sourceContainerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+
+        $this->cleanContainer($sourceContainerClient->containerName);
+
+        $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
+        $sourceBlobClient->upload('This should be copied!');
+        $sourceSas = $sourceBlobClient->generateSasUri(
+            BlobSasBuilder::new()
+                ->setPermissions(new BlobSasPermissions(read: true))
+                ->setExpiresOn((new \DateTime())->modify("+ 1min")),
+        );
+
+        $this->blobClient->startCopyFromUri($sourceSas);
+
+        // this might finish sync or async, but we can't check for a specific behaviour
+
+        self::assertTrue($this->blobClient->getProperties()->copyStatus !== null);
+    }
+
+    #[Test]
+    public function start_copy_from_url_throws_if_source_blob_doesnt_exist(): void
+    {
+        $sourceContainerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+
+        $this->cleanContainer($sourceContainerClient->containerName);
+
+        $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
+
         $this->expectException(BlobNotFoundException::class);
 
-        $this->blobClient->copyFromUri($sourceBlobClient->uri);
+        $this->blobClient->startCopyFromUri($sourceBlobClient->uri);
+    }
+
+    #[Test]
+    public function abort_copy_from_url_works(): void
+    {
+        // found no reliable way to test this, because the copy operation is too fast
+        // this depends on the blob server load
+
+        self::markTestSkipped();
+    }
+
+    #[Test]
+    public function abort_copy_from_url_throws_if_copy_id_doesnt_exist(): void
+    {
+        $sourceContainerClient = $this->serviceClient->getContainerClient($this->randomContainerName());
+
+        $this->cleanContainer($sourceContainerClient->containerName);
+
+        $sourceBlobClient = $sourceContainerClient->getBlobClient("to_copy");
+        $sourceBlobClient->upload("This should be copied!");
+        $sourceSas = $sourceBlobClient->generateSasUri(
+            BlobSasBuilder::new()
+                ->setPermissions(new BlobSasPermissions(read: true))
+                ->setExpiresOn((new \DateTime())->modify("+ 1min")),
+        );
+
+        $result = $this->blobClient->syncCopyFromUri($sourceSas);
+
+        $this->expectException(NoPendingCopyOperationException::class);
+
+        $this->blobClient->abortCopyFromUri($result->copyId);
     }
 
     #[Test]

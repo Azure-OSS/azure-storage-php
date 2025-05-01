@@ -73,9 +73,17 @@ Copy a blob
 ```php
 $sourceBlobClient = $containerClient->getBlobClient("source.txt");
 
-// Can also be a different container
+// If the container is not public, you will have to create a SAS uri with read rights
 $targetBlobClient = $containerClient->getBlobClient("target.txt");
-$targetBlobClient->copyFromUri($sourceBlobClient->uri);
+$targetBlobClient->syncCopyFromUri($sourceBlobClient->uri);
+```
+Copy a blob with asynchronous scheduling
+```php
+$copyResult = $targetBlobClient->startCopyFromUri(new Uri(...));
+
+if ($targetBlobClient->getProperties()->copyStatus === CopyStatus::PENDING) {
+    $targetBlobClient->abortCopyFromUri($copyResult->copyId);
+}
 ```
 
 Generate a container [Service SAS](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview#service-sas)
