@@ -471,4 +471,25 @@ final class BlobClientTest extends BlobFeatureTestCase
 
         $this->containerClient->getBlobClient("noop")->setMetadata(["foo" => "bar"]);
     }
+
+    #[Test]
+    public function set_cache_control_works(): void
+    {
+        FileFactory::withStream(1000, function (StreamInterface $file) {
+            $beforeUploadContent = $file->getContents();
+            $file->rewind();
+
+            $this->blobClient->upload($file, new UploadBlobOptions("text/plain", initialTransferSize: 2000, cacheControl: "immutable"));
+
+            $properties = $this->blobClient->getProperties();
+
+            self::assertEquals("text/plain", $properties->contentType);
+            self::assertEquals(1000, $properties->contentLength);
+            self::assertEquals("immutable", $properties->cacheControl);
+
+            $afterUploadContent = $this->blobClient->downloadStreaming()->content;
+
+            self::assertEquals($beforeUploadContent, $afterUploadContent);
+        });
+    }
 }

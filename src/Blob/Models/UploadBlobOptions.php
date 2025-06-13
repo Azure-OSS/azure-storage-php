@@ -16,5 +16,6 @@ final class UploadBlobOptions
         public int $initialTransferSize = 256_000_000,
         public int $maximumTransferSize = 8_000_000,
         public int $maximumConcurrency = 25,
+        public ?string $cacheControl = null,
     ) {}
 }

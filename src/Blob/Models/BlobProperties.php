@@ -22,6 +22,7 @@ final class BlobProperties
         public readonly string $contentType,
         public readonly ?string $contentMD5,
         public readonly array $metadata,
+        public readonly ?string $cacheControl,
     ) {
         DeprecationHelper::constructorWillBePrivate(self::class, '2.0');
     }
@@ -34,6 +35,7 @@ final class BlobProperties
             $response->getHeaderLine('Content-Type'),
             HashHelper::deserializeMd5($response->getHeaderLine('Content-MD5')),
             MetadataHelper::headersToMetadata($response->getHeaders()),
+            $response->getHeaderLine('Cache-Control'),
         );
     }
 
@@ -49,6 +51,7 @@ final class BlobProperties
             /** @phpstan-ignore-next-line */
             HashHelper::deserializeMd5((string) $xml->{'Content-MD5'}),
             [],
+            null
         );
     }
 }

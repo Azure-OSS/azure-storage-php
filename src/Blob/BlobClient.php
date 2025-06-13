@@ -186,6 +186,7 @@ final class BlobClient
                     'x-ms-blob-type' => 'BlockBlob',
                     'Content-Type' => $options->contentType,
                     'Content-Length' => $content->getSize(),
+                    'Cache-Control' => $options->cacheControl
                 ],
                 'body' => $content,
             ]);
@@ -224,6 +225,7 @@ final class BlobClient
                         $blocks,
                         $options->contentType,
                         hash_final($contextMD5, true),
+                        $options->cacheControl
                     );
                 },
             );
@@ -262,6 +264,7 @@ final class BlobClient
                         $blocks,
                         $options->contentType,
                         StreamUtils::hash($content, 'md5', true),
+                        $options->cacheControl
                     );
                 },
             );
@@ -285,7 +288,7 @@ final class BlobClient
     /**
      * @param Block[] $blocks
      */
-    private function putBlockListAsync(array $blocks, ?string $contentType, string $contentMD5): PromiseInterface
+    private function putBlockListAsync(array $blocks, ?string $contentType, string $contentMD5, ?string $cacheControl = null): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
@@ -294,6 +297,7 @@ final class BlobClient
                 ],
                 'headers' => [
                     'x-ms-blob-content-type' => $contentType,
+                    'x-ms-blob-cache-control' => $cacheControl,
                     'x-ms-blob-content-md5' => base64_encode($contentMD5),
                 ],
                 'body' => (new PutBlockRequestBody($blocks))->toXml()->asXML(),
