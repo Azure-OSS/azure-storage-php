@@ -186,7 +186,10 @@ final class BlobClient
                     'x-ms-blob-type' => 'BlockBlob',
                     'Content-Type' => $options->contentType,
                     'Content-Length' => $content->getSize(),
-                    'Cache-Control' => $options->cacheControl
+                    'Cache-Control' => $options->cacheControl,
+                    'Content-Encoding' => $options->contentEncoding,
+                    'Content-Language' => $options->contentLanguage,
+                    'Content-Disposition' => $options->contentDisposition,
                 ],
                 'body' => $content,
             ]);
