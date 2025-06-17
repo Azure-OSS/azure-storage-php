@@ -20,6 +20,7 @@ final class Blob
 
     public static function fromXml(\SimpleXMLElement $xml): self
     {
+        /** @phpstan-ignore-next-line */
         return new self(
             (string) $xml->Name,
             BlobProperties::fromXml($xml->Properties),

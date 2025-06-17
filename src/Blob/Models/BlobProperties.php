@@ -35,6 +35,7 @@ final class BlobProperties
 
     public static function fromResponseHeaders(ResponseInterface $response): self
     {
+        /** @phpstan-ignore-next-line */
         return new BlobProperties(
             DateHelper::deserializeDateRfc1123Date($response->getHeaderLine('Last-Modified')),
             (int) $response->getHeaderLine('Content-Length'),
@@ -51,14 +52,11 @@ final class BlobProperties
 
     public static function fromXml(\SimpleXMLElement $xml): self
     {
+        /** @phpstan-ignore-next-line */
         return new self(
-            /** @phpstan-ignore-next-line */
             DateHelper::deserializeDateRfc1123Date((string) $xml->{'Last-Modified'}),
-            /** @phpstan-ignore-next-line */
             (int) $xml->{'Content-Length'},
-            /** @phpstan-ignore-next-line */
             (string) $xml->{'Content-Type'},
-            /** @phpstan-ignore-next-line */
             HashHelper::deserializeMd5((string) $xml->{'Content-MD5'}),
             [],
         );

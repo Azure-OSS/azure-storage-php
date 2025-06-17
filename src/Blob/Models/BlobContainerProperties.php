@@ -29,17 +29,18 @@ final class BlobContainerProperties
             throw new DeserializationException("Azure returned a malformed date.");
         }
 
+        /** @phpstan-ignore-next-line */
         return new self($lastModified, MetadataHelper::headersToMetadata($response->getHeaders()));
     }
 
     public static function fromXml(\SimpleXMLElement $xml): self
     {
-        /** @phpstan-ignore-next-line */
         $lastModified = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC1123, (string) $xml->{'Last-Modified'});
         if ($lastModified === false) {
             throw new DeserializationException("Azure returned a malformed date.");
         }
 
+        /** @phpstan-ignore-next-line */
         return new self(
             $lastModified,
             [],

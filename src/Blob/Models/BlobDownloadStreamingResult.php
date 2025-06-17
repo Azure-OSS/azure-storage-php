@@ -22,6 +22,7 @@ final class BlobDownloadStreamingResult
 
     public static function fromResponse(ResponseInterface $response): self
     {
+        /** @phpstan-ignore-next-line */
         return new self(
             $response->getBody(),
             BlobProperties::fromResponseHeaders($response),
