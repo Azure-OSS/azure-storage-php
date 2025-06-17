@@ -23,11 +23,13 @@ use AzureOss\Storage\Blob\Responses\ListBlobsResponseBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Blob\Specialized\BlockBlobClient;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
+use AzureOss\Storage\Common\Auth\TokenCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\SasProtocol;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\UriInterface;
 
 final class BlobContainerClient
@@ -43,21 +45,31 @@ final class BlobContainerClient
     public readonly string $containerName;
 
     /**
+     * @deprecated Use $credential instead.
+     */
+    public ?StorageSharedKeyCredential $sharedKeyCredential = null;
+
+    /**
      * @throws InvalidBlobUriException
      */
     public function __construct(
         public readonly UriInterface $uri,
-        public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
+        public readonly StorageSharedKeyCredential|TokenCredential|null $credential = null,
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
-        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer());
+
+        if ($credential instanceof StorageSharedKeyCredential) {
+            /** @phpstan-ignore-next-line  */
+            $this->sharedKeyCredential = $credential;
+        }
     }
 
     public function getBlobClient(string $blobName): BlobClient
     {
         return new BlobClient(
             $this->getBlobUri($blobName),
-            $this->sharedKeyCredentials,
+            $this->credential,
         );
     }
 
@@ -65,7 +77,7 @@ final class BlobContainerClient
     {
         return new BlockBlobClient(
             $this->getBlobUri($blobName),
-            $this->sharedKeyCredentials,
+            $this->credential,
         );
     }
 
@@ -97,10 +109,10 @@ final class BlobContainerClient
         }
 
         return $this->client->putAsync($this->uri, [
-            'query' => [
+            RequestOptions::QUERY => [
                 'restype' => 'container',
             ],
-            'headers' => $headers,
+            RequestOptions::HEADERS => $headers,
         ]);
     }
 
@@ -135,7 +147,7 @@ final class BlobContainerClient
     public function deleteAsync(): PromiseInterface
     {
         return $this->client->deleteAsync($this->uri, [
-            'query' => [
+            RequestOptions::QUERY => [
                 'restype' => 'container',
             ],
         ]);
@@ -168,7 +180,7 @@ final class BlobContainerClient
     {
         return $this->client
             ->headAsync($this->uri, [
-                'query' => [
+                RequestOptions::QUERY => [
                     'restype' => 'container',
                 ],
             ])
@@ -192,7 +204,7 @@ final class BlobContainerClient
     {
         return $this->client
             ->getAsync($this->uri, [
-                'query' => [
+                RequestOptions::QUERY => [
                     'restype' => 'container',
                 ],
             ])
@@ -213,11 +225,11 @@ final class BlobContainerClient
     public function setMetadataAsync(array $metadata): PromiseInterface
     {
         return $this->client->putAsync($this->uri, [
-            'query' => [
+            RequestOptions::QUERY => [
                 'restype' => 'container',
                 'comp' => 'metadata',
             ],
-            'headers' => MetadataHelper::metadataToHeaders($metadata),
+            RequestOptions::HEADERS => MetadataHelper::metadataToHeaders($metadata),
         ]);
     }
 
@@ -271,7 +283,7 @@ final class BlobContainerClient
     private function listBlobs(?string $prefix, ?string $delimiter, string $marker, ?int $maxResults): ListBlobsResponseBody
     {
         $response = $this->client->get($this->uri, [
-            'query' => [
+            RequestOptions::QUERY => [
                 'restype' => 'container',
                 'comp' => 'list',
                 'prefix' => $prefix,
@@ -286,12 +298,12 @@ final class BlobContainerClient
 
     public function canGenerateSasUri(): bool
     {
-        return $this->sharedKeyCredentials !== null;
+        return $this->credential instanceof StorageSharedKeyCredential;
     }
 
     public function generateSasUri(BlobSasBuilder $blobSasBuilder): UriInterface
     {
-        if ($this->sharedKeyCredentials === null) {
+        if (! $this->credential instanceof StorageSharedKeyCredential) {
             throw new UnableToGenerateSasException();
         }
 
@@ -301,7 +313,7 @@ final class BlobContainerClient
 
         $sas = $blobSasBuilder
             ->setContainerName($this->containerName)
-            ->build($this->sharedKeyCredentials);
+            ->build($this->credential);
 
         return new Uri("$this->uri?$sas");
     }
@@ -315,7 +327,7 @@ final class BlobContainerClient
 
         while (true) {
             $response = $this->client->get($this->uri, [
-                'query' => [
+                RequestOptions::QUERY => [
                     'restype' => 'container',
                     'comp' => 'blobs',
                     'where' => $tagFilterSqlExpression,

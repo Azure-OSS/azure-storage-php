@@ -17,7 +17,7 @@ abstract class BlobFeatureTestCase extends TestCase
         $connectionString = getenv('AZURE_STORAGE_BLOB_TEST_CONNECTION_STRING');
 
         if (!is_string($connectionString)) {
-            throw new \Exception('Connection string not set!');
+            self::fail('Invalid connection string. Please set AZURE_STORAGE_BLOB_TEST_CONNECTION_STRING environment variable.');
         }
 
         $this->serviceClient = BlobServiceClient::fromConnectionString($connectionString);

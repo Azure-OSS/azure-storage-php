@@ -25,9 +25,9 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $connectionString = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;";
         $client = BlobServiceClient::fromConnectionString($connectionString);
 
-        self::assertNotNull($client->sharedKeyCredentials);
-        self::assertEquals('devstoreaccount1', $client->sharedKeyCredentials->accountName);
-        self::assertEquals('Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==', $client->sharedKeyCredentials->accountKey);
+        self::assertInstanceOf(StorageSharedKeyCredential::class, $client->credential);
+        self::assertEquals('devstoreaccount1', $client->credential->accountName);
+        self::assertEquals('Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==', $client->credential->accountKey);
         self::assertEquals("http://127.0.0.1:10000/devstoreaccount1/", (string) $client->uri);
     }
 
@@ -37,9 +37,9 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $connectionString = "DefaultEndpointsProtocol=https;AccountName=testing;AccountKey=Y2hlZXNlMWNoZWVzZTEyY2hlZXNlMTIzCg==;EndpointSuffix=core.windows.net";
         $client = BlobServiceClient::fromConnectionString($connectionString);
 
-        self::assertNotNull($client->sharedKeyCredentials);
-        self::assertEquals('testing', $client->sharedKeyCredentials->accountName);
-        self::assertEquals('Y2hlZXNlMWNoZWVzZTEyY2hlZXNlMTIzCg==', $client->sharedKeyCredentials->accountKey);
+        self::assertInstanceOf(StorageSharedKeyCredential::class, $client->credential);
+        self::assertEquals('testing', $client->credential->accountName);
+        self::assertEquals('Y2hlZXNlMWNoZWVzZTEyY2hlZXNlMTIzCg==', $client->credential->accountKey);
         self::assertEquals("https://testing.blob.core.windows.net/", (string) $client->uri);
     }
 
@@ -49,9 +49,9 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $connectionString = "UseDevelopmentStorage=true";
         $client = BlobServiceClient::fromConnectionString($connectionString);
 
-        self::assertNotNull($client->sharedKeyCredentials);
-        self::assertEquals('devstoreaccount1', $client->sharedKeyCredentials->accountName);
-        self::assertEquals('Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==', $client->sharedKeyCredentials->accountKey);
+        self::assertInstanceOf(StorageSharedKeyCredential::class, $client->credential);
+        self::assertEquals('devstoreaccount1', $client->credential->accountName);
+        self::assertEquals('Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==', $client->credential->accountKey);
         self::assertEquals("http://127.0.0.1:10000/devstoreaccount1/", (string) $client->uri);
     }
 
@@ -85,7 +85,7 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
         $connectionString = "BlobEndpoint=https://storagesample.blob.core.windows.net;SharedAccessSignature=sv=2015-07-08&sig=iCvQmdZngZNW%2F4vw43j6%2BVz6fndHF5LI639QJba4r8o%3D&spr=https&st=2016-04-12T03%3A24%3A31Z&se=2016-04-13T03%3A29%3A31Z&srt=s&ss=bf&sp=rwl";
         $client = BlobServiceClient::fromConnectionString($connectionString);
 
-        self::assertNull($client->sharedKeyCredentials);
+        self::assertNull($client->credential);
         self::assertEquals("https://storagesample.blob.core.windows.net/?sv=2015-07-08&sig=iCvQmdZngZNW%2F4vw43j6%2BVz6fndHF5LI639QJba4r8o%3D&spr=https&st=2016-04-12T03%3A24%3A31Z&se=2016-04-13T03%3A29%3A31Z&srt=s&ss=bf&sp=rwl", (string) $client->uri);
     }
 
@@ -115,7 +115,7 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
 
         $containerClient = $client->getContainerClient("testing");
 
-        self::assertEquals($client->sharedKeyCredentials, $containerClient->sharedKeyCredentials);
+        self::assertEquals($client->credential, $containerClient->credential);
         self::assertEquals("http://127.0.0.1:10000/devstoreaccount1/testing", (string) $containerClient->uri);
     }
 
@@ -195,13 +195,13 @@ final class BlobServiceClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
-    public function generate_account_sas_throws_when_there_are_no_shared_key_credentials(): void
+    public function generate_account_sas_throws_when_there_are_no_shared_key_credential(): void
     {
         $this->expectException(UnableToGenerateSasException::class);
 
-        $serviceClientWithoutCredentials = new BlobServiceClient(new Uri("example.com"));
+        $serviceClientWithoutCredential = new BlobServiceClient(new Uri("example.com"));
 
-        $serviceClientWithoutCredentials->generateAccountSasUri(
+        $serviceClientWithoutCredential->generateAccountSasUri(
             AccountSasBuilder::new(),
         );
     }

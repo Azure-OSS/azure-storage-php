@@ -12,10 +12,12 @@ use AzureOss\Storage\Blob\Models\BlockBlobCommitBlockListOptions;
 use AzureOss\Storage\Blob\Models\BlockBlobStageBlockOptions;
 use AzureOss\Storage\Blob\Requests\PutBlockRequestBody;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
+use AzureOss\Storage\Common\Auth\TokenCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Utils;
+use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 
@@ -28,15 +30,25 @@ final class BlockBlobClient
     public readonly string $blobName;
 
     /**
+     * @deprecated Use $credential instead.
+     */
+    public ?StorageSharedKeyCredential $sharedKeyCredential = null;
+
+    /**
      * @throws InvalidBlobUriException
      */
     public function __construct(
         public readonly UriInterface $uri,
-        public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
+        public readonly StorageSharedKeyCredential|TokenCredential|null $credential = null,
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
-        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer());
+
+        if ($credential instanceof StorageSharedKeyCredential) {
+            /** @phpstan-ignore-next-line  */
+            $this->sharedKeyCredential = $credential;
+        }
     }
 
     public function stageBlock(string $base64BlockId, StreamInterface|string $content, ?BlockBlobStageBlockOptions $options = null): void
@@ -52,11 +64,11 @@ final class BlockBlobClient
 
         return $this->client
             ->putAsync($this->uri, [
-                'query' => [
+                RequestOptions::QUERY => [
                     'comp' => 'block',
                     'blockid' => $base64BlockId,
                 ],
-                'headers' => [
+                RequestOptions::HEADERS => [
                     'Content-MD5' => HashHelper::serializeMd5($md5),
                     'Content-Length' => $stream->getSize(),
                 ],
@@ -79,10 +91,10 @@ final class BlockBlobClient
     {
         return $this->client
             ->putAsync($this->uri, [
-                'query' => [
+                RequestOptions::QUERY => [
                     'comp' => 'blocklist',
                 ],
-                'headers' => [
+                RequestOptions::HEADERS => [
                     'x-ms-blob-content-type' => $options?->contentType,
                     'x-ms-blob-content-md5' => $options?->contentMD5 !== null ? HashHelper::serializeMd5($options->contentMD5) : null,
                 ],

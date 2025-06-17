@@ -11,7 +11,7 @@ use Psr\Http\Message\RequestInterface;
 /**
  * @internal
  */
-final class AddAuthorizationHeaderMiddleware
+final class AddSharedKeyAuthorizationHeaderMiddleware
 {
     private const INCLUDED_HEADERS = [
         'Content-Encoding',
