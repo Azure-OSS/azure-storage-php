@@ -28,7 +28,7 @@ final class BlobContainerProperties
         if ($lastModified === false) {
             throw new DeserializationException("Azure returned a malformed date.");
         }
-        
+
         /** @phpstan-ignore-next-line */
         return new self($lastModified, MetadataHelper::headersToMetadata($response->getHeaders()));
     }
