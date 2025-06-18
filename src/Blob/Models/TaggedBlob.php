@@ -27,6 +27,7 @@ final class TaggedBlob
             $tags[(string) $tag->Key] = (string) $tag->Value;
         }
 
+        /** @phpstan-ignore-next-line */
         return new self(
             (string) $xml->Name,
             (string) $xml->ContainerName,
