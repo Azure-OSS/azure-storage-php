@@ -28,7 +28,7 @@ final class ClientSecretCredential implements TokenCredential
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ],
             RequestOptions::FORM_PARAMS => [
-                'grant_type' => 'client_credential',
+                'grant_type' => 'client_credentials',
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
                 'resource' => 'https://storage.azure.com/',
