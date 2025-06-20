@@ -12,6 +12,7 @@ use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use AzureOss\Storage\Blob\Helpers\StreamHelper;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
+use AzureOss\Storage\Blob\Models\BlobHttpHeaders;
 use AzureOss\Storage\Blob\Models\BlobProperties;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Requests\BlobTagsBody;
@@ -153,54 +154,58 @@ final class BlobClient
     /**
      * @param string|resource|StreamInterface $content
      */
-    public function upload($content, ?UploadBlobOptions $options = null): void
+    public function upload($content, ?UploadBlobOptions $options = null,?BlobHttpHeaders $headers = null): void
     {
-        $this->uploadAsync($content, $options)->wait();
+        $this->uploadAsync($content, $options, $headers)->wait();
     }
 
     /**
      * @param string|resource|StreamInterface $content
      */
-    public function uploadAsync($content, ?UploadBlobOptions $options = null): PromiseInterface
+    public function uploadAsync($content, ?UploadBlobOptions $options = null, ?BlobHttpHeaders $headers = null): PromiseInterface
     {
         if ($options === null) {
             $options = new UploadBlobOptions();
+        }
+        if ($headers === null) {
+            $headers = new BlobHttpHeaders();
         }
 
         $content = StreamHelper::createUploadStream($content, $options->maximumTransferSize);
 
         if ($content->getSize() === null || ! $content->isSeekable()) {
-            return $this->uploadInSequentialBlocksAsync($content, $options);
+            return $this->uploadInSequentialBlocksAsync($content, $options, $headers);
         } elseif ($content->getSize() > $options->initialTransferSize) {
-            return $this->uploadInParallelBlocksAsync($content, $options);
+            return $this->uploadInParallelBlocksAsync($content, $options, $headers);
         } else {
-            return $this->uploadSingleAsync($content, $options);
+            return $this->uploadSingleAsync($content, $options, $headers);
         }
     }
 
-    private function uploadSingleAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
+    private function uploadSingleAsync(StreamInterface $content, UploadBlobOptions $options, BlobHttpHeaders $headers): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
-                'headers' => [
+                'headers' => array_filter([
                     'x-ms-blob-type' => 'BlockBlob',
-                    'Content-Type' => $options->contentType,
                     'Content-Length' => $content->getSize(),
-                    'Cache-Control' => $options->cacheControl,
-                    'Content-Encoding' => $options->contentEncoding,
-                    'Content-Language' => $options->contentLanguage,
-                    'Content-Disposition' => $options->contentDisposition,
-                ],
+                    'Cache-Control' => $headers->cacheControl,
+                    'Content-Type' => $headers->contentType,
+                    'Content-Encoding' => $headers->contentEncoding,
+                    'Content-Language' => $headers->contentLanguage,
+                    'Content-Disposition' => $headers->contentDisposition,
+                    'Content-MD5' => $headers->contentHash,
+                ], fn ($value) => $value !== null),
                 'body' => $content,
             ]);
     }
 
-    private function uploadInSequentialBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
+    private function uploadInSequentialBlocksAsync(StreamInterface $content, UploadBlobOptions $options, BlobHttpHeaders $headers): PromiseInterface
     {
         $blocks = [];
         $contextMD5 = hash_init('md5');
 
-        $putBlockRequestGenerator = function () use (&$content, &$options, &$blocks, &$contextMD5): \Generator {
+        $putBlockRequestGenerator = function () use (&$content, &$options, &$blocks, &$contextMD5, $headers): \Generator {
             while (true) {
                 $blockContent = $content->read($options->maximumTransferSize);
                 if ($blockContent === "") {
@@ -212,7 +217,7 @@ final class BlobClient
 
                 hash_update($contextMD5, $blockContent);
 
-                yield fn() => $this->putBlockAsync($block, $blockContent);
+                yield fn() => $this->putBlockAsync($block, $blockContent, $headers);
             }
         };
 
@@ -223,22 +228,21 @@ final class BlobClient
         ))
             ->promise()
             ->then(
-                function () use (&$blocks, &$options, &$contextMD5) {
+                function () use (&$blocks, $headers, &$contextMD5) {
                     return $this->putBlockListAsync(
                         $blocks,
-                        $options->contentType,
                         hash_final($contextMD5, true),
-                        $options->cacheControl
+                        $headers
                     );
                 },
             );
     }
 
-    private function uploadInParallelBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
+    private function uploadInParallelBlocksAsync(StreamInterface $content, UploadBlobOptions $options, BlobHttpHeaders $headers): PromiseInterface
     {
         $blocks = [];
 
-        $putBlockRequestGenerator = function () use (&$content, &$options, &$blocks): \Generator {
+        $putBlockRequestGenerator = function () use (&$content, &$options, &$blocks, $headers): \Generator {
             while (true) {
                 $blockContent = StreamUtils::streamFor();
                 StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);
@@ -249,7 +253,7 @@ final class BlobClient
                 $block = new Block(count($blocks), BlockType::UNCOMMITTED);
                 $blocks[] = $block;
 
-                yield fn() => $this->putBlockAsync($block, $blockContent);
+                yield fn() => $this->putBlockAsync($block, $blockContent, $headers);
             }
         };
 
@@ -262,18 +266,17 @@ final class BlobClient
         return $pool
             ->promise()
             ->then(
-                function () use (&$content, &$blocks, &$options) {
+                function () use (&$content, &$blocks, $headers) {
                     return $this->putBlockListAsync(
                         $blocks,
-                        $options->contentType,
                         StreamUtils::hash($content, 'md5', true),
-                        $options->cacheControl
+                        $headers,
                     );
                 },
             );
     }
 
-    private function putBlockAsync(Block $block, StreamInterface|string $content): PromiseInterface
+    private function putBlockAsync(Block $block, StreamInterface|string $content, BlobHttpHeaders $headers): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
@@ -281,9 +284,14 @@ final class BlobClient
                     'comp' => 'block',
                     'blockid' => $block->getId(),
                 ],
-                'headers' => [
+                'headers' => array_filter([
+                    'Cache-Control' => $headers->cacheControl,
                     'Content-Length' => is_string($content) ? strlen($content) : $content->getSize(),
-                ],
+                    'Content-Disposition' => $headers->contentDisposition,
+                    'Content-Encoding' => $headers->contentEncoding,
+                    'Content-Language' => $headers->contentLanguage,
+                    'Content-MD5' => $headers->contentHash,
+                ], fn ($value) => $value !== null),
                 'body' => $content,
             ]);
     }
@@ -291,18 +299,22 @@ final class BlobClient
     /**
      * @param Block[] $blocks
      */
-    private function putBlockListAsync(array $blocks, ?string $contentType, string $contentMD5, ?string $cacheControl = null): PromiseInterface
+    private function putBlockListAsync(array $blocks, string $contentMD5, BlobHttpHeaders $headers): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
                 'query' => [
                     'comp' => 'blocklist',
                 ],
-                'headers' => [
-                    'x-ms-blob-content-type' => $contentType,
-                    'x-ms-blob-cache-control' => $cacheControl,
+                'headers' => array_filter([
+                    'x-ms-blob-cache-control' => $headers->cacheControl,
+                    'x-ms-blob-content-type' => $headers->contentType,
                     'x-ms-blob-content-md5' => base64_encode($contentMD5),
-                ],
+                    'x-ms-blob-content-encoding' => $headers->contentEncoding,
+                    'x-ms-blob-content-language' => $headers->contentLanguage,
+                    'x-ms-blob-content-disposition' => $headers->contentDisposition,
+
+                ], fn ($value) => $value !== null),
                 'body' => (new PutBlockRequestBody($blocks))->toXml()->asXML(),
             ]);
     }
