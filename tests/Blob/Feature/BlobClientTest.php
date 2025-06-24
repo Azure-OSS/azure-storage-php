@@ -9,6 +9,7 @@ use AzureOss\Storage\Blob\BlobContainerClient;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\TagsTooLargeException;
+use AzureOss\Storage\Blob\Models\BlobHttpHeaders;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Blob\Sas\BlobSasPermissions;
@@ -477,17 +478,28 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         FileFactory::withStream(1000, function (StreamInterface $file) {
             $beforeUploadContent = $file->getContents();
+            $hash = base64_encode(md5(gzcompress($beforeUploadContent), true));
             $file->rewind();
 
-            $this->blobClient->upload($file, new UploadBlobOptions("text/plain", initialTransferSize: 2000, cacheControl: "immutable"));
+            $this->blobClient->upload(gzcompress($beforeUploadContent), new UploadBlobOptions("text/plain", initialTransferSize: 2000),
+                new BlobHttpHeaders(
+                    cacheControl: "immutable",
+                    contentEncoding: "gzip",
+                    contentLanguage: "en",
+                    contentDisposition: "inline",
+                    contentHash: $hash,
+                ));
 
             $properties = $this->blobClient->getProperties();
 
             self::assertEquals("text/plain", $properties->contentType);
-            self::assertEquals(1000, $properties->contentLength);
+            self::assertEquals(17, $properties->contentLength);
             self::assertEquals("immutable", $properties->cacheControl);
+            self::assertEquals("inline", $properties->contentDisposition);
+            self::assertEquals("en", $properties->contentLanguage);
+            self::assertEquals("gzip", $properties->contentEncoding);
 
-            $afterUploadContent = $this->blobClient->downloadStreaming()->content;
+            $afterUploadContent = ($this->blobClient->downloadStreaming()->content);
 
             self::assertEquals($beforeUploadContent, $afterUploadContent);
         });

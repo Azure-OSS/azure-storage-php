@@ -11,6 +11,7 @@
          displayDetailsOnTestsThatTriggerWarnings="true">
     <php>
         <env name="AZURE_STORAGE_BLOB_TEST_CONNECTION_STRING" value="UseDevelopmentStorage=true"/>
+        <ini name="memory_limit" value="164M" />
     </php>
 
     <testsuites>

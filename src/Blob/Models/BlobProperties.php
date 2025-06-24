@@ -22,7 +22,10 @@ final class BlobProperties
         public readonly string $contentType,
         public readonly ?string $contentMD5,
         public readonly array $metadata,
-        public readonly ?string $cacheControl,
+        public readonly ?string $cacheControl = null,
+        public readonly ?string $contentDisposition = null,
+        public readonly ?string $contentLanguage = null,
+        public readonly ?string $contentEncoding = null,
     ) {
         DeprecationHelper::constructorWillBePrivate(self::class, '2.0');
     }
@@ -31,11 +34,14 @@ final class BlobProperties
     {
         return new BlobProperties(
             DateHelper::deserializeDateRfc1123Date($response->getHeaderLine('Last-Modified')),
-            (int) $response->getHeaderLine('Content-Length'),
+            (int) ($response->getHeaderLine('Content-Length') ?: $response->getHeaderLine("x-encoded-content-length")),
             $response->getHeaderLine('Content-Type'),
             HashHelper::deserializeMd5($response->getHeaderLine('Content-MD5')),
             MetadataHelper::headersToMetadata($response->getHeaders()),
             $response->getHeaderLine('Cache-Control'),
+            $response->getHeaderLine('Content-Disposition'),
+            $response->getHeaderLine('Content-Language'),
+            $response->getHeaderLine('x-encoded-content-encoding'),
         );
     }
 

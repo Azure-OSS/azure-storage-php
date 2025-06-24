@@ -12,6 +12,7 @@ final class UploadBlobOptions
      * @param int $maximumConcurrency The maximum number of workers that may be used in a parallel transfer.
      */
     public function __construct(
+        public ?string $contentType = null,
         public int $initialTransferSize = 256_000_000,
         public int $maximumTransferSize = 8_000_000,
         public int $maximumConcurrency = 25,

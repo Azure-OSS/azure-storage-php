@@ -189,12 +189,12 @@ final class BlobClient
                 'headers' => array_filter([
                     'x-ms-blob-type' => 'BlockBlob',
                     'Content-Length' => $content->getSize(),
-                    'Cache-Control' => $headers->cacheControl,
-                    'Content-Type' => $headers->contentType,
-                    'Content-Encoding' => $headers->contentEncoding,
-                    'Content-Language' => $headers->contentLanguage,
-                    'Content-Disposition' => $headers->contentDisposition,
-                    'Content-MD5' => $headers->contentHash,
+                    'x-ms-blob-cache-control' => $headers->cacheControl,
+                    'x-ms-blob-content-type' => $headers->contentType ?? $options->contentType,
+                    'x-ms-blob-content-encoding' => $headers->contentEncoding,
+                    'x-ms-blob-content-language' => $headers->contentLanguage,
+                    'x-ms-blob-content-disposition' => $headers->contentDisposition,
+                    'x-ms-blob-content-md5' => $headers->contentHash,
                 ], fn ($value) => $value !== null),
                 'body' => $content,
             ]);
@@ -228,9 +228,10 @@ final class BlobClient
         ))
             ->promise()
             ->then(
-                function () use (&$blocks, $headers, &$contextMD5) {
+                function () use (&$blocks, &$options, &$contextMD5, &$headers) {
                     return $this->putBlockListAsync(
                         $blocks,
+                        $headers->contentType ?? $options->contentType,
                         hash_final($contextMD5, true),
                         $headers
                     );
@@ -266,9 +267,10 @@ final class BlobClient
         return $pool
             ->promise()
             ->then(
-                function () use (&$content, &$blocks, $headers) {
+                function () use (&$content, &$blocks, &$options, &$headers) {
                     return $this->putBlockListAsync(
                         $blocks,
+                        $headers->contentType ?? $options->contentType,
                         StreamUtils::hash($content, 'md5', true),
                         $headers,
                     );
@@ -299,7 +301,7 @@ final class BlobClient
     /**
      * @param Block[] $blocks
      */
-    private function putBlockListAsync(array $blocks, string $contentMD5, BlobHttpHeaders $headers): PromiseInterface
+    private function putBlockListAsync(array $blocks, ?string $contentType, string $contentMD5, BlobHttpHeaders $headers): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
@@ -308,7 +310,7 @@ final class BlobClient
                 ],
                 'headers' => array_filter([
                     'x-ms-blob-cache-control' => $headers->cacheControl,
-                    'x-ms-blob-content-type' => $headers->contentType,
+                    'x-ms-blob-content-type' => $headers->contentType ?? $contentType,
                     'x-ms-blob-content-md5' => base64_encode($contentMD5),
                     'x-ms-blob-content-encoding' => $headers->contentEncoding,
                     'x-ms-blob-content-language' => $headers->contentLanguage,
