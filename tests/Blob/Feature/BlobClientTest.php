@@ -478,17 +478,20 @@ final class BlobClientTest extends BlobFeatureTestCase
     {
         FileFactory::withStream(1000, function (StreamInterface $file) {
             $beforeUploadContent = $file->getContents();
-            $hash = base64_encode(md5(gzcompress($beforeUploadContent), true));
+            $hash = base64_encode(md5(gzcompress($beforeUploadContent) ?: false, true));
             $file->rewind();
 
-            $this->blobClient->upload(gzcompress($beforeUploadContent), new UploadBlobOptions("text/plain", initialTransferSize: 2000),
+            $this->blobClient->upload(
+                gzcompress($beforeUploadContent),
+                new UploadBlobOptions("text/plain", initialTransferSize: 2000),
                 new BlobHttpHeaders(
                     cacheControl: "immutable",
                     contentEncoding: "gzip",
                     contentLanguage: "en",
                     contentDisposition: "inline",
                     contentHash: $hash,
-                ));
+                ),
+            );
 
             $properties = $this->blobClient->getProperties();
 

@@ -57,7 +57,7 @@ final class BlobProperties
             /** @phpstan-ignore-next-line */
             HashHelper::deserializeMd5((string) $xml->{'Content-MD5'}),
             [],
-            null
+            null,
         );
     }
 }

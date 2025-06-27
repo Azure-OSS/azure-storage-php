@@ -15,7 +15,6 @@ namespace AzureOss\Storage\Blob\Models;
  */
 final class BlobHttpHeaders
 {
-
     public function __construct(
         public ?string $contentType = null,
         public ?string $cacheControl = null,

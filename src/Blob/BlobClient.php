@@ -154,7 +154,7 @@ final class BlobClient
     /**
      * @param string|resource|StreamInterface $content
      */
-    public function upload($content, ?UploadBlobOptions $options = null,?BlobHttpHeaders $headers = null): void
+    public function upload($content, ?UploadBlobOptions $options = null, ?BlobHttpHeaders $headers = null): void
     {
         $this->uploadAsync($content, $options, $headers)->wait();
     }
@@ -195,7 +195,7 @@ final class BlobClient
                     'x-ms-blob-content-language' => $headers->contentLanguage,
                     'x-ms-blob-content-disposition' => $headers->contentDisposition,
                     'x-ms-blob-content-md5' => $headers->contentHash,
-                ], fn ($value) => $value !== null),
+                ], fn($value) => $value !== null),
                 'body' => $content,
             ]);
     }
@@ -233,7 +233,7 @@ final class BlobClient
                         $blocks,
                         $headers->contentType ?? $options->contentType,
                         hash_final($contextMD5, true),
-                        $headers
+                        $headers,
                     );
                 },
             );
@@ -293,7 +293,7 @@ final class BlobClient
                     'Content-Encoding' => $headers->contentEncoding,
                     'Content-Language' => $headers->contentLanguage,
                     'Content-MD5' => $headers->contentHash,
-                ], fn ($value) => $value !== null),
+                ], fn($value) => $value !== null),
                 'body' => $content,
             ]);
     }
@@ -316,7 +316,7 @@ final class BlobClient
                     'x-ms-blob-content-language' => $headers->contentLanguage,
                     'x-ms-blob-content-disposition' => $headers->contentDisposition,
 
-                ], fn ($value) => $value !== null),
+                ], fn($value) => $value !== null),
                 'body' => (new PutBlockRequestBody($blocks))->toXml()->asXML(),
             ]);
     }
