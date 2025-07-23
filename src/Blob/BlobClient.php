@@ -50,10 +50,11 @@ final class BlobClient
     public function __construct(
         public readonly UriInterface $uri,
         public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
+        private readonly array $options = [],
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
-        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer(), $this->options);
         $this->blockBlobClient = new BlockBlobClient($uri, $sharedKeyCredentials);
     }
 
