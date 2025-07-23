@@ -55,9 +55,10 @@ final class BlobContainerClient
     public function __construct(
         public readonly UriInterface $uri,
         public readonly StorageSharedKeyCredential|TokenCredential|null $credential = null,
+        private readonly array $options = [],
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
-        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer(), $this->options);
 
         if ($credential instanceof StorageSharedKeyCredential) {
             /** @phpstan-ignore-next-line  */
@@ -70,6 +71,7 @@ final class BlobContainerClient
         return new BlobClient(
             $this->getBlobUri($blobName),
             $this->credential,
+            $this->options,
         );
     }
 

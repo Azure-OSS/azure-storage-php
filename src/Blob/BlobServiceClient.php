@@ -36,10 +36,11 @@ final class BlobServiceClient
     public function __construct(
         public UriInterface $uri,
         public readonly StorageSharedKeyCredential|TokenCredential|null $credential = null,
+        private readonly array $options = [],
     ) {
         // must always include the forward slash (/) to separate the host name from the path and query portions of the URI.
         $this->uri = $uri->withPath(rtrim($uri->getPath(), '/') . "/");
-        $this->client = (new ClientFactory())->create($this->uri, $credential, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($this->uri, $credential, new BlobStorageExceptionDeserializer(), $this->options);
 
         if ($credential instanceof StorageSharedKeyCredential) {
             /** @phpstan-ignore-next-line  */
@@ -47,7 +48,7 @@ final class BlobServiceClient
         }
     }
 
-    public static function fromConnectionString(string $connectionString): self
+    public static function fromConnectionString(string $connectionString, array $options = []): self
     {
         $uri = ConnectionStringHelper::getBlobEndpoint($connectionString);
         if ($uri === null) {
@@ -56,13 +57,13 @@ final class BlobServiceClient
 
         $sas = ConnectionStringHelper::getSas($connectionString);
         if ($sas !== null) {
-            return new self($uri->withQuery($sas));
+            return new self($uri->withQuery($sas), options: $options);
         }
 
         $accountName = ConnectionStringHelper::getAccountName($connectionString);
         $accountKey = ConnectionStringHelper::getAccountKey($connectionString);
         if ($accountName !== null && $accountKey !== null) {
-            return new self($uri, new StorageSharedKeyCredential($accountName, $accountKey));
+            return new self($uri, new StorageSharedKeyCredential($accountName, $accountKey), $options);
         }
 
         throw new InvalidConnectionStringException();
@@ -73,6 +74,7 @@ final class BlobServiceClient
         return new BlobContainerClient(
             $this->uri->withPath($this->uri->getPath() . $containerName),
             $this->credential,
+            $this->options,
         );
     }
 
