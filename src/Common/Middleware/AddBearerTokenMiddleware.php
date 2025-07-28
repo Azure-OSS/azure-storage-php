@@ -25,7 +25,7 @@ final class AddBearerTokenMiddleware
                 $accessToken = $this->workloadIdentityCredential->getAccessToken();
                 $request = $request->withHeader('Authorization', "Bearer $accessToken");
             } catch (\Throwable $e) {
-                // Log the error but let the request continue - it will fail with 401
+                // Log the error and fail the request immediately
                 error_log("Failed to get access token for Azure Storage: " . $e->getMessage());
                 throw new \RuntimeException("Azure AD authentication failed: " . $e->getMessage(), 0, $e);
             }

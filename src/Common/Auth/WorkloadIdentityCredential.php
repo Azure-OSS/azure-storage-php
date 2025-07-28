@@ -23,8 +23,9 @@ final class WorkloadIdentityCredential
         public readonly ?string $tenantId = null,
         public readonly ?string $clientId = null,
         public readonly ?string $federatedTokenFile = null,
+        public readonly int $httpTimeoutSeconds = 10,
     ) {
-        $this->httpClient = new Client(['timeout' => 10]);
+        $this->httpClient = new Client(['timeout' => $this->httpTimeoutSeconds]);
     }
 
     /**
@@ -129,7 +130,12 @@ final class WorkloadIdentityCredential
                 ]
             ]);
 
-            $tokenData = json_decode($response->getBody()->getContents(), true);
+            $responseBody = $response->getBody()->getContents();
+            $tokenData = json_decode($responseBody, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \RuntimeException('Invalid JSON response from token endpoint: ' . json_last_error_msg());
+            }
             
             if (!isset($tokenData['access_token'])) {
                 throw new \RuntimeException('Invalid token response: missing access_token');

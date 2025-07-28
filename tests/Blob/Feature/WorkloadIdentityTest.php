@@ -109,4 +109,60 @@ final class WorkloadIdentityTest extends TestCase
             unset($_ENV['AZURE_TENANT_ID'], $_ENV['AZURE_CLIENT_ID'], $_ENV['AZURE_FEDERATED_TOKEN_FILE']);
         }
     }
+
+    #[Test]
+    public function workload_identity_throws_exception_when_environment_variables_missing(): void
+    {
+        // Ensure no environment variables are set
+        unset($_ENV['AZURE_TENANT_ID'], $_ENV['AZURE_CLIENT_ID'], $_ENV['AZURE_FEDERATED_TOKEN_FILE']);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Workload Identity environment variables not found');
+
+        $credential = WorkloadIdentityCredential::fromEnvironment('teststorageaccount');
+        $credential->refreshAccessToken();
+    }
+
+    #[Test]
+    public function workload_identity_throws_exception_when_token_file_missing(): void
+    {
+        // Mock environment variables but don't create the token file
+        $_ENV['AZURE_TENANT_ID'] = 'test-tenant-id';
+        $_ENV['AZURE_CLIENT_ID'] = 'test-client-id';
+        $_ENV['AZURE_FEDERATED_TOKEN_FILE'] = '/tmp/non-existent-token';
+
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('Federated token file not found: /tmp/non-existent-token');
+
+            $credential = WorkloadIdentityCredential::fromEnvironment('teststorageaccount');
+            $credential->refreshAccessToken();
+        } finally {
+            unset($_ENV['AZURE_TENANT_ID'], $_ENV['AZURE_CLIENT_ID'], $_ENV['AZURE_FEDERATED_TOKEN_FILE']);
+        }
+    }
+
+    #[Test]
+    public function workload_identity_throws_exception_when_empty_token_file(): void
+    {
+        // Mock environment variables and create empty token file
+        $_ENV['AZURE_TENANT_ID'] = 'test-tenant-id';
+        $_ENV['AZURE_CLIENT_ID'] = 'test-client-id';
+        $_ENV['AZURE_FEDERATED_TOKEN_FILE'] = '/tmp/empty-token';
+
+        // Create empty token file
+        file_put_contents('/tmp/empty-token', '');
+
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('Failed to read federated token');
+
+            $credential = WorkloadIdentityCredential::fromEnvironment('teststorageaccount');
+            $credential->refreshAccessToken();
+        } finally {
+            // Cleanup
+            unlink('/tmp/empty-token');
+            unset($_ENV['AZURE_TENANT_ID'], $_ENV['AZURE_CLIENT_ID'], $_ENV['AZURE_FEDERATED_TOKEN_FILE']);
+        }
+    }
 }
