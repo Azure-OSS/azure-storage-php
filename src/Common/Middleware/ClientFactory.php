@@ -6,6 +6,7 @@ namespace AzureOss\Storage\Common\Middleware;
 
 use AzureOss\Storage\Common\ApiVersion;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
+use AzureOss\Storage\Common\Auth\TokenCredential;
 use AzureOss\Storage\Common\Exceptions\RequestExceptionDeserializer;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
@@ -17,18 +18,26 @@ use Psr\Http\Message\UriInterface;
  */
 final class ClientFactory
 {
-    public function create(UriInterface $uri, ?StorageSharedKeyCredential $sharedKeyCredential, RequestExceptionDeserializer $exceptionDeserializer): Client
+    public function create(?UriInterface $uri = null, StorageSharedKeyCredential|TokenCredential|null $credential = null, ?RequestExceptionDeserializer $exceptionDeserializer = null): Client
     {
         $handlerStack = HandlerStack::create();
 
-        $handlerStack->before('http_errors', new DeserializeExceptionMiddleware($exceptionDeserializer));
+        if ($exceptionDeserializer !== null) {
+            $handlerStack->before('http_errors', new DeserializeExceptionMiddleware($exceptionDeserializer));
+        }
+
         $handlerStack->push(new AddXMsClientRequestIdMiddleware());
         $handlerStack->push(new AddXMsDateHeaderMiddleware());
         $handlerStack->push(new AddXMsVersionMiddleware(ApiVersion::LATEST));
-        $handlerStack->push(new AddDefaultQueryParamsMiddleware($uri->getQuery()));
 
-        if ($sharedKeyCredential !== null) {
-            $handlerStack->push(new AddAuthorizationHeaderMiddleware($sharedKeyCredential));
+        if ($uri !== null) {
+            $handlerStack->push(new AddDefaultQueryParamsMiddleware($uri->getQuery()));
+        }
+
+        if ($credential instanceof StorageSharedKeyCredential) {
+            $handlerStack->push(new AddSharedKeyAuthorizationHeaderMiddleware($credential));
+        } elseif ($credential instanceof TokenCredential) {
+            $handlerStack->push(new AddEntraIdAuthorizationHeaderMiddleware($credential));
         }
 
         $handlerStack->push($this->createRetryMiddleware());

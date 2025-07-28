@@ -45,7 +45,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $containerClient = $client->getContainerClient("testing");
         $blobClient = $containerClient->getBlobClient("some/file.txt");
 
-        self::assertEquals($blobClient->sharedKeyCredentials, $containerClient->sharedKeyCredentials);
+        self::assertEquals($blobClient->credential, $containerClient->credential);
         self::assertEquals("http://127.0.0.1:10000/devstoreaccount1/testing/some/file.txt", (string) $blobClient->uri);
     }
 
@@ -59,7 +59,7 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
         $containerClient = $client->getContainerClient("testing");
         $blobClient = $containerClient->getBlobClient("/some/file.txt");
 
-        self::assertEquals($blobClient->sharedKeyCredentials, $containerClient->sharedKeyCredentials);
+        self::assertEquals($blobClient->credential, $containerClient->credential);
         self::assertEquals("http://127.0.0.1:10000/devstoreaccount1/testing/some/file.txt", (string) $blobClient->uri);
     }
 
@@ -359,13 +359,13 @@ final class BlobContainerClientTest extends BlobFeatureTestCase
     }
 
     #[Test]
-    public function generate_sas_uri_throws_when_there_are_no_shared_key_credentials(): void
+    public function generate_sas_uri_throws_when_there_are_no_shared_key_credential(): void
     {
         $this->expectException(UnableToGenerateSasException::class);
 
-        $containerClientWithoutCredentials = new BlobContainerClient(new Uri("example.com"));
+        $containerClientWithoutCredential = new BlobContainerClient(new Uri("example.com"));
 
-        $containerClientWithoutCredentials->generateSasUri(
+        $containerClientWithoutCredential->generateSasUri(
             BlobSasBuilder::new(),
         );
     }

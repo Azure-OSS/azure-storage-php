@@ -13,6 +13,7 @@ use AzureOss\Storage\Blob\Models\TaggedBlob;
 use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListContainersResponseBody;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
+use AzureOss\Storage\Common\Auth\TokenCredential;
 use AzureOss\Storage\Common\Helpers\ConnectionStringHelper;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\AccountSasBuilder;
@@ -20,19 +21,30 @@ use AzureOss\Storage\Common\Sas\AccountSasServices;
 use AzureOss\Storage\Common\Sas\SasProtocol;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\UriInterface;
 
 final class BlobServiceClient
 {
     private readonly Client $client;
 
+    /**
+     * @deprecated Use $credential instead.
+     */
+    public ?StorageSharedKeyCredential $sharedKeyCredential = null;
+
     public function __construct(
         public UriInterface $uri,
-        public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
+        public readonly StorageSharedKeyCredential|TokenCredential|null $credential = null,
     ) {
         // must always include the forward slash (/) to separate the host name from the path and query portions of the URI.
         $this->uri = $uri->withPath(rtrim($uri->getPath(), '/') . "/");
-        $this->client = (new ClientFactory())->create($this->uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($this->uri, $credential, new BlobStorageExceptionDeserializer());
+
+        if ($credential instanceof StorageSharedKeyCredential) {
+            /** @phpstan-ignore-next-line  */
+            $this->sharedKeyCredential = $credential;
+        }
     }
 
     public static function fromConnectionString(string $connectionString): self
@@ -60,7 +72,7 @@ final class BlobServiceClient
     {
         return new BlobContainerClient(
             $this->uri->withPath($this->uri->getPath() . $containerName),
-            $this->sharedKeyCredentials,
+            $this->credential,
         );
     }
 
@@ -73,7 +85,7 @@ final class BlobServiceClient
 
         while (true) {
             $response = $this->client->get($this->uri, [
-                'query' => [
+                RequestOptions::QUERY => [
                     'comp' => 'list',
                     'marker' => $nextMarker !== "" ? $nextMarker : null,
                     'prefix' => $prefix,
@@ -102,7 +114,7 @@ final class BlobServiceClient
 
         while (true) {
             $response = $this->client->get($this->uri, [
-                'query' => [
+                RequestOptions::QUERY => [
                     'comp' => 'blobs',
                     'where' => $tagFilterSqlExpression,
                     'marker' => $nextMarker !== "" ? $nextMarker : null,
@@ -124,12 +136,12 @@ final class BlobServiceClient
 
     public function canGenerateAccountSasUri(): bool
     {
-        return $this->sharedKeyCredentials !== null;
+        return $this->credential instanceof StorageSharedKeyCredential;
     }
 
     public function generateAccountSasUri(AccountSasBuilder $accountSasBuilder): UriInterface
     {
-        if ($this->sharedKeyCredentials === null) {
+        if (! $this->credential instanceof StorageSharedKeyCredential) {
             throw new UnableToGenerateSasException();
         }
 
@@ -139,7 +151,7 @@ final class BlobServiceClient
 
         $sas = $accountSasBuilder
             ->setServices(new AccountSasServices(blob: true))
-            ->build($this->sharedKeyCredentials);
+            ->build($this->credential);
 
         return new Uri("$this->uri?$sas");
     }
