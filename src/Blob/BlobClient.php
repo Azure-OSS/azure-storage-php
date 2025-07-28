@@ -23,6 +23,7 @@ use AzureOss\Storage\Blob\Requests\BlobTagsBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Blob\Specialized\BlockBlobClient;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
+use AzureOss\Storage\Common\Auth\WorkloadIdentityCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\SasProtocol;
 use GuzzleHttp\Client;
@@ -49,12 +50,12 @@ final class BlobClient
      */
     public function __construct(
         public readonly UriInterface $uri,
-        public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
+        public readonly StorageSharedKeyCredential|WorkloadIdentityCredential|null $credentials = null,
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
-        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
-        $this->blockBlobClient = new BlockBlobClient($uri, $sharedKeyCredentials);
+        $this->client = (new ClientFactory())->create($uri, $credentials, new BlobStorageExceptionDeserializer());
+        $this->blockBlobClient = new BlockBlobClient($uri, $credentials);
     }
 
     public function downloadStreaming(): BlobDownloadStreamingResult
@@ -372,12 +373,12 @@ final class BlobClient
 
     public function canGenerateSasUri(): bool
     {
-        return $this->sharedKeyCredentials !== null;
+        return $this->credentials instanceof StorageSharedKeyCredential;
     }
 
     public function generateSasUri(BlobSasBuilder $blobSasBuilder): UriInterface
     {
-        if ($this->sharedKeyCredentials === null) {
+        if (!($this->credentials instanceof StorageSharedKeyCredential)) {
             throw new UnableToGenerateSasException();
         }
 
@@ -388,7 +389,7 @@ final class BlobClient
         $sas = $blobSasBuilder
             ->setContainerName($this->containerName)
             ->setBlobName($this->blobName)
-            ->build($this->sharedKeyCredentials);
+            ->build($this->credentials);
 
         return new Uri("$this->uri?$sas");
     }
@@ -435,5 +436,27 @@ final class BlobClient
             ->then(
                 fn(ResponseInterface $response) => BlobTagsBody::fromXml(new \SimpleXMLElement($response->getBody()->getContents()))->tags,
             );
+    }
+
+    /**
+     * Get the shared key credentials (legacy compatibility)
+     * @deprecated Use $credentials property instead
+     */
+    public function getSharedKeyCredentials(): ?StorageSharedKeyCredential
+    {
+        return $this->credentials instanceof StorageSharedKeyCredential ? $this->credentials : null;
+    }
+
+    /**
+     * Legacy property access for backward compatibility
+     * @deprecated Use $credentials property instead
+     */
+    public function __get(string $name)
+    {
+        if ($name === 'sharedKeyCredentials') {
+            return $this->getSharedKeyCredentials();
+        }
+        
+        throw new \InvalidArgumentException("Property $name does not exist");
     }
 }

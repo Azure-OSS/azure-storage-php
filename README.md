@@ -24,10 +24,26 @@ composer require azure-oss/storage
 
 ## Quickstart
 
-Create the BlobServiceClient
+### Authentication Options
+
+#### Connection String (traditional)
 ```php
 $blobServiceClient = BlobServiceClient::fromConnectionString("<connection string>");
 ```
+
+#### Azure Workload Identity (Kubernetes/recommended)
+```php
+// For Kubernetes pods with Workload Identity configured
+$blobServiceClient = BlobServiceClient::fromWorkloadIdentity('mystorageaccount');
+```
+
+#### Azure Managed Identity (alias for Workload Identity)
+```php
+// Alternative method name for the same functionality
+$blobServiceClient = BlobServiceClient::fromManagedIdentity('mystorageaccount');
+```
+
+### Basic Operations
 
 Create a container
 ```php
@@ -148,6 +164,71 @@ Delete a container
 ```php
 $containerClient->delete();
 ```
+
+## Azure Workload Identity Setup
+
+For Kubernetes environments, Azure Workload Identity allows your pods to authenticate to Azure services without storing credentials.
+
+### Prerequisites
+
+1. **Kubernetes cluster** with Workload Identity enabled
+2. **Azure AD application** configured for Workload Identity
+3. **Environment variables** injected by Workload Identity:
+   - `AZURE_TENANT_ID`
+   - `AZURE_CLIENT_ID`
+   - `AZURE_FEDERATED_TOKEN_FILE`
+
+### Kubernetes Configuration Example
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  template:
+    metadata:
+      labels:
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: my-service-account
+      containers:
+      - name: app
+        image: my-app:latest
+        env:
+        - name: AZURE_STORAGE_ACCOUNT
+          value: "mystorageaccount"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-service-account
+  annotations:
+    azure.workload.identity/client-id: "<your-client-id>"
+```
+
+### PHP Usage
+
+```php
+<?php
+// The SDK automatically reads environment variables
+$blobServiceClient = BlobServiceClient::fromWorkloadIdentity($_ENV['AZURE_STORAGE_ACCOUNT']);
+
+// Use the client normally
+$containerClient = $blobServiceClient->getContainerClient('my-container');
+$containerClient->createIfNotExists();
+
+$blobClient = $containerClient->getBlobClient('hello.txt');
+$blobClient->upload('Hello from Workload Identity!');
+```
+
+### Authentication Comparison
+
+| Method | Use Case | Security | Setup Complexity |
+|--------|----------|----------|------------------|
+| Connection String | Development, simple scenarios | Store secrets | Low |
+| Workload Identity | Kubernetes production | No stored secrets | Medium |
+| SAS Tokens | Temporary access | Time-limited | Low |
 
 ## Documentation
 

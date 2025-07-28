@@ -13,6 +13,7 @@ use AzureOss\Storage\Blob\Models\TaggedBlob;
 use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListContainersResponseBody;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
+use AzureOss\Storage\Common\Auth\WorkloadIdentityCredential;
 use AzureOss\Storage\Common\Helpers\ConnectionStringHelper;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use AzureOss\Storage\Common\Sas\AccountSasBuilder;
@@ -28,11 +29,11 @@ final class BlobServiceClient
 
     public function __construct(
         public UriInterface $uri,
-        public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
+        public readonly StorageSharedKeyCredential|WorkloadIdentityCredential|null $credentials = null,
     ) {
         // must always include the forward slash (/) to separate the host name from the path and query portions of the URI.
         $this->uri = $uri->withPath(rtrim($uri->getPath(), '/') . "/");
-        $this->client = (new ClientFactory())->create($this->uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($this->uri, $credentials, new BlobStorageExceptionDeserializer());
     }
 
     public static function fromConnectionString(string $connectionString): self
@@ -56,11 +57,30 @@ final class BlobServiceClient
         throw new InvalidConnectionStringException();
     }
 
+    /**
+     * Create BlobServiceClient using Azure Workload Identity
+     */
+    public static function fromWorkloadIdentity(string $storageAccountName): self
+    {
+        $uri = new Uri("https://$storageAccountName.blob.core.windows.net/");
+        $credential = WorkloadIdentityCredential::fromEnvironment($storageAccountName);
+        
+        return new self($uri, $credential);
+    }
+
+    /**
+     * Create BlobServiceClient using Azure Managed Identity (alias for Workload Identity)
+     */
+    public static function fromManagedIdentity(string $storageAccountName): self
+    {
+        return self::fromWorkloadIdentity($storageAccountName);
+    }
+
     public function getContainerClient(string $containerName): BlobContainerClient
     {
         return new BlobContainerClient(
             $this->uri->withPath($this->uri->getPath() . $containerName),
-            $this->sharedKeyCredentials,
+            $this->credentials,
         );
     }
 
@@ -124,13 +144,13 @@ final class BlobServiceClient
 
     public function canGenerateAccountSasUri(): bool
     {
-        return $this->sharedKeyCredentials !== null;
+        return $this->credentials instanceof StorageSharedKeyCredential;
     }
 
     public function generateAccountSasUri(AccountSasBuilder $accountSasBuilder): UriInterface
     {
-        if ($this->sharedKeyCredentials === null) {
-            throw new UnableToGenerateSasException();
+        if (!($this->credentials instanceof StorageSharedKeyCredential)) {
+            throw new UnableToGenerateSasException('SAS generation requires StorageSharedKeyCredential');
         }
 
         if (BlobUriParserHelper::isDevelopmentUri($this->uri)) {
@@ -139,8 +159,30 @@ final class BlobServiceClient
 
         $sas = $accountSasBuilder
             ->setServices(new AccountSasServices(blob: true))
-            ->build($this->sharedKeyCredentials);
+            ->build($this->credentials);
 
         return new Uri("$this->uri?$sas");
+    }
+
+    /**
+     * Get the shared key credentials (legacy compatibility)
+     * @deprecated Use $credentials property instead
+     */
+    public function getSharedKeyCredentials(): ?StorageSharedKeyCredential
+    {
+        return $this->credentials instanceof StorageSharedKeyCredential ? $this->credentials : null;
+    }
+
+    /**
+     * Legacy property access for backward compatibility
+     * @deprecated Use $credentials property instead
+     */
+    public function __get(string $name)
+    {
+        if ($name === 'sharedKeyCredentials') {
+            return $this->getSharedKeyCredentials();
+        }
+        
+        throw new \InvalidArgumentException("Property $name does not exist");
     }
 }

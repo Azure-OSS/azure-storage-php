@@ -6,6 +6,7 @@ namespace AzureOss\Storage\Common\Middleware;
 
 use AzureOss\Storage\Common\ApiVersion;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
+use AzureOss\Storage\Common\Auth\WorkloadIdentityCredential;
 use AzureOss\Storage\Common\Exceptions\RequestExceptionDeserializer;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
@@ -17,8 +18,11 @@ use Psr\Http\Message\UriInterface;
  */
 final class ClientFactory
 {
-    public function create(UriInterface $uri, ?StorageSharedKeyCredential $sharedKeyCredential, RequestExceptionDeserializer $exceptionDeserializer): Client
-    {
+    public function create(
+        UriInterface $uri, 
+        StorageSharedKeyCredential|WorkloadIdentityCredential|null $credential, 
+        RequestExceptionDeserializer $exceptionDeserializer
+    ): Client {
         $handlerStack = HandlerStack::create();
 
         $handlerStack->before('http_errors', new DeserializeExceptionMiddleware($exceptionDeserializer));
@@ -27,8 +31,11 @@ final class ClientFactory
         $handlerStack->push(new AddXMsVersionMiddleware(ApiVersion::LATEST));
         $handlerStack->push(new AddDefaultQueryParamsMiddleware($uri->getQuery()));
 
-        if ($sharedKeyCredential !== null) {
-            $handlerStack->push(new AddAuthorizationHeaderMiddleware($sharedKeyCredential));
+        // Add appropriate authentication middleware based on credential type
+        if ($credential instanceof StorageSharedKeyCredential) {
+            $handlerStack->push(new AddAuthorizationHeaderMiddleware($credential));
+        } elseif ($credential instanceof WorkloadIdentityCredential) {
+            $handlerStack->push(new AddBearerTokenMiddleware($credential));
         }
 
         $handlerStack->push($this->createRetryMiddleware());
