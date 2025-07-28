@@ -12,6 +12,7 @@ use AzureOss\Storage\Blob\Models\BlobContainer;
 use AzureOss\Storage\Blob\Models\TaggedBlob;
 use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListContainersResponseBody;
+use AzureOss\Storage\Common\Auth\CredentialInterface;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Auth\WorkloadIdentityCredential;
 use AzureOss\Storage\Common\Helpers\ConnectionStringHelper;
@@ -29,7 +30,7 @@ final class BlobServiceClient
 
     public function __construct(
         public UriInterface $uri,
-        public readonly StorageSharedKeyCredential|WorkloadIdentityCredential|null $credentials = null,
+        public readonly ?CredentialInterface $credentials = null,
     ) {
         // must always include the forward slash (/) to separate the host name from the path and query portions of the URI.
         $this->uri = $uri->withPath(rtrim($uri->getPath(), '/') . "/");

@@ -22,6 +22,7 @@ use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Requests\BlobTagsBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use AzureOss\Storage\Blob\Specialized\BlockBlobClient;
+use AzureOss\Storage\Common\Auth\CredentialInterface;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Auth\WorkloadIdentityCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
@@ -50,7 +51,7 @@ final class BlobClient
      */
     public function __construct(
         public readonly UriInterface $uri,
-        public readonly StorageSharedKeyCredential|WorkloadIdentityCredential|null $credentials = null,
+        public readonly ?CredentialInterface $credentials = null,
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);

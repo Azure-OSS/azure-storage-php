@@ -11,6 +11,7 @@ use AzureOss\Storage\Blob\Helpers\HashHelper;
 use AzureOss\Storage\Blob\Models\BlockBlobCommitBlockListOptions;
 use AzureOss\Storage\Blob\Models\BlockBlobStageBlockOptions;
 use AzureOss\Storage\Blob\Requests\PutBlockRequestBody;
+use AzureOss\Storage\Common\Auth\CredentialInterface;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Middleware\ClientFactory;
 use GuzzleHttp\Client;
@@ -32,11 +33,11 @@ final class BlockBlobClient
      */
     public function __construct(
         public readonly UriInterface $uri,
-        public readonly ?StorageSharedKeyCredential $sharedKeyCredentials = null,
+        public readonly ?CredentialInterface $credentials = null,
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
-        $this->client = (new ClientFactory())->create($uri, $sharedKeyCredentials, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($uri, $credentials, new BlobStorageExceptionDeserializer());
     }
 
     public function stageBlock(string $base64BlockId, StreamInterface|string $content, ?BlockBlobStageBlockOptions $options = null): void

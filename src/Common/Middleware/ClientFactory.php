@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzureOss\Storage\Common\Middleware;
 
 use AzureOss\Storage\Common\ApiVersion;
+use AzureOss\Storage\Common\Auth\CredentialInterface;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Auth\WorkloadIdentityCredential;
 use AzureOss\Storage\Common\Exceptions\RequestExceptionDeserializer;
@@ -20,7 +21,7 @@ final class ClientFactory
 {
     public function create(
         UriInterface $uri, 
-        StorageSharedKeyCredential|WorkloadIdentityCredential|null $credential, 
+        ?CredentialInterface $credential, 
         RequestExceptionDeserializer $exceptionDeserializer
     ): Client {
         $handlerStack = HandlerStack::create();

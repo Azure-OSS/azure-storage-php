@@ -12,7 +12,7 @@ use GuzzleHttp\Exception\RequestException;
  * 
  * @see https://azure.github.io/azure-workload-identity/docs/
  */
-final class WorkloadIdentityCredential
+final class WorkloadIdentityCredential implements CredentialInterface
 {
     private ?string $accessToken = null;
     private ?int $tokenExpiry = null;

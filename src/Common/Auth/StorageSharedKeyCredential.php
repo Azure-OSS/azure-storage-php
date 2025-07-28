@@ -9,7 +9,7 @@ use AzureOss\Storage\Common\Exceptions\InvalidAccountKeyException;
 /**
  * @see https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key
  */
-final class StorageSharedKeyCredential
+final class StorageSharedKeyCredential implements CredentialInterface
 {
     public function __construct(
         public readonly string $accountName,
