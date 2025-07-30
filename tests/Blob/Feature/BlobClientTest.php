@@ -476,30 +476,33 @@ final class BlobClientTest extends BlobFeatureTestCase
     #[Test]
     public function set_cache_control_works(): void
     {
-        FileFactory::withStream(1000, function (StreamInterface $file) {
-            $beforeUploadContent = gzcompress($file->getContents());
-            $hash = base64_encode(md5($beforeUploadContent));
-            $file->rewind();
+        $originalContent = "Hello, World!";
+        $compressedContent = gzcompress($originalContent);
+        if ($compressedContent === false) {
+            self::fail("Failed to compress content");
+        }
 
-            $this->blobClient->upload(
-                $beforeUploadContent,
-                new UploadBlobOptions(httpHeaders: new BlobHttpHeaders(
-                    cacheControl: "immutable",
-                    contentDisposition: "inline",
-                    contentEncoding: "gzip",
-                    contentHash: $hash,
-                    contentLanguage: "en",
-                )),
-            );
+        $this->blobClient->upload(
+            $compressedContent,
+            new UploadBlobOptions(httpHeaders: new BlobHttpHeaders(
+                cacheControl: "immutable",
+                contentDisposition: "inline",
+                contentEncoding: "gzip",
+                contentHash: md5($compressedContent),
+                contentLanguage: "en",
+                contentType: "text/plain",
+            )),
+        );
 
-            $properties = $this->blobClient->getProperties();
+        $properties = $this->blobClient->getProperties();
 
-//            self::assertEquals("text/plain", $properties->contentType);
-            self::assertEquals("immutable", $properties->cacheControl);
-            self::assertEquals("inline", $properties->contentDisposition);
-            self::assertEquals("en", $properties->contentLanguage);
-            self::assertEquals("gzip", $properties->contentEncoding);
-            self::assertEquals($beforeUploadContent, $this->blobClient->downloadStreaming()->content->getContents());
-        });
+        self::assertEquals("text/plain", $properties->contentType);
+        self::assertEquals("immutable", $properties->cacheControl);
+        self::assertEquals("inline", $properties->contentDisposition);
+        self::assertEquals("en", $properties->contentLanguage);
+        self::assertEquals("gzip", $properties->contentEncoding);
+
+        // The content is automatically decompressed when downloaded
+        self::assertEquals($originalContent, $this->blobClient->downloadStreaming()->content->getContents());
     }
 }
