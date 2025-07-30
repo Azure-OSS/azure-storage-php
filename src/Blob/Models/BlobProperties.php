@@ -29,6 +29,10 @@ final class BlobProperties
         public readonly ?CopyStatus $copyStatus = null,
         public readonly ?string $copyStatusDescription = null,
         public readonly ?\DateTimeInterface $copyCompletionTime = null,
+        public readonly string $cacheControl = "",
+        public readonly string $contentDisposition = "",
+        public readonly string $contentLanguage = "",
+        public readonly string $contentEncoding = "",
     ) {
         DeprecationHelper::constructorWillBePrivate(self::class, '2.0');
     }
@@ -47,6 +51,10 @@ final class BlobProperties
             $response->hasHeader('x-ms-copy-status') ? CopyStatus::from($response->getHeaderLine('x-ms-copy-status')) : null,
             $response->hasHeader('x-ms-copy-status-description') ? $response->getHeaderLine('x-ms-copy-status-description') : null,
             $response->hasHeader('x-ms-copy-completion-time') ? DateHelper::deserializeDateRfc1123Date($response->getHeaderLine('x-ms-copy-completion-time')) : null,
+            $response->getHeaderLine('Cache-Control'),
+            $response->getHeaderLine('Content-Disposition'),
+            $response->getHeaderLine('Content-Language'),
+            $response->getHeaderLine('x-encoded-content-encoding'),
         );
     }
 
@@ -58,7 +66,16 @@ final class BlobProperties
             (int) $xml->{'Content-Length'},
             (string) $xml->{'Content-Type'},
             HashHelper::deserializeMd5((string) $xml->{'Content-MD5'}),
-            [],
+            [], // TODO support include metadata
+            (string) $xml->CopyId !== "" ? (string) $xml->CopyId : null,
+            (string) $xml->CopySource !== "" ? new Uri((string) $xml->CopySource) : null,
+            (string) $xml->CopyStatus !== "" ? CopyStatus::tryFrom((string) $xml->CopyStatus) : null,
+            (string) $xml->CopyStatusDescription !== "" ? (string) $xml->CopyStatusDescription : null,
+            (string) $xml->CopyCompletionTime !== "" ? DateHelper::deserializeDateRfc1123Date((string) $xml->CopyCompletionTime) : null,
+            (string) $xml->{'Cache-Control'},
+            (string) $xml->{'Content-Disposition'},
+            (string) $xml->{'Content-Language'},
+            (string) $xml->{'Content-Encoding'},
         );
     }
 }

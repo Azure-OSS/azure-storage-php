@@ -11,6 +11,7 @@ use AzureOss\Storage\Blob\Exceptions\CannotVerifyCopySourceException;
 use AzureOss\Storage\Blob\Exceptions\ContainerNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\NoPendingCopyOperationException;
 use AzureOss\Storage\Blob\Exceptions\TagsTooLargeException;
+use AzureOss\Storage\Blob\Models\BlobHttpHeaders;
 use AzureOss\Storage\Blob\Models\CopyStatus;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
@@ -582,5 +583,38 @@ final class BlobClientTest extends BlobFeatureTestCase
         $this->expectException(BlobNotFoundException::class);
 
         $this->containerClient->getBlobClient("noop")->setMetadata(["foo" => "bar"]);
+    }
+
+    #[Test]
+    public function getting_and_setting_http_headers_works(): void
+    {
+        $originalContent = "Hello, World!";
+        $compressedContent = gzcompress($originalContent);
+        if ($compressedContent === false) {
+            self::fail("Failed to compress content");
+        }
+
+        $this->blobClient->upload(
+            $compressedContent,
+            new UploadBlobOptions(httpHeaders: new BlobHttpHeaders(
+                cacheControl: "immutable",
+                contentDisposition: "inline",
+                contentEncoding: "gzip",
+                contentHash: md5($compressedContent),
+                contentLanguage: "en",
+                contentType: "text/plain",
+            )),
+        );
+
+        $properties = $this->blobClient->getProperties();
+
+        self::assertEquals("text/plain", $properties->contentType);
+        self::assertEquals("immutable", $properties->cacheControl);
+        self::assertEquals("inline", $properties->contentDisposition);
+        self::assertEquals("en", $properties->contentLanguage);
+        self::assertEquals("gzip", $properties->contentEncoding);
+
+        // The content is automatically decompressed when downloaded
+        self::assertEquals($originalContent, $this->blobClient->downloadStreaming()->content->getContents());
     }
 }
