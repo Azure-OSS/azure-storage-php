@@ -98,14 +98,7 @@ final class BlockBlobClient
                 RequestOptions::QUERY => [
                     'comp' => 'blocklist',
                 ],
-                RequestOptions::HEADERS => array_filter([
-                    'x-ms-blob-cache-control' => $options->httpHeaders->cacheControl,
-                    'x-ms-blob-content-type' => $options->httpHeaders->contentType,
-                    'x-ms-blob-content-encoding' => $options->httpHeaders->contentEncoding,
-                    'x-ms-blob-content-language' => $options->httpHeaders->contentLanguage,
-                    'x-ms-blob-content-md5' => $options->httpHeaders->contentHash !== "" ? base64_encode($options->httpHeaders->contentHash) : null,
-                    'x-ms-blob-content-disposition' => $options->httpHeaders->contentDisposition,
-                ], fn($value) => $value !== null),
+                RequestOptions::HEADERS => $options->httpHeaders->toArray(),
                 'body' => (new PutBlockRequestBody($base64BlockIds))->toXml()->asXML(),
             ]);
     }
