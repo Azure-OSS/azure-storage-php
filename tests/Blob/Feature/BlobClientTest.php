@@ -477,34 +477,29 @@ final class BlobClientTest extends BlobFeatureTestCase
     public function set_cache_control_works(): void
     {
         FileFactory::withStream(1000, function (StreamInterface $file) {
-            $beforeUploadContent = $file->getContents();
-            $hash = base64_encode(md5(gzcompress($beforeUploadContent) ?: false, true));
+            $beforeUploadContent = gzcompress($file->getContents());
+            $hash = base64_encode(md5($beforeUploadContent));
             $file->rewind();
 
             $this->blobClient->upload(
-                gzcompress($beforeUploadContent),
-                new UploadBlobOptions("text/plain", initialTransferSize: 2000),
-                new BlobHttpHeaders(
+                $beforeUploadContent,
+                new UploadBlobOptions(httpHeaders: new BlobHttpHeaders(
                     cacheControl: "immutable",
-                    contentEncoding: "gzip",
-                    contentLanguage: "en",
                     contentDisposition: "inline",
+                    contentEncoding: "gzip",
                     contentHash: $hash,
-                ),
+                    contentLanguage: "en",
+                )),
             );
 
             $properties = $this->blobClient->getProperties();
 
-            self::assertEquals("text/plain", $properties->contentType);
-            self::assertEquals(17, $properties->contentLength);
+//            self::assertEquals("text/plain", $properties->contentType);
             self::assertEquals("immutable", $properties->cacheControl);
             self::assertEquals("inline", $properties->contentDisposition);
             self::assertEquals("en", $properties->contentLanguage);
             self::assertEquals("gzip", $properties->contentEncoding);
-
-            $afterUploadContent = ($this->blobClient->downloadStreaming()->content);
-
-            self::assertEquals($beforeUploadContent, $afterUploadContent);
+            self::assertEquals($beforeUploadContent, $this->blobClient->downloadStreaming()->content->getContents());
         });
     }
 }

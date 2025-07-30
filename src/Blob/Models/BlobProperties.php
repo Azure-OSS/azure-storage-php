@@ -34,7 +34,7 @@ final class BlobProperties
     {
         return new BlobProperties(
             DateHelper::deserializeDateRfc1123Date($response->getHeaderLine('Last-Modified')),
-            (int) ($response->getHeaderLine('Content-Length') ?: $response->getHeaderLine("x-encoded-content-length")),
+            (int) $response->getHeaderLine('Content-Length'),
             $response->getHeaderLine('Content-Type'),
             HashHelper::deserializeMd5($response->getHeaderLine('Content-MD5')),
             MetadataHelper::headersToMetadata($response->getHeaders()),
