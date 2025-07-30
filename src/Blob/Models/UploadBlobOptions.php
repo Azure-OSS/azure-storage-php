@@ -19,8 +19,7 @@ final class UploadBlobOptions
         public int $maximumTransferSize = 8_000_000,
         public int $maximumConcurrency = 25,
         ?BlobHttpHeaders $httpHeaders = null,
-    )
-    {
+    ) {
         $this->httpHeaders = $httpHeaders ?? new BlobHttpHeaders();
 
         if ($this->httpHeaders->contentType === "" && $contentType !== null) {
