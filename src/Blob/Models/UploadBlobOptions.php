@@ -23,7 +23,7 @@ final class UploadBlobOptions
     {
         $this->httpHeaders = $httpHeaders ?? new BlobHttpHeaders();
 
-        if ($this->httpHeaders->contentType === null) {
+        if ($this->httpHeaders->contentType === "" && $contentType !== null) {
             $this->httpHeaders->contentType = $contentType;
         }
     }

@@ -206,7 +206,7 @@ final class BlobClient
                     'x-ms-blob-content-type' => $options->httpHeaders->contentType,
                     'x-ms-blob-content-encoding' => $options->httpHeaders->contentEncoding,
                     'x-ms-blob-content-language' => $options->httpHeaders->contentLanguage,
-                    'x-ms-blob-content-md5' => $options->httpHeaders->contentHash !== null ? base64_encode($options->httpHeaders->contentHash) : null,
+                    'x-ms-blob-content-md5' => $options->httpHeaders->contentHash !== "" ? base64_encode($options->httpHeaders->contentHash) : null,
                     'x-ms-blob-cache-control' => $options->httpHeaders->cacheControl,
                     'x-ms-blob-content-disposition' => $options->httpHeaders->contentDisposition,
                 ], fn($value) => $value !== null),
@@ -243,7 +243,7 @@ final class BlobClient
             ->promise()
             ->then(
                 function () use (&$blockIds, &$options, &$contextMD5) {
-                    if ($options->httpHeaders->contentHash === null) {
+                    if ($options->httpHeaders->contentHash === "") {
                         $options->httpHeaders->contentHash = hash_final($contextMD5, true);
                     }
 
@@ -284,7 +284,7 @@ final class BlobClient
             ->promise()
             ->then(
                 function () use (&$content, &$blockIds, &$options) {
-                    if ($options->httpHeaders->contentHash === null) {
+                    if ($options->httpHeaders->contentHash === "") {
                         $options->httpHeaders->contentHash = StreamUtils::hash($content, 'md5', true);
                     }
 

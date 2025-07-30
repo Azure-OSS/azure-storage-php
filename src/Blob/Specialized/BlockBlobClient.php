@@ -103,7 +103,7 @@ final class BlockBlobClient
                     'x-ms-blob-content-type' => $options->httpHeaders->contentType,
                     'x-ms-blob-content-encoding' => $options->httpHeaders->contentEncoding,
                     'x-ms-blob-content-language' => $options->httpHeaders->contentLanguage,
-                    'x-ms-blob-content-md5' => $options->httpHeaders->contentHash !== null ? base64_encode($options->httpHeaders->contentHash) : null,
+                    'x-ms-blob-content-md5' => $options->httpHeaders->contentHash !== "" ? base64_encode($options->httpHeaders->contentHash) : null,
                     'x-ms-blob-content-disposition' => $options->httpHeaders->contentDisposition,
                 ], fn($value) => $value !== null),
                 'body' => (new PutBlockRequestBody($base64BlockIds))->toXml()->asXML(),
