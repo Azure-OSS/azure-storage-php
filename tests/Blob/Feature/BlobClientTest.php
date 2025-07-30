@@ -600,7 +600,7 @@ final class BlobClientTest extends BlobFeatureTestCase
                 cacheControl: "immutable",
                 contentDisposition: "inline",
                 contentEncoding: "gzip",
-                contentHash: md5($compressedContent),
+                contentHash: md5($compressedContent, true),
                 contentLanguage: "en",
                 contentType: "text/plain",
             )),
