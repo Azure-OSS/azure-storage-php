@@ -61,4 +61,17 @@ final class BlobProperties
             [],
         );
     }
+
+    /**
+     * @deprecated will be removed in version 2
+     */
+    public static function deserializeContentMD5(string $contentMD5): ?string
+    {
+        $result = base64_decode($contentMD5, true);
+        if ($result === false) {
+            return null;
+        }
+
+        return bin2hex($result);
+    }
 }
