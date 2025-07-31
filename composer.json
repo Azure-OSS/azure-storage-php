@@ -33,6 +33,7 @@
     "guzzlehttp/guzzle": "^7.8"
   },
   "require-dev": {
+    "ext-zlib": "*",
     "guzzlehttp/test-server": "^0.1.0",
     "laravel/pint": "1.20.0",
     "phpbench/phpbench": "^1.3",

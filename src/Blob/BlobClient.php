@@ -16,7 +16,7 @@ use AzureOss\Storage\Blob\Models\BlobCopyResult;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
 use AzureOss\Storage\Blob\Models\BlobProperties;
 use AzureOss\Storage\Blob\Models\StartCopyFromUriOptions;
-use AzureOss\Storage\Blob\Models\BlockBlobCommitBlockListOptions;
+use AzureOss\Storage\Blob\Models\CommitBlockListOptions;
 use AzureOss\Storage\Blob\Models\SyncCopyFromUriOptions;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Requests\BlobTagsBody;
@@ -200,11 +200,11 @@ final class BlobClient
     {
         return $this->client
             ->putAsync($this->uri, [
-                RequestOptions::HEADERS => [
+                RequestOptions::HEADERS => array_filter([
                     'x-ms-blob-type' => 'BlockBlob',
-                    'Content-Type' => $options->contentType,
                     'Content-Length' => $content->getSize(),
-                ],
+                    ...$options->httpHeaders->toArray(),
+                ], fn($value) => $value !== null),
                 RequestOptions::BODY => $content,
             ]);
     }
@@ -238,12 +238,13 @@ final class BlobClient
             ->promise()
             ->then(
                 function () use (&$blockIds, &$options, &$contextMD5) {
+                    if ($options->httpHeaders->contentHash === "") {
+                        $options->httpHeaders->contentHash = hash_final($contextMD5, true);
+                    }
+
                     return $this->blockBlobClient->commitBlockListAsync(
                         $blockIds,
-                        new BlockBlobCommitBlockListOptions(
-                            contentType: $options->contentType,
-                            contentMD5: hash_final($contextMD5, true),
-                        ),
+                        new CommitBlockListOptions(httpHeaders: $options->httpHeaders),
                     );
                 },
             );
@@ -278,12 +279,13 @@ final class BlobClient
             ->promise()
             ->then(
                 function () use (&$content, &$blockIds, &$options) {
+                    if ($options->httpHeaders->contentHash === "") {
+                        $options->httpHeaders->contentHash = StreamUtils::hash($content, 'md5', true);
+                    }
+
                     return $this->blockBlobClient->commitBlockListAsync(
                         $blockIds,
-                        new BlockBlobCommitBlockListOptions(
-                            contentType: $options->contentType,
-                            contentMD5: StreamUtils::hash($content, 'md5', true),
-                        ),
+                        new CommitBlockListOptions(httpHeaders: $options->httpHeaders),
                     );
                 },
             );

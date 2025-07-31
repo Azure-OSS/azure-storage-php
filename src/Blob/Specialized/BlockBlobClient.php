@@ -8,8 +8,8 @@ use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionDeserializer;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use AzureOss\Storage\Blob\Helpers\HashHelper;
-use AzureOss\Storage\Blob\Models\BlockBlobCommitBlockListOptions;
-use AzureOss\Storage\Blob\Models\BlockBlobStageBlockOptions;
+use AzureOss\Storage\Blob\Models\CommitBlockListOptions;
+use AzureOss\Storage\Blob\Models\StageBlockOptions;
 use AzureOss\Storage\Blob\Requests\PutBlockRequestBody;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Auth\TokenCredential;
@@ -51,12 +51,12 @@ final class BlockBlobClient
         }
     }
 
-    public function stageBlock(string $base64BlockId, StreamInterface|string $content, ?BlockBlobStageBlockOptions $options = null): void
+    public function stageBlock(string $base64BlockId, StreamInterface|string $content, ?StageBlockOptions $options = null): void
     {
         $this->stageBlockAsync($base64BlockId, $content, $options)->wait();
     }
 
-    public function stageBlockAsync(string $base64BlockId, StreamInterface|string $content, ?BlockBlobStageBlockOptions $options = null): PromiseInterface
+    public function stageBlockAsync(string $base64BlockId, StreamInterface|string $content, ?StageBlockOptions $options = null): PromiseInterface
     {
         $stream = Utils::streamFor($content);
 
@@ -79,7 +79,7 @@ final class BlockBlobClient
     /**
      * @param string[] $base64BlockIds
      */
-    public function commitBlockList(array $base64BlockIds, ?BlockBlobCommitBlockListOptions $options = null): void
+    public function commitBlockList(array $base64BlockIds, ?CommitBlockListOptions $options = null): void
     {
         $this->commitBlockListAsync($base64BlockIds, $options)->wait();
     }
@@ -87,17 +87,18 @@ final class BlockBlobClient
     /**
      * @param string[] $base64BlockIds
      */
-    public function commitBlockListAsync(array $base64BlockIds, ?BlockBlobCommitBlockListOptions $options = null): PromiseInterface
+    public function commitBlockListAsync(array $base64BlockIds, ?CommitBlockListOptions $options = null): PromiseInterface
     {
+        if ($options === null) {
+            $options = new CommitBlockListOptions();
+        }
+
         return $this->client
             ->putAsync($this->uri, [
                 RequestOptions::QUERY => [
                     'comp' => 'blocklist',
                 ],
-                RequestOptions::HEADERS => [
-                    'x-ms-blob-content-type' => $options?->contentType,
-                    'x-ms-blob-content-md5' => $options?->contentMD5 !== null ? HashHelper::serializeMd5($options->contentMD5) : null,
-                ],
+                RequestOptions::HEADERS => $options->httpHeaders->toArray(),
                 'body' => (new PutBlockRequestBody($base64BlockIds))->toXml()->asXML(),
             ]);
     }
