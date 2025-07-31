@@ -30,11 +30,6 @@ final class BlockBlobClient
     public readonly string $blobName;
 
     /**
-     * @deprecated Use $credential instead.
-     */
-    public ?StorageSharedKeyCredential $sharedKeyCredential = null;
-
-    /**
      * @throws InvalidBlobUriException
      */
     public function __construct(
@@ -44,11 +39,6 @@ final class BlockBlobClient
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
         $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer());
-
-        if ($credential instanceof StorageSharedKeyCredential) {
-            /** @phpstan-ignore-next-line  */
-            $this->sharedKeyCredential = $credential;
-        }
     }
 
     public function stageBlock(string $base64BlockId, StreamInterface|string $content, ?BlockBlobStageBlockOptions $options = null): void
