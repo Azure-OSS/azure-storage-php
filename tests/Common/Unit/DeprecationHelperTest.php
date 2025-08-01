@@ -55,6 +55,8 @@ class DeprecationHelperTest extends TestCase
         set_error_handler(
             function (int $errNo, string $errstr) {
                 self::assertEquals('The method AzureOss\Storage\Tests\Common\Unit\ClassWithDeprecatedPublicMethod::deprecatedMethod() will be removed in version 2.0.', $errstr);
+
+                return false;
             },
         );
 
