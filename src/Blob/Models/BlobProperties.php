@@ -67,6 +67,8 @@ final class BlobProperties
      */
     public static function deserializeContentMD5(string $contentMD5): ?string
     {
+        DeprecationHelper::methodWillBeRemoved(self::class, __METHOD__, '2.0');
+
         $result = base64_decode($contentMD5, true);
         if ($result === false) {
             return null;
