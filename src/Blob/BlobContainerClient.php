@@ -47,7 +47,7 @@ final class BlobContainerClient
     /**
      * @deprecated Use $credential instead.
      */
-    public ?StorageSharedKeyCredential $sharedKeyCredential = null;
+    public ?StorageSharedKeyCredential $sharedKeyCredentials = null;
 
     /**
      * @throws InvalidBlobUriException
@@ -61,7 +61,7 @@ final class BlobContainerClient
 
         if ($credential instanceof StorageSharedKeyCredential) {
             /** @phpstan-ignore-next-line  */
-            $this->sharedKeyCredential = $credential;
+            $this->sharedKeyCredentials = $credential;
         }
     }
 

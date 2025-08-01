@@ -31,7 +31,7 @@ final class BlobServiceClient
     /**
      * @deprecated Use $credential instead.
      */
-    public ?StorageSharedKeyCredential $sharedKeyCredential = null;
+    public ?StorageSharedKeyCredential $sharedKeyCredentials = null;
 
     public function __construct(
         public UriInterface $uri,
@@ -43,7 +43,7 @@ final class BlobServiceClient
 
         if ($credential instanceof StorageSharedKeyCredential) {
             /** @phpstan-ignore-next-line  */
-            $this->sharedKeyCredential = $credential;
+            $this->sharedKeyCredentials = $credential;
         }
     }
 

@@ -9,6 +9,7 @@ use AzureOss\Storage\Blob\Exceptions\BlobStorageExceptionDeserializer;
 use AzureOss\Storage\Blob\Exceptions\InvalidBlobUriException;
 use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
+use AzureOss\Storage\Blob\Helpers\DeprecationHelper;
 use AzureOss\Storage\Blob\Helpers\MetadataHelper;
 use AzureOss\Storage\Blob\Helpers\StreamHelper;
 use AzureOss\Storage\Blob\Models\AbortCopyFromUriOptions;
@@ -49,7 +50,7 @@ final class BlobClient
     /**
      * @deprecated Use $credential instead.
      */
-    public ?StorageSharedKeyCredential $sharedKeyCredential = null;
+    public ?StorageSharedKeyCredential $sharedKeyCredentials = null;
 
     /**
      * @throws InvalidBlobUriException
@@ -65,7 +66,7 @@ final class BlobClient
 
         if ($credential instanceof StorageSharedKeyCredential) {
             /** @phpstan-ignore-next-line  */
-            $this->sharedKeyCredential = $credential;
+            $this->sharedKeyCredentials = $credential;
         }
     }
 
@@ -304,6 +305,8 @@ final class BlobClient
      */
     public function copyFromUri(UriInterface $source): void
     {
+        DeprecationHelper::methodWillBeRemoved(self::class, __FUNCTION__, '2.0');
+
         $this->client
             ->putAsync($this->uri, [
                 'headers' => [

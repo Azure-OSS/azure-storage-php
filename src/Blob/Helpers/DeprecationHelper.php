@@ -15,4 +15,9 @@ class DeprecationHelper
             @trigger_error(sprintf('The constructor of %s will be private in version %s.', $className, $version), E_USER_DEPRECATED);
         }
     }
+
+    public static function methodWillBeRemoved(string $className, string $methodName, string $version): void
+    {
+        @trigger_error(sprintf('The method %s::%s() will be removed in version %s.', $className, $methodName, $version), E_USER_DEPRECATED);
+    }
 }
