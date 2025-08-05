@@ -18,10 +18,8 @@ use Psr\Http\Message\UriInterface;
  */
 final class ClientFactory
 {
-    public function create(?UriInterface $uri = null, StorageSharedKeyCredential|TokenCredential|null $credential = null, ?RequestExceptionDeserializer $exceptionDeserializer = null, array $options = []): Client
+    public function create(?UriInterface $uri = null, StorageSharedKeyCredential|TokenCredential|null $credential = null, ?RequestExceptionDeserializer $exceptionDeserializer = null, HttpClientOptions $options = new HttpClientOptions): Client
     {
-        $options = array_merge(['http' => []], $options);
-
         $handlerStack = HandlerStack::create();
 
         if ($exceptionDeserializer !== null) {
@@ -44,7 +42,7 @@ final class ClientFactory
 
         $handlerStack->push($this->createRetryMiddleware());
 
-        return new Client(array_merge(['handler' => $handlerStack], $options['http']));
+        return new Client(array_merge(['handler' => $handlerStack], $options->toGuzzleHttpClientConfig()));
     }
 
     /**

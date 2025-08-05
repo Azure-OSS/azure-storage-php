@@ -22,6 +22,7 @@ use AzureOss\Storage\Blob\Models\SyncCopyFromUriOptions;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Requests\BlobTagsBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
+use AzureOss\Storage\Blob\Options\BlobClientOptions;
 use AzureOss\Storage\Blob\Specialized\BlockBlobClient;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Auth\TokenCredential;
@@ -58,11 +59,11 @@ final class BlobClient
     public function __construct(
         public readonly UriInterface $uri,
         public readonly StorageSharedKeyCredential|TokenCredential|null $credential = null,
-        private readonly array $options = [],
+        BlobClientOptions $options = new BlobClientOptions(),
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
-        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer(), $this->options);
+        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer(), $options->httpClientOptions);
         $this->blockBlobClient = new BlockBlobClient($uri, $credential);
 
         if ($credential instanceof StorageSharedKeyCredential) {

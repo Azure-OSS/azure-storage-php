@@ -10,8 +10,10 @@ use AzureOss\Storage\Blob\Exceptions\UnableToGenerateSasException;
 use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use AzureOss\Storage\Blob\Models\BlobContainer;
 use AzureOss\Storage\Blob\Models\TaggedBlob;
+use AzureOss\Storage\Blob\Options\BlobContainerClientOptions;
 use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListContainersResponseBody;
+use AzureOss\Storage\Blob\Options\BlobServiceClientOptions;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Auth\TokenCredential;
 use AzureOss\Storage\Common\Helpers\ConnectionStringHelper;
@@ -36,11 +38,11 @@ final class BlobServiceClient
     public function __construct(
         public UriInterface $uri,
         public readonly StorageSharedKeyCredential|TokenCredential|null $credential = null,
-        private readonly array $options = [],
+        private readonly BlobServiceClientOptions $options = new BlobServiceClientOptions(),
     ) {
         // must always include the forward slash (/) to separate the host name from the path and query portions of the URI.
         $this->uri = $uri->withPath(rtrim($uri->getPath(), '/') . "/");
-        $this->client = (new ClientFactory())->create($this->uri, $credential, new BlobStorageExceptionDeserializer(), $this->options);
+        $this->client = (new ClientFactory())->create($this->uri, $credential, new BlobStorageExceptionDeserializer(), $this->options->httpClientOptions);
 
         if ($credential instanceof StorageSharedKeyCredential) {
             /** @phpstan-ignore-next-line  */
@@ -48,7 +50,7 @@ final class BlobServiceClient
         }
     }
 
-    public static function fromConnectionString(string $connectionString, array $options = []): self
+    public static function fromConnectionString(string $connectionString, BlobServiceClientOptions $options = new BlobServiceClientOptions()): self
     {
         $uri = ConnectionStringHelper::getBlobEndpoint($connectionString);
         if ($uri === null) {
@@ -74,7 +76,7 @@ final class BlobServiceClient
         return new BlobContainerClient(
             $this->uri->withPath($this->uri->getPath() . $containerName),
             $this->credential,
-            $this->options,
+            new BlobContainerClientOptions($this->options->httpClientOptions),
         );
     }
 
