@@ -19,6 +19,6 @@ final class HttpClientOptions
         return array_filter([
             'timeout' => $this->timeout,
             'connect_timeout' => $this->connectTimeout,
-        ], fn ($value) => $value !== null);
+        ], fn($value) => $value !== null);
     }
 }

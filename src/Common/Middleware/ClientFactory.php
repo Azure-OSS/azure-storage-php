@@ -18,7 +18,7 @@ use Psr\Http\Message\UriInterface;
  */
 final class ClientFactory
 {
-    public function create(?UriInterface $uri = null, StorageSharedKeyCredential|TokenCredential|null $credential = null, ?RequestExceptionDeserializer $exceptionDeserializer = null, HttpClientOptions $options = new HttpClientOptions): Client
+    public function create(?UriInterface $uri = null, StorageSharedKeyCredential|TokenCredential|null $credential = null, ?RequestExceptionDeserializer $exceptionDeserializer = null, HttpClientOptions $options = new HttpClientOptions()): Client
     {
         $handlerStack = HandlerStack::create();
 
