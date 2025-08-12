@@ -78,4 +78,19 @@ final class BlobProperties
             (string) $xml->{'Content-Encoding'},
         );
     }
+
+    /**
+     * @deprecated will be removed in version 2
+     */
+    public static function deserializeContentMD5(string $contentMD5): ?string
+    {
+        DeprecationHelper::methodWillBeRemoved(self::class, __FUNCTION__, '2.0');
+
+        $result = base64_decode($contentMD5, true);
+        if ($result === false) {
+            return null;
+        }
+
+        return bin2hex($result);
+    }
 }
