@@ -11,6 +11,9 @@ final class HttpClientOptions
         public readonly ?int $connectTimeout = null,
     ) {}
 
+    /**
+     * @return array{timeout?: int, connect_timeout?: int}
+     */
     public function toGuzzleHttpClientConfig(): array
     {
         return array_filter([
