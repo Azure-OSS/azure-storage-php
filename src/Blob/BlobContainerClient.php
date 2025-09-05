@@ -18,9 +18,11 @@ use AzureOss\Storage\Blob\Models\CreateContainerOptions;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
 use AzureOss\Storage\Blob\Models\PublicAccessType;
 use AzureOss\Storage\Blob\Models\TaggedBlob;
+use AzureOss\Storage\Blob\Options\BlobClientOptions;
 use AzureOss\Storage\Blob\Responses\FindBlobsByTagBody;
 use AzureOss\Storage\Blob\Responses\ListBlobsResponseBody;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
+use AzureOss\Storage\Blob\Options\BlobContainerClientOptions;
 use AzureOss\Storage\Blob\Specialized\BlockBlobClient;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Auth\TokenCredential;
@@ -55,9 +57,10 @@ final class BlobContainerClient
     public function __construct(
         public readonly UriInterface $uri,
         public readonly StorageSharedKeyCredential|TokenCredential|null $credential = null,
+        private readonly BlobContainerClientOptions $options = new BlobContainerClientOptions(),
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
-        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer(), $this->options->httpClientOptions);
 
         if ($credential instanceof StorageSharedKeyCredential) {
             /** @phpstan-ignore-next-line  */
@@ -70,6 +73,7 @@ final class BlobContainerClient
         return new BlobClient(
             $this->getBlobUri($blobName),
             $this->credential,
+            new BlobClientOptions($this->options->httpClientOptions),
         );
     }
 

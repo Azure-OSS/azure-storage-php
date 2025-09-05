@@ -10,6 +10,7 @@ use AzureOss\Storage\Blob\Helpers\BlobUriParserHelper;
 use AzureOss\Storage\Blob\Helpers\HashHelper;
 use AzureOss\Storage\Blob\Models\CommitBlockListOptions;
 use AzureOss\Storage\Blob\Models\StageBlockOptions;
+use AzureOss\Storage\Blob\Options\BlockBlobClientOptions;
 use AzureOss\Storage\Blob\Requests\PutBlockRequestBody;
 use AzureOss\Storage\Common\Auth\StorageSharedKeyCredential;
 use AzureOss\Storage\Common\Auth\TokenCredential;
@@ -35,10 +36,11 @@ final class BlockBlobClient
     public function __construct(
         public readonly UriInterface $uri,
         public readonly StorageSharedKeyCredential|TokenCredential|null $credential = null,
+        BlockBlobClientOptions $options = new BlockBlobClientOptions(),
     ) {
         $this->containerName = BlobUriParserHelper::getContainerName($uri);
         $this->blobName = BlobUriParserHelper::getBlobName($uri);
-        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer());
+        $this->client = (new ClientFactory())->create($uri, $credential, new BlobStorageExceptionDeserializer(), $options->httpClientOptions);
     }
 
     public function stageBlock(string $base64BlockId, StreamInterface|string $content, ?StageBlockOptions $options = null): void
