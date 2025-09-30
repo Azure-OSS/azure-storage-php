@@ -86,6 +86,14 @@ if ($targetBlobClient->getProperties()->copyStatus === CopyStatus::PENDING) {
 }
 ```
 
+Update blob properties after upload or copy:
+```php
+$targetBlobClient->setHttpHeaders(new BlobHttpHeaders(
+    contentType: "image/jpeg",
+    cacheControl: "public, max-age=3600"
+));
+```
+
 Generate a container [Service SAS](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview#service-sas)
 ```php
 $sas = $containerClient->generateSasUri(

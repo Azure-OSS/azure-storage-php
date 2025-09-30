@@ -617,4 +617,74 @@ final class BlobClientTest extends BlobFeatureTestCase
         // The content is automatically decompressed when downloaded
         self::assertEquals($originalContent, $this->blobClient->downloadStreaming()->content->getContents());
     }
+
+    #[Test]
+    public function set_http_headers_works(): void
+    {
+        // Upload with initial content type
+        $this->blobClient->upload("test content", new UploadBlobOptions(httpHeaders: new BlobHttpHeaders(
+            contentType: "application/octet-stream"
+        )));
+
+        $initialProps = $this->blobClient->getProperties();
+        self::assertEquals("application/octet-stream", $initialProps->contentType);
+
+        // Change content type using setHttpHeaders
+        $this->blobClient->setHttpHeaders(new BlobHttpHeaders(
+            contentType: "text/plain",
+            cacheControl: "public, max-age=3600"
+        ));
+
+        $updatedProps = $this->blobClient->getProperties();
+        self::assertEquals("text/plain", $updatedProps->contentType);
+        self::assertEquals("public, max-age=3600", $updatedProps->cacheControl);
+    }
+
+    #[Test]
+    public function set_http_headers_after_copy_works(): void
+    {
+        // Create source blob
+        $sourceBlobClient = $this->containerClient->getBlobClient("source.txt");
+        $sourceBlobClient->upload("content to copy", new UploadBlobOptions(httpHeaders: new BlobHttpHeaders(
+            contentType: "application/octet-stream"
+        )));
+
+        // Copy to target
+        $targetBlobClient = $this->containerClient->getBlobClient("target.txt");
+        $copyResult = $targetBlobClient->syncCopyFromUri($sourceBlobClient->uri);
+
+        self::assertEquals(CopyStatus::SUCCESS, $copyResult->copyStatus);
+
+        // Verify copied content type
+        $copiedProps = $targetBlobClient->getProperties();
+        self::assertEquals("application/octet-stream", $copiedProps->contentType);
+
+        // Update properties on copied blob
+        $targetBlobClient->setHttpHeaders(new BlobHttpHeaders(
+            contentType: "image/jpeg"
+        ));
+
+        $updatedProps = $targetBlobClient->getProperties();
+        self::assertEquals("image/jpeg", $updatedProps->contentType);
+    }
+
+    #[Test]
+    public function set_http_headers_throws_if_blob_doesnt_exist(): void
+    {
+        $this->expectException(BlobNotFoundException::class);
+
+        $this->blobClient->setHttpHeaders(new BlobHttpHeaders(
+            contentType: "text/plain"
+        ));
+    }
+
+    #[Test]
+    public function set_http_headers_throws_if_container_doesnt_exist(): void
+    {
+        $this->expectException(ContainerNotFoundException::class);
+
+        $this->serviceClient->getContainerClient("noop")->getBlobClient("noop")->setHttpHeaders(
+            new BlobHttpHeaders(contentType: "text/plain")
+        );
+    }
 }
