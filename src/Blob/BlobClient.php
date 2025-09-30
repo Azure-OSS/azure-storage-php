@@ -15,6 +15,7 @@ use AzureOss\Storage\Blob\Helpers\StreamHelper;
 use AzureOss\Storage\Blob\Models\AbortCopyFromUriOptions;
 use AzureOss\Storage\Blob\Models\BlobCopyResult;
 use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
+use AzureOss\Storage\Blob\Models\BlobHttpHeaders;
 use AzureOss\Storage\Blob\Models\BlobProperties;
 use AzureOss\Storage\Blob\Models\StartCopyFromUriOptions;
 use AzureOss\Storage\Blob\Models\CommitBlockListOptions;
@@ -120,6 +121,27 @@ final class BlobClient
                 ],
                 RequestOptions::HEADERS => MetadataHelper::metadataToHeaders($metadata),
             ]);
+    }
+
+    /**
+     * Sets system properties on the blob
+     *
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/set-blob-properties
+     */
+    public function setHttpHeaders(BlobHttpHeaders $httpHeaders): void
+    {
+        $this->setHttpHeadersAsync($httpHeaders)->wait();
+    }
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/set-blob-properties
+     */
+    public function setHttpHeadersAsync(BlobHttpHeaders $httpHeaders): PromiseInterface
+    {
+        return $this->client->putAsync($this->uri, [
+            RequestOptions::QUERY => ['comp' => 'properties'],
+            RequestOptions::HEADERS => $httpHeaders->toArray(),
+        ]);
     }
 
     public function delete(): void
