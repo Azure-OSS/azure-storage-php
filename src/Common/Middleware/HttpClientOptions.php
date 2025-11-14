@@ -13,7 +13,7 @@ final class HttpClientOptions
     ) {}
 
     /**
-     * @return array{timeout?: int, connect_timeout?: int}
+     * @return array{timeout?: int, connect_timeout?: int, verify?: bool}
      */
     public function toGuzzleHttpClientConfig(): array
     {
