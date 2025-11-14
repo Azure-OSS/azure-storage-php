@@ -9,6 +9,7 @@ final class HttpClientOptions
     public function __construct(
         public readonly ?int $timeout = null,
         public readonly ?int $connectTimeout = null,
+        public readonly ?bool $verifySsl = null,
     ) {}
 
     /**
@@ -19,6 +20,7 @@ final class HttpClientOptions
         return array_filter([
             'timeout' => $this->timeout,
             'connect_timeout' => $this->connectTimeout,
+            'verify' => $this->verifySsl,
         ], fn($value) => $value !== null);
     }
 }
