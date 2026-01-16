@@ -4,6 +4,9 @@
 [![Packagist Downloads](https://img.shields.io/packagist/dm/azure-oss/storage)](https://packagist.org/packages/azure-oss/storage)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/azure-oss/azure-storage-php/tests.yml?branch=main)](https://github.com/azure-oss/azure-storage-php/actions)
 
+> [!IMPORTANT]
+> **Issues must be reported in the [monorepo issue tracker](https://github.com/Azure-OSS/azure-storage-monorepo/issues).** Please do not create issues in individual package repositories.
+
 > [!TIP]
 > If you’re working with Laravel or Flysystem, check out our dedicated drivers.
 > * [Azure Storage Laravel Adapter](https://github.com/Azure-OSS/azure-storage-php-adapter-laravel)
@@ -167,7 +170,7 @@ Do you need help, do you want to talk to us, or is there anything else?
 
 Join us at:
 
-* [Github Discussions](https://github.com/Azure-OSS/azure-storage-php/discussions)
+* [Github Discussions](https://github.com/Azure-OSS/azure-storage-monorepo/discussions)
 * [Slack](https://join.slack.com/t/azure-oss/shared_invite/zt-2lw5knpon-mqPM_LIuRZUoH02AY8uiYw)
 
 ## License
