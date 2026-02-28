@@ -18,6 +18,7 @@ use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
 use AzureOss\Storage\Blob\Models\BlobHttpHeaders;
 use AzureOss\Storage\Blob\Models\BlobProperties;
 use AzureOss\Storage\Blob\Models\CommitBlockListOptions;
+use AzureOss\Storage\Blob\Models\CopyStatus;
 use AzureOss\Storage\Blob\Models\StartCopyFromUriOptions;
 use AzureOss\Storage\Blob\Models\SyncCopyFromUriOptions;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
@@ -409,6 +410,65 @@ final class BlobClient
                     'x-ms-copy-action' => 'abort',
                 ],
             ]);
+    }
+
+    /**
+     * Waits for a pending copy operation to complete by polling the blob properties.
+     *
+     * This method polls the blob's properties at regular intervals until the copy operation
+     * reaches a terminal state (success, failed, or aborted).
+     *
+     * @param  int  $pollingIntervalMs  Interval between polling attempts in milliseconds (default: 1000ms)
+     * @param  int|null  $timeoutMs  Maximum time to wait in milliseconds (default: null for no timeout)
+     * @return BlobProperties The final blob properties after copy completion
+     *
+     * @throws \RuntimeException If copy operation fails or is aborted
+     * @throws \RuntimeException If timeout is reached before copy completes
+     */
+    public function waitForCopyCompletion(int $pollingIntervalMs = 1000, ?int $timeoutMs = null): BlobProperties
+    {
+        $startTime = microtime(true);
+
+        while (true) {
+            $properties = $this->getProperties();
+
+            // If there's no copy operation in progress, return immediately
+            if ($properties->copyStatus === null) {
+                return $properties;
+            }
+
+            // Check if copy reached a terminal state
+            switch ($properties->copyStatus) {
+                case CopyStatus::SUCCESS:
+                    return $properties;
+
+                case CopyStatus::FAILED:
+                    throw new \RuntimeException(
+                        'Blob copy operation failed'.
+                        ($properties->copyStatusDescription !== null ? ": {$properties->copyStatusDescription}" : ''),
+                    );
+
+                case CopyStatus::ABORTED:
+                    throw new \RuntimeException('Blob copy operation was aborted');
+                case CopyStatus::PENDING:
+                    // Check timeout
+                    if ($timeoutMs !== null) {
+                        $elapsedMs = (microtime(true) - $startTime) * 1000;
+                        if ($elapsedMs >= $timeoutMs) {
+                            throw new \RuntimeException(
+                                sprintf(
+                                    'Timeout waiting for blob copy to complete after %d ms',
+                                    $timeoutMs,
+                                ),
+                            );
+                        }
+                    }
+
+                    // Wait before next poll
+                    usleep($pollingIntervalMs * 1000);
+                    break;
+            }
+        }
     }
 
     public function canGenerateSasUri(): bool
