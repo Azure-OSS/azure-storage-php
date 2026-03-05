@@ -24,7 +24,6 @@
     "ext-curl": "*",
     "ext-json": "*",
     "ext-simplexml": "*",
-    "caseyamcl/guzzle_retry_middleware": "^2.10",
     "guzzlehttp/guzzle": "^7.8",
     "azure-oss/storage-common": "^1.0"
   },
