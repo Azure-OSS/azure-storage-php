@@ -46,7 +46,9 @@ final class BlobUriParserHelper
 
     public static function isDevelopmentUri(UriInterface $uri): bool
     {
-        return $uri->getPort() !== null;
+        $segments = self::getPathSegments($uri);
+
+        return ($segments[0] ?? null) === 'devstoreaccount1';
     }
 
     /**
