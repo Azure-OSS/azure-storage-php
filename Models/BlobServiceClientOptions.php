@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace AzureOss\Storage\Blob\Options;
+namespace AzureOss\Storage\Blob\Models;
 
 use AzureOss\Storage\Common\Middleware\HttpClientOptions;
 
-final class BlockBlobClientOptions
+final class BlobServiceClientOptions
 {
     public function __construct(
         public readonly HttpClientOptions $httpClientOptions = new HttpClientOptions,
