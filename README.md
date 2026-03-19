@@ -19,6 +19,12 @@ Our other packages:
 - **[azure-oss/storage-blob-laravel](https://packagist.org/packages/azure-oss/storage-blob-laravel)** – Laravel filesystem driver  
   ![Downloads](https://img.shields.io/packagist/dt/azure-oss/storage-blob-laravel)
 
+- **[azure-oss/storage-queue](https://packagist.org/packages/azure-oss/storage-queue)** – Azure Storage Queue SDK  
+  ![Downloads](https://img.shields.io/packagist/dt/azure-oss/storage-queue)
+
+- **[azure-oss/storage-queue-laravel](https://packagist.org/packages/azure-oss/storage-queue-laravel)** – Laravel Queue connector  
+  ![Downloads](https://img.shields.io/packagist/dt/azure-oss/storage-queue-laravel)
+
 ## Features
 - Authentication:
   - Connection strings (access keys)
@@ -92,4 +98,3 @@ $blob->deleteIfExists();
 ## License
 
 This project is released under the MIT License. See [LICENSE](https://github.com/Azure-OSS/azure-storage-php-monorepo/blob/02759360186be8d2d04bd1e9b2aba3839b6d39dc/LICENSE) for details.
-
