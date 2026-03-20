@@ -292,13 +292,15 @@ final class BlobClient
             ->promise()
             ->then(
                 function () use (&$blockIds, &$options, &$contextMD5) {
-                    if ($contextMD5 !== null && $options->httpHeaders->contentHash === '') {
-                        $options->httpHeaders->contentHash = hash_final($contextMD5, true);
+                    $commitHeaders = clone $options->httpHeaders;
+
+                    if ($contextMD5 !== null && $commitHeaders->contentHash === '') {
+                        $commitHeaders->contentHash = hash_final($contextMD5, true);
                     }
 
                     return $this->blockBlobClient->commitBlockListAsync(
                         $blockIds,
-                        new CommitBlockListOptions(httpHeaders: $options->httpHeaders),
+                        new CommitBlockListOptions(httpHeaders: $commitHeaders),
                     );
                 },
             );
