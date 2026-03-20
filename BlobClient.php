@@ -237,61 +237,48 @@ final class BlobClient
 
     private function uploadInSequentialBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
     {
-        $blockIds = [];
-        $contextMD5 = hash_init('md5');
+        $sequentialOptions = clone $options;
+        $sequentialOptions->maximumConcurrency = 1;
 
-        $putBlockRequestGenerator = function () use (&$content, &$options, &$blockIds, &$contextMD5): \Generator {
-            while (true) {
-                $blockContent = $content->read($options->maximumTransferSize);
-                if ($blockContent === '') {
-                    break;
-                }
-
-                $blockId = $this->getNextBlockId($blockIds);
-                $blockIds[] = $blockId;
-
-                hash_update($contextMD5, $blockContent);
-
-                yield fn () => $this->blockBlobClient->stageBlockAsync($blockId, $blockContent);
-            }
-        };
-
-        return (new Pool(
-            $this->client,
-            $putBlockRequestGenerator(),
-            ['concurrency' => 1],
-        ))
-            ->promise()
-            ->then(
-                function () use (&$blockIds, &$options, &$contextMD5) {
-                    if ($options->httpHeaders->contentHash === '') {
-                        $options->httpHeaders->contentHash = hash_final($contextMD5, true);
-                    }
-
-                    return $this->blockBlobClient->commitBlockListAsync(
-                        $blockIds,
-                        new CommitBlockListOptions(httpHeaders: $options->httpHeaders),
-                    );
-                },
-            );
+        return $this->uploadInParallelBlocksAsync($content, $sequentialOptions);
     }
 
     private function uploadInParallelBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
     {
         $blockIds = [];
+        $contextMD5 = $options->httpHeaders->contentHash === '' ? hash_init('md5') : null;
 
-        $putBlockRequestGenerator = function () use (&$content, &$options, &$blockIds): \Generator {
+        $putBlockRequestGenerator = function () use (&$content, &$options, &$blockIds, &$contextMD5): \Generator {
             while (true) {
                 $blockContent = StreamUtils::streamFor();
-                StreamUtils::copyToStream($content, $blockContent, $options->maximumTransferSize);
+                $remaining = $options->maximumTransferSize;
+
+                while ($remaining > 0 && ! $content->eof()) {
+                    $chunk = $content->read(min(8192, $remaining));
+                    if ($chunk === '') {
+                        break;
+                    }
+
+                    $remaining -= strlen($chunk);
+                    $blockContent->write($chunk);
+
+                    if ($contextMD5 !== null) {
+                        hash_update($contextMD5, $chunk);
+                    }
+                }
+
                 if ($blockContent->getSize() === 0) {
                     break;
+                }
+
+                if ($blockContent->isSeekable()) {
+                    $blockContent->rewind();
                 }
 
                 $blockId = $this->getNextBlockId($blockIds);
                 $blockIds[] = $blockId;
 
-                yield fn () => $this->blockBlobClient->stageBlock($blockId, $blockContent);
+                yield fn () => $this->blockBlobClient->stageBlockAsync($blockId, $blockContent);
             }
         };
 
@@ -304,9 +291,9 @@ final class BlobClient
         return $pool
             ->promise()
             ->then(
-                function () use (&$content, &$blockIds, &$options) {
-                    if ($options->httpHeaders->contentHash === '') {
-                        $options->httpHeaders->contentHash = StreamUtils::hash($content, 'md5', true);
+                function () use (&$blockIds, &$options, &$contextMD5) {
+                    if ($contextMD5 !== null && $options->httpHeaders->contentHash === '') {
+                        $options->httpHeaders->contentHash = hash_final($contextMD5, true);
                     }
 
                     return $this->blockBlobClient->commitBlockListAsync(
