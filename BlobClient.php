@@ -213,16 +213,14 @@ final class BlobClient
 
         $content = StreamHelper::createUploadStream($content, $options->maximumTransferSize);
 
-        if ($content->getSize() === null || ! $content->isSeekable()) {
-            return $this->uploadInSequentialBlocksAsync($content, $options);
-        } elseif ($content->getSize() > $options->initialTransferSize) {
-            return $this->uploadInParallelBlocksAsync($content, $options);
+        if ($content->getSize() === null || $content->getSize() > $options->initialTransferSize) {
+            return $this->uploadViaBlockBlobAsync($content, $options);
         } else {
-            return $this->uploadSingleAsync($content, $options);
+            return $this->uploadViaPutBlobAsync($content, $options);
         }
     }
 
-    private function uploadSingleAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
+    private function uploadViaPutBlobAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
@@ -235,15 +233,7 @@ final class BlobClient
             ]);
     }
 
-    private function uploadInSequentialBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
-    {
-        $sequentialOptions = clone $options;
-        $sequentialOptions->maximumConcurrency = 1;
-
-        return $this->uploadInParallelBlocksAsync($content, $sequentialOptions);
-    }
-
-    private function uploadInParallelBlocksAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
+    private function uploadViaBlockBlobAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
     {
         $blockIds = [];
         $contextMD5 = $options->httpHeaders->contentHash === '' ? hash_init('md5') : null;
