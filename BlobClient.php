@@ -211,37 +211,43 @@ final class BlobClient
             $options = new UploadBlobOptions;
         }
 
-        $content = StreamHelper::createUploadStream($content, $options->maximumTransferSize);
+        $content = StreamHelper::createUploadStream($content, $options->maximumTransferSize ?? 8_000_000);
+        $maximumTransferSize = $this->resolveMaximumTransferSize($content, $options);
 
         if ($content->getSize() === null || $content->getSize() > $options->initialTransferSize) {
-            return $this->uploadViaBlockBlobAsync($content, $options);
+            return $this->uploadViaBlockBlobAsync(
+                $content,
+                $options->maximumConcurrency,
+                $maximumTransferSize,
+                $options->httpHeaders,
+            );
         } else {
-            return $this->uploadViaPutBlobAsync($content, $options);
+            return $this->uploadViaPutBlobAsync($content, $options->httpHeaders);
         }
     }
 
-    private function uploadViaPutBlobAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
+    private function uploadViaPutBlobAsync(StreamInterface $content, BlobHttpHeaders $httpHeaders): PromiseInterface
     {
         return $this->client
             ->putAsync($this->uri, [
                 RequestOptions::HEADERS => array_filter([
                     'x-ms-blob-type' => 'BlockBlob',
                     'Content-Length' => $content->getSize(),
-                    ...$options->httpHeaders->toArray(),
+                    ...$httpHeaders->toArray(),
                 ], fn ($value) => $value !== null),
                 RequestOptions::BODY => $content,
             ]);
     }
 
-    private function uploadViaBlockBlobAsync(StreamInterface $content, UploadBlobOptions $options): PromiseInterface
+    private function uploadViaBlockBlobAsync(StreamInterface $content, int $maximumConcurrency, int $maximumTransferSize, BlobHttpHeaders $httpHeaders): PromiseInterface
     {
         $blockIds = [];
-        $contextMD5 = $options->httpHeaders->contentHash === '' ? hash_init('md5') : null;
+        $contextMD5 = $httpHeaders->contentHash === '' ? hash_init('md5') : null;
 
-        $putBlockRequestGenerator = function () use (&$content, &$options, &$blockIds, &$contextMD5): \Generator {
+        $putBlockRequestGenerator = function () use (&$content, &$blockIds, &$contextMD5, $maximumTransferSize): \Generator {
             while (true) {
                 $blockContent = StreamUtils::streamFor();
-                $remaining = $options->maximumTransferSize;
+                $remaining = $maximumTransferSize;
 
                 while ($remaining > 0 && ! $content->eof()) {
                     $chunk = $content->read(min(8192, $remaining));
@@ -275,14 +281,14 @@ final class BlobClient
         $pool = new Pool(
             $this->client,
             $putBlockRequestGenerator(),
-            ['concurrency' => $options->maximumConcurrency],
+            ['concurrency' => $maximumConcurrency],
         );
 
         return $pool
             ->promise()
             ->then(
-                function () use (&$blockIds, &$options, &$contextMD5) {
-                    $commitHeaders = clone $options->httpHeaders;
+                function () use (&$blockIds, $httpHeaders, &$contextMD5) {
+                    $commitHeaders = clone $httpHeaders;
 
                     if ($contextMD5 !== null && $commitHeaders->contentHash === '') {
                         $commitHeaders->contentHash = hash_final($contextMD5, true);
@@ -294,6 +300,21 @@ final class BlobClient
                     );
                 },
             );
+    }
+
+    private function resolveMaximumTransferSize(StreamInterface $content, UploadBlobOptions $options): int
+    {
+        if ($options->maximumTransferSize !== null) {
+            return $options->maximumTransferSize;
+        }
+
+        $contentLength = $content->getSize();
+
+        if ($contentLength === null) {
+            return 8_000_000;
+        }
+
+        return max(8_000_000, (int) ceil($contentLength / 50_000));
     }
 
     /**
