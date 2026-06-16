@@ -62,7 +62,7 @@ final class BlockBlobClient
                 ],
                 RequestOptions::HEADERS => [
                     'Content-MD5' => HashHelper::serializeMd5($md5),
-                    'Content-Length' => $stream->getSize(),
+                    'Content-Length' => (string) $stream->getSize(),
                 ],
                 'body' => $content,
             ]);
