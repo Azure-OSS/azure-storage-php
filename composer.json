@@ -2,33 +2,18 @@
   "name": "azure-oss/storage",
   "description": "Azure Blob Storage PHP SDK",
   "keywords": ["azure", "storage", "php", "sdk"],
-  "type": "library",
+  "type": "metapackage",
   "license": "MIT",
-  "autoload": {
-    "psr-4": {
-      "AzureOss\\Storage\\Blob\\": ""
-    },
-    "files": [
-      "aliases.php"
-    ]
-  },
   "authors": [
     {
       "name": "Brecht Vermeersch",
       "email": "brechtvermeersch@outlook.be"
-    },
-    {
-      "name": "Pim Jansen",
-      "email": "pimjansen@gmail.com"
     }
   ],
   "require": {
-    "php": "^8.1",
-    "ext-curl": "*",
-    "ext-json": "*",
-    "ext-simplexml": "*",
-    "guzzlehttp/guzzle": "^7.8",
-    "azure-oss/storage-common": "^1.0"
+    "php": "^8.2",
+    "azure-oss/storage-blob": "^2.0",
+    "azure-oss/storage-queue": "^1.0"
   },
   "config": {
     "sort-packages": true
